@@ -1,0 +1,328 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Ui/ForestTopBar.gd" id="layout"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="body"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Numbers.tres" id="numbers"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Bender.tres" id="bender"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/menu-top-mask-779a2a60.png" id="mask"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-hp-bkg-e8e92544.png" id="life"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-level-bkg-d8c91582.png" id="level"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-exp-bkg-6ed13ed8.png" id="exp_ring"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-level-up-bd9f5637.png" id="level_arrow"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/zone-1.png" id="zone"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-background.png" id="hope_background"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-capacity.png" id="hope_capacity"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-icon.png" id="hope_icon"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-marker.png" id="hope_marker"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-gold-back-0756fdb9.png" id="gold_background"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/currency-icon.png" id="gold_icon"]
+
+[node name="ForestTopBar" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("layout")
+
+[node name="TopMask" type="TextureRect" parent="."]
+modulate = Color(0, 0, 0, 1)
+anchor_right = 1.0
+offset_bottom = 161.0
+mouse_filter = 2
+texture = ExtResource("mask")
+expand_mode = 1
+
+[node name="Canvas" type="Control" parent="."]
+offset_right = 1422.2222
+offset_bottom = 64.0
+mouse_filter = 2
+
+[node name="LifeBacking" type="ColorRect" parent="Canvas"]
+offset_left = 149.5
+offset_top = 9.0
+offset_right = 325.5
+offset_bottom = 59.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.604)
+
+[node name="LifeFrame" type="TextureRect" parent="Canvas"]
+offset_left = 146.5
+offset_top = 8.0
+offset_right = 325.5
+offset_bottom = 59.0
+mouse_filter = 2
+texture = ExtResource("life")
+expand_mode = 1
+
+[node name="LifeCaption" type="Label" parent="Canvas"]
+offset_left = 176.5
+offset_top = 9.5
+offset_right = 296.5
+offset_bottom = 31.5
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("body")
+theme_override_font_sizes/font_size = 16
+text = "目标生命值"
+vertical_alignment = 1
+metadata/loc_key = "UI.STATUS.target_life"
+
+[node name="LifeValue" type="HBoxContainer" parent="Canvas"]
+offset_left = 177.5
+offset_top = 29.0
+offset_right = 287.5
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_constants/separation = 1
+
+[node name="Current" type="Label" parent="Canvas/LifeValue"]
+mouse_filter = 2
+size_flags_vertical = 8
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 25
+theme_override_colors/font_color = Color(0, 0.694, 1, 1)
+text = "10"
+vertical_alignment = 1
+
+[node name="Maximum" type="Label" parent="Canvas/LifeValue"]
+mouse_filter = 2
+size_flags_vertical = 8
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.57, 0.57, 0.57, 1)
+text = "/10"
+vertical_alignment = 1
+
+[node name="LevelBacking" type="ColorRect" parent="Canvas"]
+offset_left = 325.5
+offset_top = 9.0
+offset_right = 474.5
+offset_bottom = 59.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0.604)
+
+[node name="LevelFrame" type="TextureRect" parent="Canvas"]
+offset_left = 325.5
+offset_top = 9.0
+offset_right = 474.5
+offset_bottom = 59.0
+mouse_filter = 2
+texture = ExtResource("level")
+expand_mode = 1
+
+[node name="ExpRing" type="TextureRect" parent="Canvas"]
+offset_left = 295.0
+offset_top = 3.0
+offset_right = 356.0
+offset_bottom = 64.0
+mouse_filter = 2
+texture = ExtResource("exp_ring")
+expand_mode = 1
+
+[node name="LevelMark" type="Label" parent="Canvas"]
+offset_left = 317.5
+offset_top = 10.5
+offset_right = 333.5
+offset_bottom = 25.5
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("body")
+theme_override_font_sizes/font_size = 10
+text = "LV"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Level" type="Label" parent="Canvas"]
+offset_left = 310.5
+offset_top = 18.5
+offset_right = 340.5
+offset_bottom = 54.5
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 28
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelCaption" type="Label" parent="Canvas"]
+offset_left = 359.5
+offset_top = 9.5
+offset_right = 471.5
+offset_bottom = 31.5
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("body")
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "指挥等级"
+vertical_alignment = 1
+metadata/loc_key = "UI.TOP_BAR.command_level"
+
+[node name="Experience" type="HBoxContainer" parent="Canvas"]
+offset_left = 358.5
+offset_top = 34.0
+offset_right = 438.5
+offset_bottom = 56.0
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="Current" type="Label" parent="Canvas/Experience"]
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.753, 0, 1)
+text = "0"
+vertical_alignment = 1
+
+[node name="Maximum" type="Label" parent="Canvas/Experience"]
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 18
+text = "/10"
+vertical_alignment = 1
+
+[node name="LevelArrow" type="TextureRect" parent="Canvas"]
+offset_left = 444.5
+offset_top = 37.0
+offset_right = 469.5
+offset_bottom = 61.0
+mouse_filter = 2
+texture = ExtResource("level_arrow")
+expand_mode = 1
+
+[node name="FloorTitle" type="TextureRect" parent="Canvas"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -72.5
+offset_top = 5.0
+offset_right = 72.5
+offset_bottom = 63.0
+mouse_filter = 2
+texture = ExtResource("zone")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="HopeBackground" type="TextureRect" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -412.5
+offset_top = 21.5
+offset_right = -195.5
+offset_bottom = 48.5
+mouse_filter = 2
+texture = ExtResource("hope_background")
+expand_mode = 1
+
+[node name="HopeCapacity" type="TextureRect" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -358.0
+offset_top = 21.5
+offset_right = -298.0
+offset_bottom = 48.5
+mouse_filter = 2
+texture = ExtResource("hope_capacity")
+expand_mode = 1
+self_modulate = Color(0.514, 0.306, 0, 1)
+
+[node name="HopeIcon" type="TextureRect" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -400.5
+offset_top = 8.0
+offset_right = -368.5
+offset_bottom = 43.0
+mouse_filter = 2
+texture = ExtResource("hope_icon")
+expand_mode = 1
+
+[node name="HopeMarker" type="TextureRect" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -354.0
+offset_top = 30.5
+offset_right = -347.0
+offset_bottom = 39.5
+mouse_filter = 2
+texture = ExtResource("hope_marker")
+expand_mode = 1
+flip_h = true
+self_modulate = Color(1, 0.827, 0, 1)
+
+[node name="Hope" type="Label" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -343.0
+offset_top = 19.5
+offset_right = -301.0
+offset_bottom = 50.5
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("bender")
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(1, 0.827, 0, 1)
+text = "0"
+vertical_alignment = 1
+
+[node name="HopeLimitMarker" type="TextureRect" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -292.0
+offset_top = 30.5
+offset_right = -285.0
+offset_bottom = 39.5
+mouse_filter = 2
+texture = ExtResource("hope_marker")
+expand_mode = 1
+flip_h = true
+self_modulate = Color(0.596, 0.596, 0.596, 1)
+
+[node name="HopeLimit" type="Label" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -283.0
+offset_top = 19.5
+offset_right = -241.0
+offset_bottom = 50.5
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("bender")
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.596, 0.596, 0.596, 1)
+text = "6"
+vertical_alignment = 1
+
+[node name="GoldBackground" type="NinePatchRect" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -195.5
+offset_top = 21.5
+offset_right = -25.5
+offset_bottom = 48.5
+mouse_filter = 2
+texture = ExtResource("gold_background")
+patch_margin_left = 55
+
+[node name="GoldIcon" type="TextureRect" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -189.5
+offset_top = 7.5
+offset_right = -149.5
+offset_bottom = 42.5
+mouse_filter = 2
+texture = ExtResource("gold_icon")
+expand_mode = 1
+
+[node name="Gold" type="Label" parent="Canvas"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -143.45
+offset_top = 19.5
+offset_right = -41.55
+offset_bottom = 50.5
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("bender")
+theme_override_font_sizes/font_size = 26
+text = "14"
+clip_text = true
+horizontal_alignment = 2
+vertical_alignment = 1

@@ -1,0 +1,246 @@
+[gd_scene format=3 uid="uid://e0poi43i4ns3"]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Title.tres" id="bf_font_Title"]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Map/ForestHuntLayout.gd" id="layout"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/img_btn_enemy.png" id="enemy"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Nodes/icon_battle_normal.png" id="preview"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Details/bg_stage_name.png" id="title_band"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Details/bg_info_white.png" id="info_band"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Details/icon_info_deco.png" id="info_text"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Details/Themes/deco_color3_purple.png" id="bloom"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Details/Themes/deco_color2_purple.png" id="vine"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Details/Themes/deco_color1_purple.png" id="spots"]
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Map/ForestActionPoints.tscn" id="ap"]
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Map/ForestMoveButton.tscn" id="move"]
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+[sub_resource type="Theme" id="theme"]
+default_font = ExtResource("bf_font_Body")
+default_font_size = 18
+Button/styles/disabled = SubResource("empty")
+Button/styles/focus = SubResource("empty")
+Button/styles/hover = SubResource("empty")
+Button/styles/normal = SubResource("empty")
+Button/styles/pressed = SubResource("empty")
+Label/colors/font_color = Color(0.92, 0.92, 0.92, 1)
+
+[sub_resource type="Gradient" id="shade"]
+offsets = PackedFloat32Array(0, 0.1, 1)
+colors = PackedColorArray(0.015,0.015,0.02,0, 0.015,0.015,0.02,0.9, 0.008,0.008,0.012,0.98)
+[sub_resource type="GradientTexture2D" id="background"]
+gradient = SubResource("shade")
+width = 512
+height = 16
+
+[node name="ForestNodeDetails" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = SubResource("theme")
+script = ExtResource("layout")
+side_panel_start = 776.0
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 0
+mouse_filter = 2
+texture = SubResource("background")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Canvas" type="Control" parent="."]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+
+[node name="PanelInput" type="Control" parent="Canvas"]
+offset_left = 821.0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 0
+
+[node name="ThemeBloom" type="TextureRect" parent="Canvas"]
+offset_left = 755.0
+offset_top = 40.0
+offset_right = 1277.0
+offset_bottom = 518.0
+texture = ExtResource("bloom")
+expand_mode = 1
+mouse_filter = 2
+modulate = Color(1,1,1,0.7)
+
+[node name="ThemeVine" type="TextureRect" parent="Canvas"]
+offset_left = 1132.0
+offset_top = 278.0
+offset_right = 1265.0
+offset_bottom = 456.0
+texture = ExtResource("vine")
+expand_mode = 1
+mouse_filter = 2
+modulate = Color(1,1,1,0.22)
+
+[node name="ThemeSpots" type="TextureRect" parent="Canvas"]
+offset_left = 795.0
+offset_top = 145.0
+offset_right = 922.0
+offset_bottom = 267.0
+texture = ExtResource("spots")
+expand_mode = 1
+mouse_filter = 2
+modulate = Color(1,1,1,0.25)
+
+[node name="TitleBand" type="TextureRect" parent="Canvas"]
+offset_left = 913.0
+offset_top = 75.0
+offset_right = 1280.0
+offset_bottom = 168.0
+mouse_filter = 2
+texture = ExtResource("title_band")
+expand_mode = 1
+
+[node name="NodeIcon" type="Control" parent="Canvas"]
+unique_name_in_owner = true
+offset_left = 821.0
+offset_top = 52.0
+offset_right = 949.0
+offset_bottom = 180.0
+mouse_filter = 2
+
+[node name="EditorPreview" type="TextureRect" parent="Canvas/NodeIcon"]
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 192.0
+offset_bottom = 192.0
+mouse_filter = 2
+texture = ExtResource("preview")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NodeType" type="Label" parent="Canvas"]
+unique_name_in_owner = true
+offset_left = 953.0
+offset_top = 82.0
+offset_right = 1257.0
+offset_bottom = 108.0
+text = "BLACK_FLOW_SPIRE.MAP.BATTLE_NORMAL.type"
+theme_override_colors/font_color = Color(0.62,0.62,0.62,1)
+mouse_filter = 2
+
+[node name="NodeTitle" type="Label" parent="Canvas"]
+theme_override_fonts/font = ExtResource("bf_font_Title")
+unique_name_in_owner = true
+offset_left = 953.0
+offset_top = 109.0
+offset_right = 1260.0
+offset_bottom = 158.0
+theme_override_font_sizes/font_size = 31
+mouse_filter = 2
+autowrap_mode = 3
+
+[node name="NodeStatus" type="Label" parent="Canvas"]
+unique_name_in_owner = true
+visible = false
+offset_left = 38.0
+offset_top = 267.0
+offset_right = 495.0
+offset_bottom = 293.0
+theme_override_font_sizes/font_size = 16
+mouse_filter = 2
+
+[node name="InfoBand" type="TextureRect" parent="Canvas"]
+offset_left = 870.0
+offset_top = 183.0
+offset_right = 933.0
+offset_bottom = 195.0
+texture = ExtResource("info_band")
+expand_mode = 1
+modulate = Color(0.419608,0.298039,0.533333,1)
+mouse_filter = 2
+
+[node name="Decoration" type="TextureRect" parent="Canvas/InfoBand"]
+offset_left = 4.0
+offset_top = 2.0
+offset_right = 26.0
+offset_bottom = 10.0
+texture = ExtResource("info_text")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="NodeDescription" type="Label" parent="Canvas"]
+unique_name_in_owner = true
+offset_left = 870.0
+offset_top = 208.0
+offset_right = 1248.0
+offset_bottom = 305.0
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 17
+mouse_filter = 2
+
+[node name="NodeRules" type="Label" parent="Canvas"]
+unique_name_in_owner = true
+visible = false
+offset_left = 870.0
+offset_top = 248.0
+offset_right = 1248.0
+offset_bottom = 268.0
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.72, 0.74, 0.74, 1)
+mouse_filter = 2
+
+[node name="EnemyIntelligence" type="Button" parent="Canvas"]
+unique_name_in_owner = true
+offset_left = 870.0
+offset_top = 320.0
+offset_right = 1023.0
+offset_bottom = 421.0
+
+[node name="Image" type="TextureRect" parent="Canvas/EnemyIntelligence"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("enemy")
+expand_mode = 1
+stretch_mode = 0
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="Canvas/EnemyIntelligence"]
+offset_left = 9.0
+offset_top = 8.0
+offset_right = 146.0
+offset_bottom = 49.0
+text = "BLACK_FLOW_SPIRE.UI.ENEMY_INTEL.title"
+metadata/loc_key = "UI.ENEMY_INTEL.title"
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="ActionPointsWidget" parent="." instance=ExtResource("ap")]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -248.0
+offset_top = -6.0
+offset_right = -24.0
+offset_bottom = 142.0
+
+[node name="MoveToSelectedNode" parent="." instance=ExtResource("move")]
+unique_name_in_owner = true
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -365.0
+offset_top = -242.0
+offset_right = -53.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 0

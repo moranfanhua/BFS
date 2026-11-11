@@ -1,0 +1,28 @@
+[gd_scene load_steps=7 format=3]
+[ext_resource type="ArrayMesh" path="res://BlackFlowSpire/Materials/Map/Movement/portal_ring.tres" id="ring"]
+[ext_resource type="ArrayMesh" path="res://BlackFlowSpire/Materials/Map/Movement/portal_wave.tres" id="wave"]
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/btn_bg_disturb_red.tres" id="base"]
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/m_drive_glow02_hunted.tres" id="glow"]
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/rl06_node_effect_polar_portal_wave_hunted.tres" id="wind"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/red__2232062323848490366.png" id="core"]
+[node name="ForestHuntVfx" type="Node2D"]
+[node name="DisturbedRing" type="MeshInstance2D" parent="."]
+position = Vector2(-2.6,-0.1)
+scale = Vector2(150,150)
+mesh = ExtResource("ring")
+material = ExtResource("base")
+[node name="LowerGlow" type="MeshInstance2D" parent="."]
+position = Vector2(-5.2,91.8)
+scale = Vector2(112.5,112.5)
+modulate = Color(0.32,0.30,0.29,0.6)
+mesh = ExtResource("ring")
+material = ExtResource("glow")
+[node name="PolarWave" type="MeshInstance2D" parent="."]
+scale = Vector2(68.295,68.295)
+modulate = Color(0.5,0.48,0.46,0.8)
+mesh = ExtResource("wave")
+material = ExtResource("wind")
+[node name="Core" type="Sprite2D" parent="."]
+texture = ExtResource("core")
+scale = Vector2(0.95,0.95)
+modulate = Color(0.6,0.45,0.45,1)

@@ -1,0 +1,200 @@
+{
+  "name": "rl06_zone_focus_hide",
+  "sample_rate": 60.0,
+  "legacy": true,
+  "compressed": false,
+  "wrap_mode": 0,
+  "first_key_time": 0.0,
+  "last_key_time": 0.3333333432674408,
+  "track_count": 3,
+  "key_count": 6,
+  "tracks": [
+    {
+      "kind": "m_ScaleCurves",
+      "path": "variant_normal",
+      "attribute": "m_ScaleCurves",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "inSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "outSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "weightedMode": 0,
+          "inWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          },
+          "outWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          }
+        },
+        {
+          "time": 0.3333333432674408,
+          "value": {
+            "x": 1.0439393520355225,
+            "y": 1.0439393520355225,
+            "z": 1.0439393520355225
+          },
+          "inSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "outSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "weightedMode": 0,
+          "inWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          },
+          "outWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          }
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    },
+    {
+      "kind": "m_ScaleCurves",
+      "path": "variant_empty",
+      "attribute": "m_ScaleCurves",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "inSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "outSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "weightedMode": 0,
+          "inWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          },
+          "outWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          }
+        },
+        {
+          "time": 0.3333333432674408,
+          "value": {
+            "x": 1.0439393520355225,
+            "y": 1.0439393520355225,
+            "z": 1.0439393520355225
+          },
+          "inSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "outSlope": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "weightedMode": 0,
+          "inWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          },
+          "outWeight": {
+            "x": 0.3333333432674408,
+            "y": 0.3333333432674408,
+            "z": 0.3333333432674408
+          }
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    },
+    {
+      "kind": "m_FloatCurves",
+      "path": "",
+      "attribute": "m_Alpha",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": 1.0,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.3333333432674408,
+          "value": 0.0,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    }
+  ],
+  "events": [
+    {
+      "time": 0.0,
+      "functionName": "_OnAnimStart",
+      "data": "rl06_zone_focus_hide",
+      "objectReferenceParameter": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "floatParameter": 0.0,
+      "intParameter": 0,
+      "messageOptions": 0
+    },
+    {
+      "time": 0.3333333432674408,
+      "functionName": "_OnAnimEnd",
+      "data": "rl06_zone_focus_hide",
+      "objectReferenceParameter": {
+        "m_FileID": 0,
+        "m_PathID": 0
+      },
+      "floatParameter": 0.0,
+      "intParameter": 0,
+      "messageOptions": 0
+    }
+  ]
+}

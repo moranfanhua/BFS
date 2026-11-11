@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" format=3]
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_exit_sheet.gdshader" id="shader"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/sheet_wolf__-5144429702535125645.png" id="texture"]
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("shader")
+shader_parameter/sheet_texture = ExtResource("texture")
+shader_parameter/grid = Vector2(4, 4)
+shader_parameter/control_color = Color(1, 1, 1, 1)

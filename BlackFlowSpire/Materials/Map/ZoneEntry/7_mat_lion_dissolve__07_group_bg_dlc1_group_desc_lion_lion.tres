@@ -1,0 +1,31 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_hunt_sprite_mix.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/ZoneEntry/uifx_dissolve_4__1886454515964836176.png" id="2"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/ZoneEntry/uifx_dissolve_4__1886454515964836176.png" id="3"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1")
+shader_parameter/dissolve_one_texture = ExtResource("2")
+shader_parameter/has_dissolve_one = true
+shader_parameter/dissolve_one_st = Vector4(0.36000001430511475, 0.30000001192092896, 1.100000023841858, 0.0)
+shader_parameter/dissolve_two_texture = ExtResource("3")
+shader_parameter/has_dissolve_two = true
+shader_parameter/dissolve_two_st = Vector4(0.5, 0.5, 0.8100000023841858, 0.550000011920929)
+shader_parameter/base_speed = Vector2(0, 0)
+shader_parameter/distortion_speed = Vector2(0, 0)
+shader_parameter/distortion_strength = Vector2(0, 0)
+shader_parameter/dissolve_threshold = Vector2(-1, -1)
+shader_parameter/dissolve_smoothness = Vector2(0.122, 0.213)
+shader_parameter/dissolve_invert = Vector2(0, 1)
+shader_parameter/dissolve_distort = Vector2(0, 0)
+shader_parameter/distortion_signed = false
+shader_parameter/base_red_channel = false
+shader_parameter/clamp_v = false
+shader_parameter/mask_invert = false
+shader_parameter/dissolve_speed = Vector4(0.0, 0.0, 0.0, 0.0)
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/intensity = 1.0
+shader_parameter/control_color = Color(1, 0, 0, 1)
+shader_parameter/controls_as_parameters = true

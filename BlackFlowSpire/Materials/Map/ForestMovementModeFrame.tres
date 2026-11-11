@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_movement_mode_frame.gdshader" id="flow"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_common_flow_01.png" id="first"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_common_flow_02.png" id="second"]
+
+[resource]
+shader = ExtResource("flow")
+shader_parameter/first_flow = ExtResource("first")
+shader_parameter/second_flow = ExtResource("second")

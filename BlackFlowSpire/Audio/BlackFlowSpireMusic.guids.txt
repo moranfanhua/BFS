@@ -1,0 +1,7 @@
+{8108344d-857c-4984-b6e5-5074558d072d} event:/BlackFlowSpire/battle_one
+{b86c60dc-37af-4c8f-b3bc-2bba36447ec9} event:/BlackFlowSpire/battle_two
+{36e2c930-f942-48dc-87be-3378f289506e} event:/BlackFlowSpire/boss
+{b3b53f5e-e92f-4879-8c6b-e57a30d01dbc} event:/BlackFlowSpire/map_high
+{2530aadc-be11-4ebd-8413-b5c149813ea2} event:/BlackFlowSpire/map_low
+{bf57d88f-2189-4bac-b493-896c5ba6f7f0} event:/BlackFlowSpire/special_trader
+{dd69897a-ef94-4668-ae2c-5bd1f10e10b2} event:/BlackFlowSpire/trader

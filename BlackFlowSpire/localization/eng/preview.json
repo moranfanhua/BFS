@@ -1,0 +1,8 @@
+{
+  "BLACK_FLOW_SPIRE.PREVIEW.title.revealed": "BlackFlowSpire · Revealed Preview",
+  "BLACK_FLOW_SPIRE.PREVIEW.title.fog": "BlackFlowSpire · Fog Preview",
+  "BLACK_FLOW_SPIRE.PREVIEW.summary": "Seed {Seed} · Act {Act} · {Count} nodes · {Amount} initial action points",
+  "BLACK_FLOW_SPIRE.PREVIEW.reveal": "Position {Position} / Reveal within {Steps} road steps / Reveals persist / Boss always visible",
+  "BLACK_FLOW_SPIRE.PREVIEW.current_start": "Start · Current location",
+  "BLACK_FLOW_SPIRE.PREVIEW.footer": "Developer preview · Empty rooms are passable; missing nodes are not roads."
+}

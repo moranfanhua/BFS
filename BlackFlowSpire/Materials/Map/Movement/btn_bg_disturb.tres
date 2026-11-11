@@ -1,0 +1,39 @@
+[gd_resource type="ShaderMaterial" load_steps=5 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_ui_fx_mix.gdshader" id="1_22yp8"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/polar.png" id="2_ee6kx"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_fx_flow_02.png" id="3_cc5if"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_common_flow_01.png" id="4_3t5m8"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_22yp8")
+shader_parameter/base_texture = ExtResource("2_ee6kx")
+shader_parameter/distortion_texture = ExtResource("4_3t5m8")
+shader_parameter/dissolve_one_texture = ExtResource("3_cc5if")
+shader_parameter/has_base = true
+shader_parameter/has_distortion = true
+shader_parameter/has_dissolve_one = true
+shader_parameter/has_dissolve_two = null
+shader_parameter/has_mask = null
+shader_parameter/base_st = Vector4(1, 1, 0, 0)
+shader_parameter/distortion_st = Vector4(1, 4, 0, 0)
+shader_parameter/dissolve_one_st = Vector4(3, 7, 0, 0)
+shader_parameter/dissolve_two_st = null
+shader_parameter/mask_st = null
+shader_parameter/base_speed = Vector2(0, 0)
+shader_parameter/distortion_speed = Vector2(0.05, -0.15)
+shader_parameter/distortion_strength = Vector2(0, 0.02)
+shader_parameter/dissolve_speed = Vector4(-0.1, -0.2, 0, 0)
+shader_parameter/dissolve_threshold = Vector2(-0.33, 0)
+shader_parameter/dissolve_smoothness = Vector2(0.747, 0.3)
+shader_parameter/dissolve_invert = Vector2(0, 0)
+shader_parameter/dissolve_distort = Vector2(1, 0)
+shader_parameter/distortion_signed = true
+shader_parameter/base_red_channel = false
+shader_parameter/clamp_v = false
+shader_parameter/mask_invert = false
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/intensity = 1.0
+shader_parameter/animate = null
+shader_parameter/preview_time = null

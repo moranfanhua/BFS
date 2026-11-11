@@ -1,0 +1,13 @@
+{
+  "BLACK_FLOW_SPIRE.UI.MODE.title": "Blackflow Spire",
+  "BLACK_FLOW_SPIRE.UI.MODE.description": "Blackflow has seeped into the Spire. Consider each step with care.",
+  "BLACK_FLOW_SPIRE.UI.TOP_BAR.command_level": "Command Lv.",
+  "BLACK_FLOW_SPIRE.UI.CLOSE": "Close",
+  "BLACK_FLOW_SPIRE.UI.SPEED.player": "You",
+  "BLACK_FLOW_SPIRE.UI.SPEED.enemy": "Foes",
+  "BLACK_FLOW_SPIRE.UI.SPEED.end_turn_description": "Press this button to end your turn.\n\nYou discard your hand, then proceed to the next turn.\n\nNext turn: [gold]{Side}[/gold]",
+  "BLACK_FLOW_SPIRE.UI.TEAM.lobby": "BlackFlowSpire (Co-op)",
+  "BLACK_FLOW_SPIRE.UI.TEAM.follow": "Waiting for the host to choose the route",
+  "BLACK_FLOW_SPIRE.UI.TEAM.wait": "Waiting for teammates to finish this node",
+  "BLACK_FLOW_SPIRE.UI.TEAM.shop": "The host manages shared stock"
+}

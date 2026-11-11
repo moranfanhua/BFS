@@ -1,0 +1,190 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Numbers.tres" id="bf_font_Numbers"]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Shop/ForestShopLayout.gd" id="layout"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/shop-background.png" id="background"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-list.png" id="list"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-confirm.png" id="confirm"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-cancel.png" id="cancel"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-reset.png" id="reset"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-gain.png" id="gain"]
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+[sub_resource type="Theme" id="theme"]
+default_font = ExtResource("bf_font_Body")
+default_font_size = 20
+Button/styles/normal = SubResource("empty")
+Button/styles/hover = SubResource("empty")
+Button/styles/pressed = SubResource("empty")
+Button/styles/disabled = SubResource("empty")
+Button/styles/focus = SubResource("empty")
+Label/colors/font_color = Color(1,1,1,1)
+
+[node name="Root" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("theme")
+script = ExtResource("layout")
+clip_contents = true
+
+[node name="Canvas" type="Control" parent="."]
+offset_right = 1422.2222
+offset_bottom = 800
+mouse_filter = 2
+
+[node name="Background" type="TextureRect" parent="Canvas"]
+offset_right = 1422.2222
+offset_bottom = 800
+texture = ExtResource("background")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Goods" type="ScrollContainer" parent="Canvas"]
+offset_left = 20
+offset_top = 100
+offset_right = 972
+offset_bottom = 694
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Padding" type="MarginContainer" parent="Canvas/Goods"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Items" type="GridContainer" parent="Canvas/Goods/Padding"]
+layout_mode = 2
+columns = 4
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 16
+
+[node name="Panel" type="TextureRect" parent="Canvas"]
+offset_left = 995.2222
+offset_top = 88
+offset_right = 1422.2222
+offset_bottom = 800
+texture = ExtResource("list")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Canvas/Panel"]
+offset_left = 1
+offset_top = 12
+offset_right = 426
+offset_bottom = 585
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Items" type="VBoxContainer" parent="Canvas/Panel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="Empty" type="Label" parent="Canvas/Panel"]
+offset_left = 18
+offset_top = 280
+offset_right = 409
+offset_bottom = 340
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.48,0.48,0.48,1)
+metadata/loc_key = "UI.SHOP.batch_empty"
+mouse_filter = 2
+
+[node name="Cancel" type="Button" parent="Canvas/Panel"]
+offset_left = 18
+offset_top = 641
+offset_right = 151
+offset_bottom = 697
+mouse_default_cursor_shape = 2
+
+[node name="Image" type="TextureRect" parent="Canvas/Panel/Cancel"]
+offset_right = 133
+offset_bottom = 56
+texture = ExtResource("cancel")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Panel/Cancel"]
+offset_right = 133
+offset_bottom = 56
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/loc_key = "UI.SHOP.cancel_sale"
+mouse_filter = 2
+
+[node name="Confirm" type="Button" parent="Canvas/Panel"]
+offset_left = 164
+offset_top = 641
+offset_right = 410
+offset_bottom = 697
+mouse_default_cursor_shape = 2
+
+[node name="Image" type="TextureRect" parent="Canvas/Panel/Confirm"]
+offset_right = 246
+offset_bottom = 56
+texture = ExtResource("confirm")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Content" type="HBoxContainer" parent="Canvas/Panel/Confirm"]
+offset_left = 12
+offset_top = 4
+offset_right = 234
+offset_bottom = 52
+theme_override_constants/separation = 5
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="Canvas/Panel/Confirm/Content"]
+custom_minimum_size = Vector2(32,24)
+layout_mode = 2
+texture = ExtResource("gain")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Total" type="Label" parent="Canvas/Panel/Confirm/Content"]
+theme_override_fonts/font = ExtResource("bf_font_Numbers")
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+vertical_alignment = 1
+text = "0"
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Panel/Confirm/Content"]
+layout_mode = 2
+vertical_alignment = 1
+metadata/loc_key = "UI.SHOP.confirm_sale"
+mouse_filter = 2
+
+[node name="Reset" type="Button" parent="Canvas"]
+offset_left = 830
+offset_top = 714
+offset_right = 973
+offset_bottom = 783
+mouse_default_cursor_shape = 2
+
+[node name="Image" type="TextureRect" parent="Canvas/Reset"]
+offset_right = 143
+offset_bottom = 69
+texture = ExtResource("reset")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Reset"]
+offset_left = 65.4
+offset_top = 14
+offset_right = 132
+offset_bottom = 52
+vertical_alignment = 1
+metadata/loc_key = "UI.SHOP.reset_sale"
+mouse_filter = 2

@@ -1,0 +1,40 @@
+[gd_resource type="ShaderMaterial" load_steps=5 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_ui_fx_mix.gdshader" id="1_vqbjj"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_disturb_01.png" id="2_8bpxs"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_basicmask_07.png" id="3_arc5q"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_common_BasicGlow_01.png" id="4_lpjxu"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_vqbjj")
+shader_parameter/distortion_texture = ExtResource("2_8bpxs")
+shader_parameter/dissolve_one_texture = ExtResource("2_8bpxs")
+shader_parameter/dissolve_two_texture = ExtResource("3_arc5q")
+shader_parameter/mask_texture = ExtResource("4_lpjxu")
+shader_parameter/has_base = null
+shader_parameter/has_distortion = true
+shader_parameter/has_dissolve_one = true
+shader_parameter/has_dissolve_two = true
+shader_parameter/has_mask = true
+shader_parameter/base_st = null
+shader_parameter/distortion_st = Vector4(2, 1, 0, 0)
+shader_parameter/dissolve_one_st = Vector4(1, 1.25, 0, 0)
+shader_parameter/dissolve_two_st = Vector4(1.5, 1, 0, 0.1)
+shader_parameter/mask_st = Vector4(1, 0, 0, 0)
+shader_parameter/base_speed = Vector2(0, 0)
+shader_parameter/distortion_speed = Vector2(0.1, 0.12)
+shader_parameter/distortion_strength = Vector2(0.2, 0.2)
+shader_parameter/dissolve_speed = Vector4(-0.025, -0.3, 0, 0)
+shader_parameter/dissolve_threshold = Vector2(-0.279, 0.588)
+shader_parameter/dissolve_smoothness = Vector2(1, 1)
+shader_parameter/dissolve_invert = Vector2(0, 0)
+shader_parameter/dissolve_distort = Vector2(1, 0)
+shader_parameter/distortion_signed = true
+shader_parameter/base_red_channel = false
+shader_parameter/clamp_v = false
+shader_parameter/mask_invert = true
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/intensity = 1.15
+shader_parameter/animate = null
+shader_parameter/preview_time = null

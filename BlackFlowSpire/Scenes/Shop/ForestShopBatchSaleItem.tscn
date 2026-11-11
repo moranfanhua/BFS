@@ -1,0 +1,123 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Numbers.tres" id="bf_font_Numbers"]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Shop/ForestShopBatchSaleItem.gd" id="script"]
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Shop/ForestShopPartIcon.tscn" id="icon"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-price.png" id="price"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-gain.png" id="gain"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-remove.png" id="remove"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/batch-divider.png" id="line"]
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[node name="BatchSaleItem" type="Control"]
+custom_minimum_size = Vector2(0,145)
+offset_right = 425
+offset_bottom = 145
+size_flags_horizontal = 3
+mouse_filter = 2
+script = ExtResource("script")
+
+[node name="Icon" parent="." instance=ExtResource("icon")]
+offset_left = 18
+offset_top = -3
+offset_right = 178
+offset_bottom = 157
+scale = Vector2(0.82,0.82)
+
+[node name="Price" type="NinePatchRect" parent="."]
+offset_left = 39.2
+offset_top = 102
+offset_right = 137.1
+offset_bottom = 134
+texture = ExtResource("price")
+patch_margin_left = 18
+patch_margin_right = 18
+mouse_filter = 2
+
+[node name="Gain" type="TextureRect" parent="Price"]
+offset_left = 9.7
+offset_top = 5
+offset_right = 40.1
+offset_bottom = 27
+texture = ExtResource("gain")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Value" type="Label" parent="Price"]
+theme_override_fonts/font = ExtResource("bf_font_Numbers")
+offset_left = 45
+offset_top = -1
+offset_right = 85
+offset_bottom = 31
+theme_override_font_sizes/font_size = 21
+horizontal_alignment = 2
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+theme_override_fonts/font = ExtResource("bf_font_Body")
+offset_left = 156.7
+offset_top = 20
+offset_right = 329
+offset_bottom = 54
+theme_override_font_sizes/font_size = 20
+vertical_alignment = 1
+text_overrun_behavior = 3
+mouse_filter = 2
+
+[node name="Description" type="RichTextLabel" parent="."]
+theme_override_fonts/mono_font = ExtResource("bf_font_Body")
+theme_override_fonts/bold_italics_font = ExtResource("bf_font_Body")
+theme_override_fonts/italics_font = ExtResource("bf_font_Body")
+theme_override_fonts/bold_font = ExtResource("bf_font_Body")
+theme_override_fonts/normal_font = ExtResource("bf_font_Body")
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 157.6
+offset_top = 62
+offset_right = -28
+offset_bottom = -14
+theme_override_font_sizes/normal_font_size = 17
+theme_override_colors/default_color = Color(0.6,0.6,0.6,1)
+bbcode_enabled = true
+scroll_active = false
+mouse_filter = 2
+
+[node name="Remove" type="Button" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -75
+offset_top = 15
+offset_right = -28
+offset_bottom = 53
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("empty")
+theme_override_styles/hover = SubResource("empty")
+theme_override_styles/pressed = SubResource("empty")
+theme_override_styles/disabled = SubResource("empty")
+theme_override_styles/focus = SubResource("empty")
+
+[node name="Image" type="TextureRect" parent="Remove"]
+offset_left = -8.5
+offset_top = -15
+offset_right = 55.5
+offset_bottom = 53
+texture = ExtResource("remove")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Divider" type="TextureRect" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -5
+offset_bottom = 13
+texture = ExtResource("line")
+expand_mode = 1
+mouse_filter = 2

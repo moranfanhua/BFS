@@ -1,0 +1,13 @@
+{
+  "BLACK_FLOW_SPIRE.UI.MODE.title": "黑流尖塔",
+  "BLACK_FLOW_SPIRE.UI.MODE.description": "黑流侵染了高塔，你需要更审慎的思考你的每一步。",
+  "BLACK_FLOW_SPIRE.UI.TOP_BAR.command_level": "指挥等级",
+  "BLACK_FLOW_SPIRE.UI.CLOSE": "关闭",
+  "BLACK_FLOW_SPIRE.UI.SPEED.player": "我方",
+  "BLACK_FLOW_SPIRE.UI.SPEED.enemy": "敌方",
+  "BLACK_FLOW_SPIRE.UI.SPEED.end_turn_description": "按下这个按钮将会结束你的回合。\n\n你会丢弃你的手牌，然后进行下一个回合。\n\n下一回合：[gold]{Side}[/gold]",
+  "BLACK_FLOW_SPIRE.UI.TEAM.lobby": "黑流尖塔（联机）",
+  "BLACK_FLOW_SPIRE.UI.TEAM.follow": "等待房主选择路线",
+  "BLACK_FLOW_SPIRE.UI.TEAM.wait": "等待队友完成当前节点",
+  "BLACK_FLOW_SPIRE.UI.TEAM.shop": "共享货物由房主操作"
+}

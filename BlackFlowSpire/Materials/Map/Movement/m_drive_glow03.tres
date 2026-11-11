@@ -1,0 +1,41 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_ui_fx_add.gdshader" id="1_yausd"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_basicmask_06.png" id="2_vqkur"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/uifx_dissolve_3.png" id="3_qgo4l"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_disturb_01.png" id="4_jn26r"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_circle.png" id="5_w2byh"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_yausd")
+shader_parameter/distortion_texture = ExtResource("4_jn26r")
+shader_parameter/dissolve_one_texture = ExtResource("2_vqkur")
+shader_parameter/dissolve_two_texture = ExtResource("3_qgo4l")
+shader_parameter/mask_texture = ExtResource("5_w2byh")
+shader_parameter/has_base = null
+shader_parameter/has_distortion = true
+shader_parameter/has_dissolve_one = true
+shader_parameter/has_dissolve_two = true
+shader_parameter/has_mask = true
+shader_parameter/base_st = null
+shader_parameter/distortion_st = Vector4(0.5, 0.5, 0, 0)
+shader_parameter/dissolve_one_st = Vector4(1, 1, 0, 0)
+shader_parameter/dissolve_two_st = Vector4(8, 8, 0, 0)
+shader_parameter/mask_st = Vector4(2, 2, -0.5, -0.53)
+shader_parameter/base_speed = Vector2(-0.3, -0.2)
+shader_parameter/distortion_speed = Vector2(-0.25, -0.2)
+shader_parameter/distortion_strength = Vector2(0.2, 0.2)
+shader_parameter/dissolve_speed = Vector4(0, 0, 0.1, 0.1)
+shader_parameter/dissolve_threshold = Vector2(-0.05, -0.017)
+shader_parameter/dissolve_smoothness = Vector2(1, 0.632)
+shader_parameter/dissolve_invert = Vector2(1, 0)
+shader_parameter/dissolve_distort = Vector2(0, 0)
+shader_parameter/distortion_signed = true
+shader_parameter/base_red_channel = true
+shader_parameter/clamp_v = false
+shader_parameter/mask_invert = true
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/intensity = 1.0
+shader_parameter/animate = null
+shader_parameter/preview_time = null

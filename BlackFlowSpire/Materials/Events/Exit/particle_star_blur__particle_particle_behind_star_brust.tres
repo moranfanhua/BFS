@@ -1,0 +1,23 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_hunt_sprite_mix.gdshader" id="1"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1")
+shader_parameter/base_speed = Vector2(0, 0)
+shader_parameter/distortion_speed = Vector2(0, 0)
+shader_parameter/distortion_strength = Vector2(0, 0)
+shader_parameter/dissolve_threshold = Vector2(0, 0)
+shader_parameter/dissolve_smoothness = Vector2(0.3, 0.3)
+shader_parameter/dissolve_invert = Vector2(0, 0)
+shader_parameter/dissolve_distort = Vector2(0, 0)
+shader_parameter/distortion_signed = false
+shader_parameter/base_red_channel = false
+shader_parameter/clamp_v = false
+shader_parameter/mask_invert = false
+shader_parameter/dissolve_speed = Vector4(0, 0, 0, 0)
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/intensity = 1
+shader_parameter/control_color = Color(0.10106798, 0.32075471, 0.19918048, 0.13725491)
+shader_parameter/controls_as_parameters = false

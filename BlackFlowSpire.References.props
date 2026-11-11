@@ -1,0 +1,28 @@
+<Project>
+  <PropertyGroup>
+    <BlackFlowSpireDependencyRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'dll'))</BlackFlowSpireDependencyRoot>
+    <RitsuLibReferenceTarget Condition="'$(RitsuLibReferenceTarget)' == ''">0.111.0</RitsuLibReferenceTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="sts2" HintPath="$(BlackFlowSpireDependencyRoot)sts2.dll" Private="False" />
+    <!-- Godot.NET.Sdk supplies the pinned 4.5.1 API; offline native tests use the game's local DLL. -->
+    <Reference Include="GodotSharp" HintPath="$(BlackFlowSpireDependencyRoot)GodotSharp.dll" Private="False" Condition="'$(UsingGodotNETSdk)' != 'true'" />
+    <Reference Include="0Harmony" HintPath="$(BlackFlowSpireDependencyRoot)0Harmony.dll" Private="False" />
+  </ItemGroup>
+
+  <!-- The package root DLL is a loader. Import the five public module references. -->
+  <Import Project="$(BlackFlowSpireDependencyRoot)STS2-RitsuLib/RitsuLib.References.props" />
+
+  <Target Name="ValidateBlackFlowSpireDependencyReferences"
+          BeforeTargets="ResolveAssemblyReferences"
+          DependsOnTargets="ValidateRitsuLibDirectoryReferences">
+    <ItemGroup>
+      <BlackFlowSpireRequiredNativeReference Include="$(BlackFlowSpireDependencyRoot)sts2.dll;$(BlackFlowSpireDependencyRoot)GodotSharp.dll;$(BlackFlowSpireDependencyRoot)0Harmony.dll" />
+    </ItemGroup>
+    <Error Condition="!Exists('%(BlackFlowSpireRequiredNativeReference.Identity)')"
+           Text="Missing game reference assembly: %(BlackFlowSpireRequiredNativeReference.Identity)." />
+    <Message Importance="High"
+             Text="BlackFlowSpire dependency references validated (RitsuLib game API $(RitsuLibReferenceTarget))." />
+  </Target>
+</Project>

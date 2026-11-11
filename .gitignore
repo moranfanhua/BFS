@@ -1,0 +1,13 @@
+**/bin/
+**/obj/
+artifacts/
+.vs/
+.godot/
+tools/
+tests/
+docs/
+dll/
+dllsrc/
+*.md
+!README.md
+*.ps1

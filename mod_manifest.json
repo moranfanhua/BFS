@@ -1,0 +1,15 @@
+{
+  "id": "BlackFlowSpire",
+  "pck_name": "BlackFlowSpire",
+  "name": "BlackFlowSpire",
+  "author": "Moran",
+  "description": "",
+  "version": "0.7.11",
+  "has_pck": true,
+  "has_dll": true,
+  "affects_gameplay": true,
+  "min_game_version": "0.111.0",
+  "dependencies": [
+    { "id": "STS2-RitsuLib", "min_version": "0.6.10" }
+  ]
+}

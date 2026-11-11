@@ -1,0 +1,8 @@
+{
+  "BLACK_FLOW_SPIRE.PREVIEW.title.revealed": "BlackFlowSpire · 真实内容预览",
+  "BLACK_FLOW_SPIRE.PREVIEW.title.fog": "BlackFlowSpire · 迷雾分类预览",
+  "BLACK_FLOW_SPIRE.PREVIEW.summary": "种子 {Seed} · 第 {Act} 幕 · {Count} 个节点 · 初始行动力 {Amount}",
+  "BLACK_FLOW_SPIRE.PREVIEW.reveal": "当前位置 {Position} / BFS 道路 {Steps} 步内揭露 / 已揭露保留 / Boss 始终可见",
+  "BLACK_FLOW_SPIRE.PREVIEW.current_start": "起点 · 当前位置",
+  "BLACK_FLOW_SPIRE.PREVIEW.footer": "开发预览 · 图中空节点可通行；没有节点的格子不属于道路。"
+}

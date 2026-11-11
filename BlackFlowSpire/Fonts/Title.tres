@@ -1,0 +1,9 @@
+[gd_resource type="FontVariation" load_steps=3 format=3]
+
+[ext_resource type="FontFile" path="res://BlackFlowSpire/Fonts/SourceHanSansCN-Bold.otf" id="source"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="fallback"]
+
+[resource]
+resource_name = "BlackFlow Title"
+base_font = ExtResource("source")
+fallbacks = Array[Font]([ExtResource("fallback")])

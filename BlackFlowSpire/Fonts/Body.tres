@@ -1,0 +1,7 @@
+[gd_resource type="FontVariation" load_steps=2 format=3]
+
+[ext_resource type="FontFile" path="res://BlackFlowSpire/Fonts/NotoSansHans-Medium.otf" id="source"]
+
+[resource]
+resource_name = "BlackFlow Body"
+base_font = ExtResource("source")

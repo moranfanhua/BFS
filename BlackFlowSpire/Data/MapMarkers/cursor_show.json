@@ -1,0 +1,239 @@
+{
+  "name": "rl06_zone_cursor_show",
+  "sample_rate": 60.0,
+  "legacy": true,
+  "compressed": false,
+  "wrap_mode": 0,
+  "first_key_time": 0.0,
+  "last_key_time": 1.5,
+  "track_count": 6,
+  "key_count": 19,
+  "tracks": [
+    {
+      "kind": "m_FloatCurves",
+      "path": "",
+      "attribute": "m_Alpha",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": 0.0,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.8333333134651184,
+          "value": 1.0,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    },
+    {
+      "kind": "m_FloatCurves",
+      "path": "panel_cursor/anchor",
+      "attribute": "m_SizeDelta.x",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": 289.9100036621094,
+          "inSlope": -306.8125305175781,
+          "outSlope": -306.8125305175781,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.30000001192092896,
+          "value": 197.86624145507812,
+          "inSlope": -131.19744873046875,
+          "outSlope": -131.19744873046875,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.6666666865348816,
+          "value": 176.0,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    },
+    {
+      "kind": "m_FloatCurves",
+      "path": "panel_cursor/anchor",
+      "attribute": "m_SizeDelta.y",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": 289.9100036621094,
+          "inSlope": -306.8125305175781,
+          "outSlope": -306.8125305175781,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.30000001192092896,
+          "value": 197.86624145507812,
+          "inSlope": -131.19744873046875,
+          "outSlope": -131.19744873046875,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.6666666865348816,
+          "value": 176.0,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    },
+    {
+      "kind": "m_FloatCurves",
+      "path": "panel_cursor/person_ctrl",
+      "attribute": "m_AnchoredPosition.y",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": 44.29999923706055,
+          "inSlope": -173.5510711669922,
+          "outSlope": -173.5510711669922,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.1666666716337204,
+          "value": 15.374820709228516,
+          "inSlope": -88.0420150756836,
+          "outSlope": -88.0420150756836,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.4833333194255829,
+          "value": 1.7463583946228027,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.8333333134651184,
+          "value": 7.880000114440918,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    },
+    {
+      "kind": "m_FloatCurves",
+      "path": "panel_cursor/tip_ctrl",
+      "attribute": "m_AnchoredPosition.y",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": 93.4000015258789,
+          "inSlope": -49.09324264526367,
+          "outSlope": -49.09324264526367,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.30000001192092896,
+          "value": 78.67202758789062,
+          "inSlope": -18.25218391418457,
+          "outSlope": -18.25218391418457,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        },
+        {
+          "time": 0.6666666865348816,
+          "value": 75.62999725341797,
+          "inSlope": 0.0,
+          "outSlope": 0.0,
+          "weightedMode": 0,
+          "inWeight": 0.3333333432674408,
+          "outWeight": 0.3333333432674408
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    },
+    {
+      "kind": "m_FloatCurves",
+      "path": "panel_cursor/ui_fx_show",
+      "attribute": "m_IsActive",
+      "keys": [
+        {
+          "time": 0.0,
+          "value": 0.0,
+          "inSlope": "Infinity",
+          "outSlope": "Infinity",
+          "weightedMode": 0,
+          "inWeight": 0.0,
+          "outWeight": 0.0
+        },
+        {
+          "time": 0.03333333507180214,
+          "value": 0.0,
+          "inSlope": "Infinity",
+          "outSlope": "Infinity",
+          "weightedMode": 0,
+          "inWeight": 0.0,
+          "outWeight": 0.0
+        },
+        {
+          "time": 0.05000000074505806,
+          "value": 1.0,
+          "inSlope": "Infinity",
+          "outSlope": "Infinity",
+          "weightedMode": 0,
+          "inWeight": 0.0,
+          "outWeight": 0.0
+        },
+        {
+          "time": 1.5,
+          "value": 0.0,
+          "inSlope": "Infinity",
+          "outSlope": "Infinity",
+          "weightedMode": 0,
+          "inWeight": 0.0,
+          "outWeight": 0.0
+        }
+      ],
+      "pre_infinity": 2,
+      "post_infinity": 2
+    }
+  ],
+  "events": []
+}

@@ -1,0 +1,17 @@
+[remap]
+
+importer="font_data_bmfont"
+type="FontFile"
+uid="uid://c7dd3iws1wvy1"
+path="res://.godot/imported/NumFont.fnt-7d551e719f7d6854fffad3cae3476560.fontdata"
+
+[deps]
+
+source_file="res://BlackFlowSpire/Fonts/NumFont.fnt"
+dest_files=["res://.godot/imported/NumFont.fnt-7d551e719f7d6854fffad3cae3476560.fontdata"]
+
+[params]
+
+fallbacks=[]
+compress=true
+scaling_mode=2

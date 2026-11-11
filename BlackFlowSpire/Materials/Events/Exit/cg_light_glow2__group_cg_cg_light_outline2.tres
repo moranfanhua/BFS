@@ -1,0 +1,43 @@
+[gd_resource type="ShaderMaterial" load_steps=7 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_hunt_sprite_add.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/uifx_dissolve_6__6068632661089506991.png" id="2"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/wipe_cg__-602638889176357102.png" id="3"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/wipe_cg__-602638889176357102.png" id="4"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/uifx_disturb_1__4679403973545151492.png" id="5"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/mask_cg__-2321400929277721637.png" id="6"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1")
+shader_parameter/base_texture = ExtResource("2")
+shader_parameter/has_base = true
+shader_parameter/base_st = Vector4(0.20000000298023224, 0.20000000298023224, 0.0, 0.0)
+shader_parameter/dissolve_one_texture = ExtResource("3")
+shader_parameter/has_dissolve_one = true
+shader_parameter/dissolve_one_st = Vector4(1.0, 1.0, 0.0, 0.0)
+shader_parameter/dissolve_two_texture = ExtResource("4")
+shader_parameter/has_dissolve_two = true
+shader_parameter/dissolve_two_st = Vector4(1.0, 1.0, 0.0, 0.0)
+shader_parameter/distortion_texture = ExtResource("5")
+shader_parameter/has_distortion = true
+shader_parameter/distortion_st = Vector4(1.0, 1.0, 0.0, 0.0)
+shader_parameter/mask_texture = ExtResource("6")
+shader_parameter/has_mask = true
+shader_parameter/mask_st = Vector4(1.0, 1.0, 0.0, 0.0)
+shader_parameter/base_speed = Vector2(0.029999999, 0)
+shader_parameter/distortion_speed = Vector2(0.30000001, -0.1)
+shader_parameter/distortion_strength = Vector2(0.1, 0.1)
+shader_parameter/dissolve_threshold = Vector2(0.53500003, 0.56999999)
+shader_parameter/dissolve_smoothness = Vector2(0.029999999, 0.15000001)
+shader_parameter/dissolve_invert = Vector2(0, 1)
+shader_parameter/dissolve_distort = Vector2(1, 1)
+shader_parameter/distortion_signed = true
+shader_parameter/base_red_channel = false
+shader_parameter/clamp_v = false
+shader_parameter/mask_invert = false
+shader_parameter/dissolve_speed = Vector4(0.0, 0.0, 0.0, 0.0)
+shader_parameter/tint = Color(0.34509802, 1, 0.82297617, 1)
+shader_parameter/intensity = 1.7000000476837158
+shader_parameter/control_color = Color(0, 0.498, 1.1425426, 0.45882353)
+shader_parameter/controls_as_parameters = true

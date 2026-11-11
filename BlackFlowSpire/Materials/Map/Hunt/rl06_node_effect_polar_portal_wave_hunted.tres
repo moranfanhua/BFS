@@ -1,0 +1,37 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_ui_fx_add.gdshader" id="1"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/uifx_wind_01__5085736332004480002.png" id="2"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/img_uifx_common_flow_03__-5055007736377074334.png" id="3"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/img_uifx_basicmask_09__-2834238991544002503.png" id="4"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/img_uifx_common_flow_02__-6975987085250794212.png" id="5"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1")
+shader_parameter/base_texture = ExtResource("2")
+shader_parameter/has_base = true
+shader_parameter/base_st = Vector4(4.0, 1.0, 0.0, 0.0)
+shader_parameter/dissolve_one_texture = ExtResource("3")
+shader_parameter/has_dissolve_one = true
+shader_parameter/dissolve_one_st = Vector4(1.0, 1.0, 0.0, 0.0)
+shader_parameter/dissolve_two_texture = ExtResource("4")
+shader_parameter/has_dissolve_two = true
+shader_parameter/dissolve_two_st = Vector4(1.0, 1.25, 0.0, -0.27000001072883606)
+shader_parameter/distortion_texture = ExtResource("5")
+shader_parameter/has_distortion = true
+shader_parameter/distortion_st = Vector4(2.0, 1.0, 0.0, 0.0)
+shader_parameter/base_speed = Vector2(-0.050000001, -0.079999998)
+shader_parameter/distortion_speed = Vector2(0.029999999, 0.20999999)
+shader_parameter/distortion_strength = Vector2(0.13, 0.22)
+shader_parameter/dissolve_threshold = Vector2(0.050000001, 0.13)
+shader_parameter/dissolve_smoothness = Vector2(0.69999999, 0.81)
+shader_parameter/dissolve_invert = Vector2(0, 0)
+shader_parameter/dissolve_distort = Vector2(0, 0)
+shader_parameter/distortion_signed = false
+shader_parameter/base_red_channel = false
+shader_parameter/clamp_v = false
+shader_parameter/mask_invert = false
+shader_parameter/dissolve_speed = Vector4(0.03999999910593033, -0.05000000074505806, 0.0, 0.0)
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/intensity = 1.0
