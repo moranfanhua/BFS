@@ -1,4 +1,3 @@
-using BlackFlowSpire.Combat;
 using BlackFlowSpire.Integration;
 using BlackFlowSpire.Persistence;
 using Godot;
@@ -20,9 +19,12 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
     private Control _view = null!;
     private TextureRect _floorTitle = null!;
     private Label _targetLife = null!;
+    private Label _maxTargetLife = null!;
+    private HBoxContainer _shield = null!;
+    private Label _shieldCount = null!;
     private Label _gold = null!;
     private int _goldFontSize;
-    private (int Region, int Life, int Gold)? _shown;
+    private (int Region, int Life, int MaxLife, int Shield, int Gold)? _shown;
     private bool _suppressed;
     private bool _updating;
     private bool _disposed;
@@ -53,7 +55,9 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
         AddChild(_view);
         _floorTitle = _view.GetNode<TextureRect>("Canvas/FloorTitle");
         _targetLife = _view.GetNode<Label>("Canvas/LifeValue/Current");
-        _view.GetNode<Label>("Canvas/LifeValue/Maximum").Text = $"/{ForestCombatHealth.InitialTargetLife}";
+        _maxTargetLife = _view.GetNode<Label>("Canvas/LifeValue/Maximum");
+        _shield = _view.GetNode<HBoxContainer>("Canvas/LifeValue/Shield");
+        _shieldCount = _shield.GetNode<Label>("Count");
         _gold = _view.GetNode<Label>("Canvas/Gold");
         _goldFontSize = _gold.GetThemeFontSize("font_size");
         ForestLocalization.BindStaticText(_view);
@@ -93,11 +97,17 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
     private void RefreshValues()
     {
         var region = ForestMapAssets.RegionNumber(_state.CurrentActIndex);
-        var life = ForestGenerationService.GetTargetLife(_state);
+        var (life, maxLife, shield) = ForestGenerationService.GetTargetLife(_state);
         var gold = LocalContext.GetMe(_state)?.Gold ?? 0;
         if (_shown?.Region != region)
             _floorTitle.Texture = ForestMapAssets.Texture($"res://BlackFlowSpire/Images/Ui/TopBar/zone-{region}.png");
         if (_shown?.Life != life) _targetLife.Text = life.ToString();
+        if (_shown?.MaxLife != maxLife) _maxTargetLife.Text = $"/{maxLife}";
+        if (_shown?.Shield != shield)
+        {
+            _shieldCount.Text = shield.ToString();
+            _shield.Visible = shield > 0;
+        }
         if (_shown?.Gold != gold)
         {
             _gold.Text = gold.ToString();
@@ -105,7 +115,7 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
             var fontSize = (int)Math.Floor(_goldFontSize * Math.Min(1f, _gold.Size.X / width));
             _gold.AddThemeFontSizeOverride("font_size", Math.Max(1, fontSize));
         }
-        _shown = (region, life, gold);
+        _shown = (region, life, maxLife, shield, gold);
     }
 
     private void Restore()

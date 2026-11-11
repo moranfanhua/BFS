@@ -58,19 +58,20 @@ internal static class ForestTeamCleanupPatch
 }
 
 [HarmonyPatch(typeof(Hook), nameof(Hook.BeforeRoomEntered))]
-internal static class ForestTeamCombatArrivalPatch
+internal static class ForestCombatArrivalRewardPatch
 {
     private static void Postfix(IRunState runState, AbstractRoom room, ref Task __result)
     {
-        if (room is CombatRoom && runState is RunState state && ForestTeam.IsOnline && ForestGenerationService.IsEnabled(state))
+        if (room is CombatRoom && runState is RunState state && ForestGenerationService.IsEnabled(state)
+            && (ForestTeam.IsOnline || ForestGenerationService.GetEngine(state).PendingConceptRewards.Any(reward => reward.Shield > 0)))
             __result = SettleBeforeCombat(__result, state);
     }
 
     private static async Task SettleBeforeCombat(Task original, RunState state)
     {
         await original;
-        // Native player and RNG synchronization is complete, and the combat's
-        // start hooks have not run yet. Both peers can grant the same relics here.
+        // Native player and RNG synchronization is complete. Settle shared rewards
+        // and apply any movement shield before combat starts.
         var progress = ForestGenerationService.GetProgress(state);
         if (progress.PendingPartReward != null || ForestGenerationService.GetEngine(state).PendingConceptRewards.Count > 0)
             await ForestPartService.SettleMovementRewards(state, ForestGenerationService.GetOrGenerate(state), progress);

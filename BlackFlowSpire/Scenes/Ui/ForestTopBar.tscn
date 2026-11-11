@@ -6,6 +6,7 @@
 [ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Bender.tres" id="bender"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/menu-top-mask-779a2a60.png" id="mask"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-hp-bkg-e8e92544.png" id="life"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-shield-00bba148.png" id="shield"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-level-bkg-d8c91582.png" id="level"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-exp-bkg-6ed13ed8.png" id="exp_ring"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-level-up-bd9f5637.png" id="level_arrow"]
@@ -93,6 +94,27 @@ theme_override_fonts/font = ExtResource("numbers")
 theme_override_font_sizes/font_size = 15
 theme_override_colors/font_color = Color(0.57, 0.57, 0.57, 1)
 text = "/10"
+vertical_alignment = 1
+
+[node name="Shield" type="HBoxContainer" parent="Canvas/LifeValue"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 3
+
+[node name="Icon" type="TextureRect" parent="Canvas/LifeValue/Shield"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("shield")
+
+[node name="Count" type="Label" parent="Canvas/LifeValue/Shield"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 16
+text = "0"
 vertical_alignment = 1
 
 [node name="LevelBacking" type="ColorRect" parent="Canvas"]

@@ -19,8 +19,11 @@ public static class ForestConceptService
     private sealed class Settlement { public bool Running; }
     private static readonly ConditionalWeakTable<RunState, Settlement> Settlements = new();
 
-    // Independent exploration shields are deferred; this is not combat Block.
-    public static Func<RunState, int, Task>? ShieldRewardHandler { get; set; }
+    public static Func<RunState, int, Task>? ShieldRewardHandler { get; set; } = (state, amount) =>
+    {
+        ForestGenerationService.GrantTargetShield(state, amount, replicated: ForestTeam.IsOnline);
+        return Task.CompletedTask;
+    };
 
     public static async Task<ForestConceptPart> Grant(ForestConceptPartKind kind)
     {
@@ -121,9 +124,8 @@ public static class ForestConceptService
                         inventory.Add(kind);
                     });
                 }
-                var shield = reward.Shield;
-                ForestGenerationService.ModifyEngine(state, _ => reward.Shield = 0);
-                if (shield > 0 && ShieldRewardHandler is { } grantShield) await grantShield(state, shield);
+                if (reward.Shield > 0 && ShieldRewardHandler is { } grantShield)
+                    await grantShield(state, reward.Shield);
                 ForestGenerationService.ModifyEngine(state, inventory => inventory.PendingConceptRewards.Remove(reward));
             }
         }

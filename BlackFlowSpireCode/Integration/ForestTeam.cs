@@ -31,7 +31,11 @@ internal sealed record ForestTeamReady(ForestTeamPosition Position, bool Ready);
 internal sealed record ForestTeamSnapshot(ForestTeamPosition Position, long Revision, ForestEngineInventory Engine,
     int ActionPoints, ForestHuntPhase Hunt, Dictionary<int, ForestShopPartStock> ShopParts,
     Dictionary<int, List<ForestShopOfferStock>> ShopOffers, Dictionary<int, ForestSecretShopStock> SecretShops,
-    int TargetLife = ForestCombatHealth.InitialTargetLife);
+    int TargetLife = ForestCombatHealth.InitialTargetLife,
+    int MaxTargetLife = ForestCombatHealth.InitialTargetLife,
+    int TargetShield = 0,
+    ForestDamageMultipliers? DamageMultipliers = null,
+    Dictionary<ulong, decimal>? PlayerLifeMultipliers = null);
 internal sealed record ForestTeamCommand(ForestTeamAction Action, int Argument, ForestTeamSnapshot Snapshot);
 
 internal static class ForestTeam
@@ -238,9 +242,11 @@ internal static class ForestTeam
     private static ForestTeamSnapshot Capture(RunState state)
     {
         var progress = ForestGenerationService.GetProgress(state);
+        var (life, maxLife, shield) = ForestGenerationService.GetTargetLife(state);
         return new(Position(state), ++Sessions.GetOrCreateValue(state).Revision,
             ForestGenerationService.GetEngine(state), progress.ActionPointsRemaining, progress.HuntPhase,
-            progress.ShopParts, progress.ShopOffers, progress.SecretShops, ForestGenerationService.GetTargetLife(state));
+            progress.ShopParts, progress.ShopOffers, progress.SecretShops, life, maxLife, shield,
+            ForestGenerationService.GetDamageMultipliers(state), ForestGenerationService.CopyPlayerLifeMultipliers(state));
     }
 
     internal static void Publish(RunState state)
@@ -287,7 +293,9 @@ internal static class ForestTeam
         var map = ForestGenerationService.GetOrGenerate(state);
         var progress = ForestGenerationService.GetProgress(state);
         ForestGenerationService.SetSharedEngine(state, snapshot.Engine);
-        ForestGenerationService.SetTargetLife(state, snapshot.TargetLife);
+        ForestGenerationService.SetTargetLife(state, snapshot.TargetLife, snapshot.MaxTargetLife, snapshot.TargetShield);
+        ForestGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers ?? new());
+        ForestGenerationService.RestorePlayerLifeMultipliers(state, snapshot.PlayerLifeMultipliers);
         progress.ActionPointsRemaining = snapshot.ActionPoints;
         progress.HuntPhase = snapshot.Hunt;
         progress.ShopParts = snapshot.ShopParts;

@@ -6,6 +6,7 @@ using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Map.Stages;
 using BlackFlowSpire.Integration;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using STS2RitsuLib;
@@ -19,6 +20,10 @@ public sealed class ForestRunData
     public bool Enabled { get; set; }
     public ulong? TeamOwnerId { get; set; }
     public int TargetLife { get; set; } = ForestCombatHealth.InitialTargetLife;
+    public int MaxTargetLife { get; set; } = ForestCombatHealth.InitialTargetLife;
+    public int TargetShield { get; set; }
+    public ForestDamageMultipliers DamageMultipliers { get; set; } = new();
+    public Dictionary<ulong, decimal> PlayerLifeMultipliers { get; set; } = [];
     public Dictionary<int, ForestMap> Maps { get; set; } = [];
     public Dictionary<int, ForestExplorationProgress> Progress { get; set; } = [];
     public ForestEngineInventory Engine { get; set; } = new();
@@ -40,16 +45,93 @@ public static class ForestGenerationService
 
     public static void Enable(RunState state) => _slot!.Modify(state, data => data.Enabled = true);
     internal static ulong? GetTeamOwnerId(RunState state) => _slot!.Get(state).TeamOwnerId;
-    internal static int GetTargetLife(RunState state) => _slot!.Get(state).TargetLife;
-    internal static void SetTargetLife(RunState state, int life) =>
-        _slot!.Modify(state, data => data.TargetLife = Math.Clamp(life, 0, ForestCombatHealth.InitialTargetLife));
-    internal static void SettleCombatHealth(RunState state, int lifeLost) =>
+
+    public static ForestDamageMultipliers GetDamageMultipliers(RunState state) => _slot!.Get(state).DamageMultipliers;
+
+    public static void SetDamageMultipliers(RunState state, ForestDamageMultipliers multipliers, bool replicated = false)
+    {
+        if (!IsEnabled(state) || (!replicated && ForestTeam.IsGuest)) return;
+        // Team snapshots apply between battles. A change during an online battle
+        // must come from a deterministic effect executed on all peers.
+        if (!replicated && ForestTeam.IsOnline && CombatManager.Instance.IsInProgress)
+            throw new InvalidOperationException("Changes to damage multipliers during an online battle must be replicated.");
+        RestoreDamageMultipliers(state, multipliers);
+        if (!replicated) ForestTeam.Publish(state);
+    }
+
+    internal static void RestoreDamageMultipliers(RunState state, ForestDamageMultipliers multipliers)
+    {
+        ArgumentNullException.ThrowIfNull(multipliers);
+        _slot!.Modify(state, data => data.DamageMultipliers = multipliers);
+    }
+
+    public static decimal GetPlayerLifeMultiplier(RunState state, ulong playerId) =>
+        _slot!.Get(state).PlayerLifeMultipliers.GetValueOrDefault(playerId, 1m);
+
+    public static void SetPlayerLifeMultiplier(RunState state, ulong playerId, decimal multiplier)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(multiplier);
+        if (!IsEnabled(state) || ForestTeam.IsGuest) return;
         _slot!.Modify(state, data =>
         {
-            var life = Math.Max(0, data.TargetLife - lifeLost);
-            ForestNaturalRules.CombatFinished(data.Engine, targetLifeLost: data.TargetLife - life);
-            data.TargetLife = life;
+            if (multiplier == 1m) data.PlayerLifeMultipliers.Remove(playerId);
+            else data.PlayerLifeMultipliers[playerId] = multiplier;
         });
+        ForestTeam.Publish(state);
+    }
+
+    internal static Dictionary<ulong, decimal> CopyPlayerLifeMultipliers(RunState state) =>
+        new(_slot!.Get(state).PlayerLifeMultipliers);
+
+    internal static void RestorePlayerLifeMultipliers(RunState state, Dictionary<ulong, decimal>? multipliers) =>
+        _slot!.Modify(state, data => data.PlayerLifeMultipliers = multipliers ?? []);
+
+    internal static (int Current, int Maximum, int Shield) GetTargetLife(RunState state)
+    {
+        var data = _slot!.Get(state);
+        return (data.TargetLife, data.MaxTargetLife, data.TargetShield);
+    }
+
+    internal static void SetTargetLife(RunState state, int life, int maximum, int shield) =>
+        _slot!.Modify(state, data =>
+        {
+            data.MaxTargetLife = Math.Max(1, maximum);
+            data.TargetLife = Math.Clamp(life, 0, data.MaxTargetLife);
+            data.TargetShield = Math.Max(0, shield);
+        });
+
+    public static void GrantTargetLife(RunState state, int maxLifeGain = 0, int lifeRestored = 0)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(maxLifeGain);
+        ArgumentOutOfRangeException.ThrowIfNegative(lifeRestored);
+        if (!IsEnabled(state) || ForestTeam.IsGuest) return;
+
+        _slot!.Modify(state, data =>
+        {
+            data.MaxTargetLife = checked(data.MaxTargetLife + maxLifeGain);
+            data.TargetLife = (int)Math.Min(data.MaxTargetLife, (long)data.TargetLife + lifeRestored);
+        });
+        ForestTeam.Publish(state);
+    }
+
+    // A replicated movement reward already runs once on every peer before combat starts.
+    public static void GrantTargetShield(RunState state, int amount, bool replicated = false)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(amount);
+        if (amount == 0 || !IsEnabled(state) || (!replicated && ForestTeam.IsGuest)) return;
+        _slot!.Modify(state, data => data.TargetShield = checked(data.TargetShield + amount));
+        if (!replicated) ForestTeam.Publish(state);
+    }
+
+    internal static int SettleCombatHealth(RunState state, ForestCombatHealth health, long teamMaxHp) =>
+        _slot!.Modify(state, data =>
+        {
+            var loveGrassCount = data.Engine.NaturalParts.Count(part => part.Kind == ForestNaturalPartKind.LoveGrass);
+            var (lifeLost, shieldUsed) = health.GetLosses(teamMaxHp, data.TargetLife, data.TargetShield, loveGrassCount);
+            ForestNaturalRules.CombatFinished(data.Engine, targetLifeLost: lifeLost);
+            data.TargetLife -= lifeLost;
+            data.TargetShield -= shieldUsed;
+        }).TargetLife;
 
     internal static bool IsTeamLobbyEnabled(StartRunLobby lobby) => _slot!.Lobby.TryGet(lobby, out var data) && data.Enabled;
 
