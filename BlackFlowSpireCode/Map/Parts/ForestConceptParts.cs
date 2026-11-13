@@ -65,6 +65,7 @@ public sealed class ForestConceptBattle
 // does not roll relic bags, choose a processed part or consume an activation.
 public sealed class ForestConceptReward
 {
+    public List<string> CollectibleIds { get; set; } = [];
     public List<string> RelicIds { get; set; } = [];
     public List<ForestProcessedPartKind> ProcessedParts { get; set; } = [];
     public int Shield { get; set; }

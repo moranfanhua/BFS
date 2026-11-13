@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 
 namespace BlackFlowSpire.Integration;
@@ -29,14 +30,15 @@ internal static class ForestConceptCombatStartPatch
 [HarmonyPatch(typeof(Hook), nameof(Hook.AfterCombatVictory))]
 internal static class ForestConceptCombatEndPatch
 {
-    private static void Postfix(IRunState runState, ref Task __result) =>
-        __result = AfterVictory(__result, runState);
+    private static void Postfix(IRunState runState, CombatRoom room, ref Task __result) =>
+        __result = AfterVictory(__result, runState, room);
 
-    private static async Task AfterVictory(Task original, IRunState runState)
+    private static async Task AfterVictory(Task original, IRunState runState, CombatRoom room)
     {
         await original;
         if (runState is RunState state && ForestGenerationService.IsEnabled(state))
         {
+            ForestCombatHealthRuntime.RecordSpecialVictory(state, room);
             await ForestConceptService.EndCombat(state);
             ForestTeam.Publish(state);
         }

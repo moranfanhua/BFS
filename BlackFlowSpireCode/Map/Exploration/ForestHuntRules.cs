@@ -3,13 +3,14 @@ using BlackFlowSpire.Map.Parts;
 
 namespace BlackFlowSpire.Map.Exploration;
 
-public enum ForestHuntPhase { None, NoticePending, AwaitingBattle }
+public enum ForestHuntPhase { None, NoticePending, AwaitingBattle, InBattle, Won }
 
 public static class ForestHuntRules
 {
     // Abandon/disconnect closes the map before marking the run abandoned.
     public static bool BlocksMapClose(ForestHuntPhase phase, bool animateOut, bool isTraveling, bool canContinueRun) =>
-        phase != ForestHuntPhase.None && animateOut && !isTraveling && canContinueRun;
+        (phase is ForestHuntPhase.NoticePending or ForestHuntPhase.AwaitingBattle)
+        && animateOut && !isTraveling && canContinueRun;
 
     public static bool WouldTriggerAfterMove(ForestMap map, ForestExplorationProgress progress, ForestTravelRoute route) =>
         progress.HuntPhase == ForestHuntPhase.None && !progress.PendingNodeId.HasValue
@@ -48,6 +49,20 @@ public static class ForestHuntRules
     {
         if (progress.HuntPhase != ForestHuntPhase.NoticePending) return false;
         progress.HuntPhase = ForestHuntPhase.AwaitingBattle;
+        return true;
+    }
+
+    public static bool StartBattle(ForestExplorationProgress progress, ForestEngineInventory inventory)
+    {
+        if (progress.HuntPhase != ForestHuntPhase.AwaitingBattle || inventory.IsOverloaded) return false;
+        progress.HuntPhase = ForestHuntPhase.InBattle;
+        return true;
+    }
+
+    public static bool WinBattle(ForestExplorationProgress progress)
+    {
+        if (progress.HuntPhase != ForestHuntPhase.InBattle) return false;
+        progress.HuntPhase = ForestHuntPhase.Won;
         return true;
     }
 }

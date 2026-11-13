@@ -127,7 +127,7 @@ internal static class ForestStageSavePatch
 
     private static void Postfix(CombatRoom __instance, SerializableRoom __result)
     {
-        if (ForestEncounterFactory.TryGet(__instance.Encounter, out var setup))
+        if (ForestEncounterFactory.TryGetFixedSetup(__instance.Encounter, out var setup))
             __result.EncounterState[StateKey] = JsonSerializer.Serialize(setup);
     }
 }
@@ -141,9 +141,17 @@ internal static class ForestStageRestorePatch
         if (!serializableRoom.EncounterState.TryGetValue(ForestStageSavePatch.StateKey, out var json)) return;
         __state = JsonSerializer.Deserialize<ForestCombatSetup>(json)
             ?? throw new InvalidDataException("Invalid saved forest stage.");
-        if (__state.Stage == null || __state.EncounterId != serializableRoom.EncounterId?.ToString()
+        if (__state.EncounterId != serializableRoom.EncounterId?.ToString()
             || __state.Enemies == null || __state.Enemies.Count == 0)
             throw new InvalidDataException("Saved stage and room identity differ.");
+        if (__state.Special is ForestSpecialEncounter.Hunt or ForestSpecialEncounter.Resident)
+        {
+            if (__state.Stage != null || serializableRoom.RoomType != RoomType.Monster)
+                throw new InvalidDataException("Saved special encounter and room type differ.");
+            return;
+        }
+        if (__state.Stage == null || __state.Special != ForestSpecialEncounter.None)
+            throw new InvalidDataException("Invalid saved stage type.");
         __state.Stage.Validate();
         var expectedType = __state.Stage.Variant == ForestBattleVariant.Boss ? RoomType.Boss
             : __state.Stage.Variant == ForestBattleVariant.Emergency ? RoomType.Elite : RoomType.Monster;
@@ -153,6 +161,7 @@ internal static class ForestStageRestorePatch
 
     private static void Postfix(CombatRoom __result, IRunState? runState, ForestCombatSetup? __state)
     {
-        if (__state != null) ForestEncounterFactory.Prepare(__result.Encounter, runState, __state);
+        if (__state != null)
+            ForestEncounterFactory.Prepare(__result.Encounter, __state.Stage != null ? runState : null, __state);
     }
 }

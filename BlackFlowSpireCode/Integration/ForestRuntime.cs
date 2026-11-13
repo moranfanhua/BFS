@@ -34,15 +34,15 @@ public static partial class ForestRuntime
         ForestGenerationService.ModifyEngine(state, engine => engine.EnterFloor(state.CurrentActIndex));
         manager.MapSelectionSynchronizer.BeforeMapGenerated();
         var map = ForestGenerationService.GetOrGenerate(state);
-        ForestGenerationService.GetProgress(state);
-        ForestGenerationService.ApplyFloorTransition(state);
+        var progress = ForestGenerationService.GetProgress(state);
+        ForestGenerationService.ApplyFloorTransition(state, map, progress);
         state.Map = new ForestActMap(map);
         state.ExtraFields.StartedWithNeow = false;
         if (!state.CurrentMapCoord.HasValue)
             state.AddVisitedMapCoord(new MapCoord(map.GetNode(map.PositionNodeId).X, map.GetNode(map.PositionNodeId).Y));
         NMapScreen.Instance?.SetMap(state.Map, state.Rng.Seed, true);
         Entry.Logger.Info($"[Forest] Map generated: act={state.CurrentActIndex}, seed={map.Seed}, nodes={map.Nodes.Count}");
-        return Task.CompletedTask;
+        return ForestCollectibleService.OnFloorEntered(state, map);
     }
 
     public static void OpenMap(NMapScreen screen, bool fromTopBar, bool focusCurrent = false)
@@ -127,9 +127,11 @@ public static partial class ForestRuntime
     public static RoomType CurrentRoomType(RunState state)
     {
         var map = ForestGenerationService.GetOrGenerate(state);
+        var progress = ForestGenerationService.GetProgress(state);
+        if (progress.HuntPhase == ForestHuntPhase.InBattle) return RoomType.Monster;
         var node = map.GetNode(map.PositionNodeId);
         if (ForestResidentRules.IsSpecialCombat(map, node)
-            && ForestGenerationService.GetProgress(state).PendingNodeId == node.Id)
+            && progress.PendingNodeId == node.Id)
             return ForestResidentRules.CombatSetupFor(map, node) != null ? RoomType.Monster : RoomType.Map;
         if (node.Completed || node.Kind == ForestNodeKind.Empty) return RoomType.Map;
         return ((ForestActMap)state.Map).GetFixedRoomType(new MapCoord(node.X, node.Y)) ?? RoomType.Map;
@@ -231,13 +233,7 @@ public static partial class ForestRuntime
             // The ordinary act transition resets exploration and uses the next
             // independent region instance; no Boss combat or Boss rewards here.
             await manager.EnterNextAct();
-            // The deferred Hope interface is notified only after the floor has
-            // actually changed, so a failed departure cannot award it twice.
-            if (transition.Hope > 0 && ForestPartService.HopeRewardHandler is { } grantHope)
-            {
-                await grantHope(state, transition.Hope);
-                await SaveManager.Instance.SaveRun(null);
-            }
+            if (transition.Hope > 0) await SaveManager.Instance.SaveRun(null);
         }
         catch (Exception error)
         {
@@ -286,6 +282,7 @@ public static partial class ForestRuntime
             LastError = null;
             if (usePassage) await manager.FadeOut();
             var result = ForestPassageRules.Resolve(map, progress, usePassage, ForestGenerationService.GetEngine(state));
+            ForestCollectibleService.QueueSurvey(state, map);
             ForestGenerationService.MarkChanged(state, map, progress);
             if (usePassage)
             {
@@ -298,6 +295,7 @@ public static partial class ForestRuntime
                 if (history != null) progress.HistoryIndexes[node.Id] = history.Count - 1;
                 ForestGenerationService.MarkChanged(state, map, progress);
             }
+            await ForestCollectibleService.SettleGold(state, map, replicated: ForestTeam.IsOnline);
             await SaveManager.Instance.SaveRun(null);
             Entry.Logger.Info($"[Forest] Passage resolved: teleport={usePassage}, position={result.NodeId}, AP={result.ActionPointsRemaining}");
         }

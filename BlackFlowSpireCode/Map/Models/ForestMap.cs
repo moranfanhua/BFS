@@ -59,11 +59,14 @@ public sealed class ForestNodeDetailsSource
     public string? DescriptionKey { get; set; }
 }
 
+public enum ForestSpecialEncounter { None, Resident, Hunt }
+
 public sealed class ForestCombatSetup
 {
     public string EncounterId { get; set; } = "";
     public ulong Seed { get; set; }
     public List<ForestEnemySlot> Enemies { get; set; } = [];
+    public ForestSpecialEncounter Special { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ForestStageSnapshot? Stage { get; set; }
 }

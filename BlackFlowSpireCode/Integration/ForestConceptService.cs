@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Map.Generation;
 using BlackFlowSpire.Map.Models;
@@ -6,8 +7,6 @@ using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Persistence;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
-using MegaCrit.Sts2.Core.Entities.Relics;
-using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
@@ -38,6 +37,7 @@ public static class ForestConceptService
     {
         var state = RequireState();
         ForestGenerationService.ModifyEngine(state, engine => engine.DiscardConcept(id));
+        await ForestCollectibleService.PayDiscard(state, ForestPartService.FixedSaleGold);
         await ForestPartService.SaveAndRefresh(state);
     }
 
@@ -71,19 +71,21 @@ public static class ForestConceptService
         QueueRewards(state, effects!);
     }
 
-    internal static void QueueRewards(RunState state, ForestConceptEffects effects, bool replicated = false)
+    internal static void QueueRewards(RunState state, ForestConceptEffects effects)
     {
         if (effects.Relics == 0 && effects.RareRelics == 0 && effects.ProcessedParts == 0 && effects.Shield == 0) return;
-        var player = (replicated ? ForestTeam.Owner(state) : LocalContext.GetMe(state))
-            ?? throw new InvalidOperationException("No player owns the concept reward.");
         var engine = ForestGenerationService.GetEngine(state);
         var reward = new ForestConceptReward { Shield = effects.Shield };
-        // Native bags exclude already owned and previously pulled unique relics.
-        for (var index = 0; index < effects.Relics; index++)
-            reward.RelicIds.Add(RelicFactory.PullNextRelicFromFront(player).Id.ToString());
-        for (var index = 0; index < effects.RareRelics; index++)
-            reward.RelicIds.Add(RelicFactory.PullNextRelicFromFront(player, RelicRarity.Rare).Id.ToString());
         var map = ForestGenerationService.GetOrGenerate(state);
+        var excluded = engine.Collectibles.OwnedIds.Concat(engine.PendingConceptRewards.SelectMany(item => item.CollectibleIds))
+            .ToHashSet(StringComparer.Ordinal);
+        var collectibleRandom = new StableRandom(map.Seed, map.ActIndex, $"concept-collectibles/{engine.ConceptRewardCount}");
+        for (var index = 0; index < effects.Relics + effects.RareRelics; index++)
+            if (ForestCollectibleRules.Draw(collectibleRandom, excluded, rare: index >= effects.Relics) is { } item)
+            {
+                excluded.Add(item.Id);
+                reward.CollectibleIds.Add(item.Id);
+            }
         var random = new StableRandom(map.Seed, map.ActIndex, $"concept-parts/{engine.ConceptRewardCount}");
         for (var index = 0; index < effects.ProcessedParts; index++)
             reward.ProcessedParts.Add(ForestProcessedParts.All[random.Next(ForestProcessedParts.All.Count)].Kind);
@@ -104,9 +106,14 @@ public static class ForestConceptService
             var engine = ForestGenerationService.GetEngine(state);
             var player = (replicated ? ForestTeam.Owner(state) : LocalContext.GetMe(state))
                 ?? throw new InvalidOperationException("No player owns the concept reward.");
+            var map = ForestGenerationService.GetOrGenerate(state);
             while (engine.PendingConceptRewards.Count > 0)
             {
                 var reward = engine.PendingConceptRewards[0];
+                foreach (var id in reward.CollectibleIds)
+                    if (ForestCollectibleCatalog.Find(id) is { } item && ForestCollectibleRules.CanAcquire(item))
+                        ForestGenerationService.GrantCollectible(state, map, item);
+                // Checkpoints written before collectibles were introduced retain native relic rewards.
                 while (reward.RelicIds.Count > 0)
                 {
                     var id = reward.RelicIds[0];
@@ -128,6 +135,7 @@ public static class ForestConceptService
                     await grantShield(state, reward.Shield);
                 ForestGenerationService.ModifyEngine(state, inventory => inventory.PendingConceptRewards.Remove(reward));
             }
+            await ForestCollectibleService.SettleGold(state, map, replicated);
         }
         finally { settlement.Running = false; }
     }
@@ -139,7 +147,7 @@ public static class ForestConceptService
         if (!MatchesBattle(state, out var battle)) return;
         ForestGenerationService.ModifyEngine(state, engine => engine.ConceptBattle = null);
         var replicated = ForestTeam.IsOnline;
-        QueueRewards(state, new ForestConceptEffects { Relics = battle.VictoryRelics }, replicated);
+        QueueRewards(state, new ForestConceptEffects { Relics = battle.VictoryRelics });
         await SettleRewards(state, replicated);
     }
 

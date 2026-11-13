@@ -18,6 +18,10 @@ func _layout() -> void:
 	$Canvas.scale = Vector2.ONE * factor
 	$Canvas.position = Vector2((size.x - DESIGN_SIZE.x * factor) / 2.0, size.y - BAR_HEIGHT * factor)
 	$Backdrop.offset_top = -BAR_HEIGHT * factor
+	if factor > 0.0:
+		var window := $Canvas/CollectiblesWindow as Control
+		window.position = -$Canvas.position / factor
+		window.size = Vector2(size.x, $Canvas.position.y) / factor
 
 func bind_box(value: int, count: int, capacity: int) -> void:
 	$Canvas/PartsBox/Value/Amount.text = str(value)

@@ -53,6 +53,12 @@ public static class ForestFog
         return RevealNodes(map.Nodes.Where(node => Math.Abs(node.X - origin.X) + Math.Abs(node.Y - origin.Y) <= radius), inventory);
     }
 
+    public static IReadOnlyList<int> RevealTraders(ForestMap map, ForestEngineInventory? inventory = null) =>
+        RevealNodes(map.Nodes.Where(node => node.Content == ForestNodeContent.Shop), inventory);
+
+    public static IReadOnlyList<int> RevealAll(ForestMap map, ForestEngineInventory? inventory = null) =>
+        RevealNodes(map.Nodes, inventory);
+
     private static IReadOnlyList<int> RevealNodes(IEnumerable<ForestNode> nodes, ForestEngineInventory? inventory)
     {
         var newlyRevealed = new List<int>();

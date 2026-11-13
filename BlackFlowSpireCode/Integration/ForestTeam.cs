@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using BlackFlowSpire.Combat;
+using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Persistence;
@@ -23,7 +24,7 @@ using STS2RitsuLib.RunData;
 
 namespace BlackFlowSpire.Integration;
 
-internal enum ForestTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer }
+internal enum ForestTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle }
 
 // Steps distinguish revisits to the same node. Act distinguishes floor changes.
 internal sealed record ForestTeamPosition(int Act, int Node, int Steps);
@@ -35,7 +36,8 @@ internal sealed record ForestTeamSnapshot(ForestTeamPosition Position, long Revi
     int MaxTargetLife = ForestCombatHealth.InitialTargetLife,
     int TargetShield = 0,
     ForestDamageMultipliers? DamageMultipliers = null,
-    Dictionary<ulong, decimal>? PlayerLifeMultipliers = null);
+    Dictionary<ulong, decimal>? PlayerLifeMultipliers = null,
+    int Hope = 0);
 internal sealed record ForestTeamCommand(ForestTeamAction Action, int Argument, ForestTeamSnapshot Snapshot);
 
 internal static class ForestTeam
@@ -212,6 +214,7 @@ internal static class ForestTeam
                 case ForestTeamAction.Passage: await ForestRuntime.ResolvePassageCore(command.Argument != 0); break;
                 case ForestTeamAction.FloorExit: await ForestRuntime.ResolveFloorExitCore(command.Argument != 0); break;
                 case ForestTeamAction.Hunt: await ForestRuntime.ConfirmHuntCore(); break;
+                case ForestTeamAction.HuntBattle: await ForestRuntime.StartHuntCore(); break;
                 case ForestTeamAction.ShopOffer:
                     purchasedOffer = await PurchaseOffer(state, context.Player, (ForestShopOfferKind)command.Argument);
                     break;
@@ -229,14 +232,14 @@ internal static class ForestTeam
 
     private static async Task<ForestShopOfferEntry?> PurchaseOffer(RunState state, Player player, ForestShopOfferKind kind)
     {
-        if (state.CurrentRoom is not MerchantRoom room) return null;
-        var inventory = room.Inventories.FirstOrDefault(item => item.Player == player);
+        if (state.CurrentRoom is not MerchantRoom) return null;
+        var inventory = RunManager.Instance.MerchantSynchronizer.GetInventoryFor(player);
         var progress = ForestGenerationService.GetProgress(state);
-        if (inventory == null || !progress.ShopOffers.TryGetValue(Position(state).Node, out var offers)) return null;
+        if (!progress.ShopOffers.TryGetValue(Position(state).Node, out var offers)) return null;
         var stock = offers.FirstOrDefault(item => item.Kind == kind && !item.Purchased);
         if (stock == null) return null;
         var offer = new ForestShopOfferEntry(player, stock, replicated: true);
-        return await offer.OnTryPurchaseWrapper(inventory) ? offer : null;
+        return await offer.OnTryPurchaseUnsynchronized(inventory) ? offer : null;
     }
 
     private static ForestTeamSnapshot Capture(RunState state)
@@ -246,7 +249,8 @@ internal static class ForestTeam
         return new(Position(state), ++Sessions.GetOrCreateValue(state).Revision,
             ForestGenerationService.GetEngine(state), progress.ActionPointsRemaining, progress.HuntPhase,
             progress.ShopParts, progress.ShopOffers, progress.SecretShops, life, maxLife, shield,
-            ForestGenerationService.GetDamageMultipliers(state), ForestGenerationService.CopyPlayerLifeMultipliers(state));
+            ForestGenerationService.GetDamageMultipliers(state), ForestGenerationService.CopyPlayerLifeMultipliers(state),
+            ForestGenerationService.GetHope(state));
     }
 
     internal static void Publish(RunState state)
@@ -283,6 +287,7 @@ internal static class ForestTeam
         session.DeferredSnapshot = null;
         Apply(state, snapshot);
         ForestPartsUi.RefreshSharedBox();
+        ForestCollectibleScreen.RefreshShared();
         if (NMerchantRoom.Instance is { } room) ForestShopUi.Find(room)?.RefreshSharedStock();
         if (NMapScreen.Instance is { IsOpen: true } screen)
             ForestMapUi.Show(screen, state, ForestMapUi.IsInspection(screen));
@@ -293,7 +298,10 @@ internal static class ForestTeam
         var map = ForestGenerationService.GetOrGenerate(state);
         var progress = ForestGenerationService.GetProgress(state);
         ForestGenerationService.SetSharedEngine(state, snapshot.Engine);
+        // The host inventory already includes the appraisal from these discoveries.
+        ForestCollectibleRules.RevealMap(map, snapshot.Engine, countInformation: false);
         ForestGenerationService.SetTargetLife(state, snapshot.TargetLife, snapshot.MaxTargetLife, snapshot.TargetShield);
+        ForestGenerationService.RestoreHope(state, snapshot.Hope);
         ForestGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers ?? new());
         ForestGenerationService.RestorePlayerLifeMultipliers(state, snapshot.PlayerLifeMultipliers);
         progress.ActionPointsRemaining = snapshot.ActionPoints;

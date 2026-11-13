@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <BlackFlowSpireDependencyRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'dll'))</BlackFlowSpireDependencyRoot>
-    <RitsuLibReferenceTarget Condition="'$(RitsuLibReferenceTarget)' == ''">0.111.0</RitsuLibReferenceTarget>
+    <RitsuLibReferenceTarget Condition="'$(RitsuLibReferenceTarget)' == ''">0.113.0</RitsuLibReferenceTarget>
   </PropertyGroup>
 
   <ItemGroup>

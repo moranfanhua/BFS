@@ -66,5 +66,5 @@
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave": "离开黑池",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave_description": "现在不宜探索它的奥秘",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.PATH.accept_description": "获得1件珍贵加工品，保留剩余行动力并进入下一区域",
-  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept_description": "获得1件加工品，消耗全部行动力并进入下一区域"
+  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept_description": "获得1件加工品，将剩余行动力等量转化为希望，并进入下一区域"
 }

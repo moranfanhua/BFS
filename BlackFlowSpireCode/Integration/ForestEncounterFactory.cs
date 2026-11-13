@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
+using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Stages;
+using BlackFlowSpire.Persistence;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -41,7 +43,7 @@ internal static class ForestEncounterFactory
         };
     }
 
-    public static EncounterModel Create(IRunState state, ForestCombatSetup setup)
+    public static EncounterModel Create(IRunState? state, ForestCombatSetup setup)
     {
         var encounter = ModelDb.GetById<EncounterModel>(ModelId.Deserialize(setup.EncounterId)).ToMutable();
         Prepare(encounter, state, setup);
@@ -59,9 +61,12 @@ internal static class ForestEncounterFactory
             ForestStageMonsterAssetsPatch.EnsurePatched(encounter.GetType());
             if (snapshot.SourceEncounterId != setup.EncounterId)
                 throw new InvalidDataException("Saved stage does not match its source encounter.");
+            if (snapshot.UseGenericEnemyLayout) ForestStageGenericLayoutPatch.EnsurePatched(encounter.GetType());
+        }
+        if (setup.Stage != null || setup.Special != ForestSpecialEncounter.None)
+        {
             Context.Remove(encounter);
             Context.Add(encounter, Copy(setup));
-            if (snapshot.UseGenericEnemyLayout) ForestStageGenericLayoutPatch.EnsurePatched(encounter.GetType());
         }
         EncounterRng(encounter) = new Rng(setup.Seed);
         if (!encounter.HaveMonstersBeenGenerated && state != null)
@@ -85,8 +90,8 @@ internal static class ForestEncounterFactory
 
     internal static void ApplyFixedFormation(EncounterModel encounter)
     {
-        if (encounter.HaveMonstersBeenGenerated && TryGet(encounter, out var setup)
-            && setup.Stage!.UsesCustomFormation)
+        if (encounter.HaveMonstersBeenGenerated && TryGetFixedSetup(encounter, out var setup)
+            && (setup.Stage?.UsesCustomFormation == true || setup.Special == ForestSpecialEncounter.Hunt))
             ReplaceFormation(encounter, setup.Enemies);
     }
 
@@ -112,23 +117,47 @@ internal static class ForestEncounterFactory
         Formation(encounter) = result;
     }
 
-    public static bool TryGet(EncounterModel? encounter, out ForestCombatSetup setup)
+    public static bool TryGet(EncounterModel? encounter, out ForestCombatSetup setup) =>
+        TryGetFixedSetup(encounter, out setup) && setup.Stage != null;
+
+    internal static bool TryGetFixedSetup(EncounterModel? encounter, out ForestCombatSetup setup)
     {
         setup = null!;
         return encounter != null && Context.TryGetValue(encounter, out setup!);
     }
 
+    internal static ForestSpecialEncounter SpecialKind(EncounterModel? encounter) =>
+        TryGetFixedSetup(encounter, out var setup) ? setup.Special : ForestSpecialEncounter.None;
+
     public static ForestCombatSetup Copy(ForestCombatSetup setup) => new()
     {
-        EncounterId = setup.EncounterId, Seed = setup.Seed, Enemies = setup.Enemies.ToList(), Stage = setup.Stage?.Copy()
+        EncounterId = setup.EncounterId, Seed = setup.Seed, Enemies = setup.Enemies.ToList(),
+        Stage = setup.Stage?.Copy(), Special = setup.Special
     };
 
     public static void ScaleCreatedEnemy(Creature creature)
     {
-        if (creature.Side != CombatSide.Enemy || creature.Monster == null
-            || !TryGet(creature.CombatState?.Encounter, out var setup)) return;
-        var summoned = !creature.CombatState!.Encounter!.MonstersWithSlots.Any(item => ReferenceEquals(item.Item1, creature.Monster));
-        var hp = setup.Stage!.Balance.ScaleHealth(creature.MaxHp, creature.Monster.Id.ToString(), summoned);
+        if (creature.Side != CombatSide.Enemy || creature.Monster == null || creature.CombatState is not { } combat) return;
+        var hp = creature.MaxHp;
+        var scaledByStage = TryGet(combat.Encounter, out var setup);
+        if (scaledByStage)
+        {
+            var summoned = !combat.Encounter!.MonstersWithSlots.Any(item => ReferenceEquals(item.Item1, creature.Monster));
+            hp = setup.Stage!.Balance.ScaleHealth(hp, creature.Monster.Id.ToString(), summoned);
+        }
+        if (combat.RunState is RunState run && ForestGenerationService.IsEnabled(run))
+        {
+            var collectibles = ForestCollectibleService.GetInventory(run);
+            var multiplier = ForestCollectibleRules.EnemyLife(collectibles, run.CurrentActIndex);
+            if (SpecialKind(combat.Encounter) == ForestSpecialEncounter.Resident && collectibles.Has(208))
+                multiplier *= 0.6m;
+            if (multiplier != 1m)
+            {
+                hp = Math.Max(1, (int)decimal.Round(hp * multiplier, 0, MidpointRounding.AwayFromZero));
+                scaledByStage = true;
+            }
+        }
+        if (!scaledByStage) return;
         creature.SetMaxHpInternal(hp);
         creature.SetCurrentHpInternal(hp);
     }

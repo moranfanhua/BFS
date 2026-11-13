@@ -13,6 +13,7 @@
   <Import Project="BlackFlowSpire.References.props" />
   <ItemGroup>
     <Compile Include="BlackFlowSpireCode/**/*.cs" />
+    <EmbeddedResource Include="BlackFlowSpire/Data/collectibles.json" LogicalName="BlackFlowSpire.Data.collectibles.json" />
     <EmbeddedResource Include="BlackFlowSpire/localization/eng/*.json" LogicalName="BlackFlowSpire.Localization.%(Filename).eng.json" />
     <EmbeddedResource Include="BlackFlowSpire/localization/zhs/*.json" LogicalName="BlackFlowSpire.Localization.%(Filename).zhs.json" />
     <None Include="BlackFlowSpire/**/*;project.godot;export_presets.cfg;mod_manifest.json;README.md;DEPENDENCIES.md" />

@@ -64,7 +64,7 @@ internal sealed class ForestShopOfferEntry : MerchantEntry
         _ => throw new ArgumentOutOfRangeException()
     };
 
-    protected override async Task<(bool, int)> OnTryPurchase(MerchantInventory? inventory, bool ignoreCost)
+    protected override async Task<(bool, int)> OnTryPurchaseInternal(MerchantInventory? inventory, bool ignoreCost)
     {
         if (ForestTeam.IsGuest && !_replicated) return (false, 0);
         var price = ignoreCost ? 0 : Cost;

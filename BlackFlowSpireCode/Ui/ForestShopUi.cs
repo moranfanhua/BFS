@@ -37,8 +37,9 @@ internal static class ForestShopUi
         }
         // Native merchants build every player's inventory in slot order. Do
         // the same for extra relics because their rolls also affect the shared bag.
-        if (ForestTeam.IsOnline)
-            foreach (var inventory in room.Room.Inventories) ForestShopInventory.Prepare(inventory);
+        if (ForestTeam.IsOnline && ForestRuntime.State is { } state)
+            foreach (var player in state.Players)
+                ForestShopInventory.Prepare(RunManager.Instance.MerchantSynchronizer.GetInventoryFor(player));
         // Preserve the initialized native relic slots and purchase effects. The
         // themed inventory replaces card/potion stock with its own offers below.
         foreach (var child in room.GetChildren().OfType<CanvasItem>()) child.Hide();
@@ -75,7 +76,7 @@ internal partial class ForestShopController(NMerchantRoom room) : Control
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Stop;
-        _inventory = room.Room.GetLocalInventory();
+        _inventory = RunManager.Instance.MerchantSynchronizer.GetLocalInventory();
         _stock = ForestShopInventory.Prepare(_inventory);
         _view = ResourceLoader.Load<PackedScene>(_stock.IsSecret
             ? "res://BlackFlowSpire/Scenes/Shop/ForestSecretShopScreen.tscn"
@@ -285,9 +286,16 @@ internal partial class ForestShopController(NMerchantRoom room) : Control
             else
             {
                 var relic = (goods.Entry as MerchantRelicEntry)?.Model;
-                var purchased = await goods.Entry.OnTryPurchaseWrapper(_inventory);
+                var price = goods.Entry.Cost;
+                var purchased = await goods.Entry.OnTryPurchaseUnsynchronized(_inventory);
                 if (purchased && relic != null)
+                {
+                    // Extra and refreshed relics are purchased outside the native slot synchronizer.
+                    var rewards = RunManager.Instance.RewardSynchronizer;
+                    rewards.SyncLocalGoldLost(price);
+                    rewards.SyncLocalObtainedRelic(relic);
                     NRun.Instance?.GlobalUi.RelicInventory.AnimateRelic(relic, goods.Button.GetGlobalRect().GetCenter());
+                }
                 if (purchased && goods.Entry is ForestShopPartEntry part) await part.Save();
                 if (purchased && goods.Entry is ForestShopOfferEntry offer) await offer.Save();
             }

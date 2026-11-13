@@ -1,4 +1,5 @@
 using System.Reflection.Emit;
+using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Persistence;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
@@ -46,6 +47,11 @@ internal static class ForestDamageMultiplierPatch
     {
         if ((phases & ModifyDamageHookType.Multiplicative) == 0 || combatState == null || dealer == null
             || runState is not RunState run || !ForestGenerationService.IsEnabled(run)) return damage;
-        return ForestGenerationService.GetDamageMultipliers(run).Apply(dealer.Side, damage);
+        var collectibles = ForestCollectibleService.GetInventory(run);
+        var allyAttack = ForestCollectibleRules.AllyAttack(collectibles);
+        if (dealer.IsPlayer) allyAttack *= ForestCombatHealthRuntime.PlayerAttack(combatState);
+        if (dealer.Side == CombatSide.Player && dealer.Block > 0 && collectibles.Has(121)) allyAttack *= 1.4m;
+        return ForestGenerationService.GetDamageMultipliers(run).Apply(dealer.Side, damage,
+            ForestCollectibleRules.AllyDefense(collectibles), ForestCollectibleRules.EnemyDefense(collectibles), allyAttack);
     }
 }

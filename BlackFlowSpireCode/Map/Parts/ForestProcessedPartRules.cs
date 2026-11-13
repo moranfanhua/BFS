@@ -9,14 +9,14 @@ public static class ForestProcessedPartRules
 {
     public static IReadOnlyDictionary<int, ForestTravelRoute> FindRoutes(ForestMap map, ForestEngineInventory inventory) =>
         inventory.LoadedPart is { } part && !inventory.IsOverloaded
-            ? FindRoutes(map, part) : new Dictionary<int, ForestTravelRoute>();
+            ? FindRoutes(map, part, inventory.Collectibles.Has(203)) : new Dictionary<int, ForestTravelRoute>();
 
-    internal static IReadOnlyDictionary<int, ForestTravelRoute> FindRoutes(ForestMap map, ForestProcessedPart part)
+    internal static IReadOnlyDictionary<int, ForestTravelRoute> FindRoutes(ForestMap map, ForestProcessedPart part, bool freeLastUse)
     {
         var definition = ForestProcessedParts.Get(part.Kind);
         // Random destinations are chosen at confirmation, never by hovering a map node.
         return definition.RandomDestination ? new Dictionary<int, ForestTravelRoute>()
-            : EligibleTargets(map, definition).ToDictionary(node => node.Id, node => Route(map, part, definition, node.Id));
+            : EligibleTargets(map, definition).ToDictionary(node => node.Id, node => Route(map, part, definition, node.Id, freeLastUse));
     }
 
     public static int RandomTarget(ForestMap map, ForestExplorationProgress progress, ForestEngineInventory inventory)
@@ -43,9 +43,10 @@ public static class ForestProcessedPartRules
             throw new ArgumentException("The destination is not valid for the loaded part.", nameof(targetId));
         if (!ForestResidentRules.CanEnter(map, map.GetNode(targetId)))
             throw new InvalidOperationException("This dedicated special encounter has not been configured yet.");
-        if (progress.ActionPointsRemaining < definition.ActionPointCost)
+        var route = Route(map, part, definition, targetId, inventory.Collectibles.Has(203));
+        if (progress.ActionPointsRemaining < route.ActionPointCost)
             throw new InvalidOperationException("Not enough exploration action points.");
-        return Route(map, part, definition, targetId);
+        return route;
     }
 
     public static ForestMoveResult Move(ForestMap map, ForestExplorationProgress progress,
@@ -61,8 +62,13 @@ public static class ForestProcessedPartRules
         ForestNodeLifecycle.Leave(map.GetNode(map.PositionNodeId));
         map.CurrentNodeId = target.Id;
         progress.StepsTaken++;
-        progress.ActionPointsRemaining += definition.ActionPointGain - definition.ActionPointCost;
+        progress.ActionPointsRemaining += definition.ActionPointGain - Cost(part, definition, inventory.Collectibles.Has(203));
         inventory.ConsumeLoadedPart();
+        if (part.RemainingUses == 0 && inventory.Collectibles.Has(202))
+        {
+            var random = new StableRandom(map.Seed, map.ActIndex, $"recovered-part/{part.Id}/{progress.StepsTaken}");
+            inventory.Add(ForestProcessedParts.All[random.Next(ForestProcessedParts.All.Count)].Kind);
+        }
         if (definition.ConvertsIncidentToShop)
         {
             target.Kind = ForestNodeKind.Event;
@@ -89,8 +95,12 @@ public static class ForestProcessedPartRules
         };
     }
 
+    private static int Cost(ForestProcessedPart part, ForestProcessedPartDefinition definition, bool freeLastUse) =>
+        freeLastUse && part.RemainingUses == 1 ? 0 : definition.ActionPointCost;
+
     private static ForestTravelRoute Route(ForestMap map, ForestProcessedPart part,
-        ForestProcessedPartDefinition definition, int targetId) => new([map.PositionNodeId, targetId], definition.ActionPointCost)
+        ForestProcessedPartDefinition definition, int targetId, bool freeLastUse) =>
+        new([map.PositionNodeId, targetId], Cost(part, definition, freeLastUse))
     {
         ProcessedPartId = part.Id, ArrivalActionPointGain = definition.ActionPointGain
     };

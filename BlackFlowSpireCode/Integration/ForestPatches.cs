@@ -34,9 +34,15 @@ internal static class ForestFixedEncounterPatch
         if (!ForestRuntime.IsActive || model != null || roomType is not (RoomType.Monster or RoomType.Elite or RoomType.Boss)) return true;
         var state = ForestRuntime.State!;
         var map = ForestGenerationService.GetOrGenerate(state);
+        var progress = ForestGenerationService.GetProgress(state);
+        if (progress.HuntPhase == ForestHuntPhase.InBattle)
+        {
+            __result = new CombatRoom(ForestEncounterFactory.Create(state, ForestResidentEncounterService.CreateHunt(map)), state);
+            return false;
+        }
         var node = map.GetNode(map.PositionNodeId);
         if (ForestResidentRules.IsSpecialCombat(map, node)
-            && ForestGenerationService.GetProgress(state).PendingNodeId == node.Id)
+            && progress.PendingNodeId == node.Id)
         {
             var specialSetup = ForestResidentRules.CombatSetupFor(map, node)
                 ?? throw new InvalidDataException("The dedicated resident encounter is not configured.");
@@ -164,7 +170,18 @@ internal static class ForestRestorePositionPatch
         var map = ForestGenerationService.GetOrGenerate(state);
         var progress = ForestGenerationService.GetProgress(state);
         var current = map.GetNode(map.PositionNodeId);
-        if (current.Completed || current.Content == ForestNodeContent.Door)
+        if (progress.HuntPhase == ForestHuntPhase.InBattle) preFinishedRoom = null;
+        else if (progress.HuntPhase == ForestHuntPhase.Won)
+        {
+            if (preFinishedRoom is not CombatRoom { IsPreFinished: true } hunt
+                || ForestEncounterFactory.SpecialKind(hunt.Encounter) != ForestSpecialEncounter.Hunt)
+            {
+                hunt = new CombatRoom(ForestEncounterFactory.Create(null, ForestResidentEncounterService.CreateHunt(map)), state);
+                hunt.MarkPreFinished();
+                preFinishedRoom = hunt;
+            }
+        }
+        else if (current.Completed || current.Content == ForestNodeContent.Door)
         {
             // Finished rooms and passage choices restore directly to the map. Reuse existing
             // history; a checkpoint made before room entry still needs its missing entry.
@@ -172,6 +189,19 @@ internal static class ForestRestorePositionPatch
             preFinishedRoom = historyCount >= progress.StepsTaken ? new MapRoom() : null;
         }
         __result = ForestRuntime.RestoreMapPoint(__instance, state, map, progress, coord, preFinishedRoom, saveGame);
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(RunManager), nameof(RunManager.ProceedFromTerminalRewardsScreenAsync))]
+internal static class ForestHuntProceedPatch
+{
+    private static bool Prefix(RunManager __instance, ref Task __result)
+    {
+        if (!ForestRuntime.CanContinueRun || ForestRuntime.State?.CurrentRoom is not CombatRoom { IsPreFinished: true } room
+            || ForestEncounterFactory.SpecialKind(room.Encounter) != ForestSpecialEncounter.Hunt) return true;
+        __instance.ActChangeSynchronizer.SetLocalPlayerReady();
+        __result = Task.CompletedTask;
         return false;
     }
 }

@@ -26,6 +26,7 @@ public static class Entry
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, Assembly.GetExecutingAssembly());
         ForestGenerationService.Register();
         ForestTeam.Register();
+        RitsuLibFramework.RegisterHealHookListener(new ForestCollectibleHealing());
         ForestMusicDirector.RegisterAssets();
         new Harmony(ModId).PatchAll(Assembly.GetExecutingAssembly());
         Logger.Info("BlackFlowSpire ready: select the mode from the Play screen.");

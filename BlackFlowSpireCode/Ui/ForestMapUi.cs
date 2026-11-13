@@ -136,7 +136,7 @@ public static class ForestMapUi
 
         void PreviewMovement(ForestProcessedPart? part)
         {
-            var previewRoutes = ForestTravelRules.FindRoutes(map, part, engine.IsOverloaded);
+            var previewRoutes = ForestTravelRules.FindRoutes(map, part, engine.IsOverloaded, engine.Collectibles.Has(203));
             foreach (var (id, (ring, caption)) in reachability)
             {
                 ring.Visible = IsReachable(map.GetNode(id), previewRoutes);
@@ -312,7 +312,7 @@ public static class ForestMapUi
         {
             // Keep native Spine/static boss rendering, but disable every native input target.
             // Movement is handled exclusively by the enclosing Forest button.
-            var boss = NBossMapPoint.Create(state.Map.BossMapPoint, screen, state);
+            var boss = NBossMapPoint.Create(state.Map.BossMapPoint, screen, state.Act.BossEncounter, state);
             root.AddChild(boss);
             boss.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
             boss.Size = new Vector2(374, 306);

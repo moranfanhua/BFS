@@ -1,4 +1,5 @@
 using BlackFlowSpire.Integration;
+using BlackFlowSpire.Map.Presentation;
 using BlackFlowSpire.Persistence;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
@@ -22,9 +23,11 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
     private Label _maxTargetLife = null!;
     private HBoxContainer _shield = null!;
     private Label _shieldCount = null!;
+    private Label _hope = null!;
     private Label _gold = null!;
+    private int _hopeFontSize;
     private int _goldFontSize;
-    private (int Region, int Life, int MaxLife, int Shield, int Gold)? _shown;
+    private (int Region, int Life, int MaxLife, int Shield, int Hope, int Gold)? _shown;
     private bool _suppressed;
     private bool _updating;
     private bool _disposed;
@@ -53,15 +56,24 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
         _view = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Ui/ForestTopBar.tscn").Instantiate<Control>();
         _view.ZIndex = Math.Max(0, globalUi.MapScreen.ZIndex);
         AddChild(_view);
+        var collectibles = _view.GetNode<Button>("Canvas/Collectibles");
+        collectibles.Pressed += () => ForestCollectibleScreen.Open(_state);
         _floorTitle = _view.GetNode<TextureRect>("Canvas/FloorTitle");
         _targetLife = _view.GetNode<Label>("Canvas/LifeValue/Current");
         _maxTargetLife = _view.GetNode<Label>("Canvas/LifeValue/Maximum");
         _shield = _view.GetNode<HBoxContainer>("Canvas/LifeValue/Shield");
         _shieldCount = _shield.GetNode<Label>("Count");
+        _hope = _view.GetNode<Label>("Canvas/Hope");
+        _hopeFontSize = _hope.GetThemeFontSize("font_size");
         _gold = _view.GetNode<Label>("Canvas/Gold");
         _goldFontSize = _gold.GetThemeFontSize("font_size");
-        ForestLocalization.BindStaticText(_view);
-        ForestLocalization.RefreshWithLocale(this, () => ForestLocalization.BindStaticText(_view));
+        void RefreshText()
+        {
+            ForestLocalization.BindStaticText(_view);
+            collectibles.TooltipText = ForestText.Get("UI.COLLECTIBLES.title");
+        }
+        RefreshText();
+        ForestLocalization.RefreshWithLocale(this, RefreshText);
         Refresh();
     }
 
@@ -98,6 +110,7 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
     {
         var region = ForestMapAssets.RegionNumber(_state.CurrentActIndex);
         var (life, maxLife, shield) = ForestGenerationService.GetTargetLife(_state);
+        var hope = ForestGenerationService.GetHope(_state);
         var gold = LocalContext.GetMe(_state)?.Gold ?? 0;
         if (_shown?.Region != region)
             _floorTitle.Texture = ForestMapAssets.Texture($"res://BlackFlowSpire/Images/Ui/TopBar/zone-{region}.png");
@@ -108,14 +121,17 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
             _shieldCount.Text = shield.ToString();
             _shield.Visible = shield > 0;
         }
-        if (_shown?.Gold != gold)
-        {
-            _gold.Text = gold.ToString();
-            var width = _gold.GetThemeFont("font").GetStringSize(_gold.Text, fontSize: _goldFontSize).X;
-            var fontSize = (int)Math.Floor(_goldFontSize * Math.Min(1f, _gold.Size.X / width));
-            _gold.AddThemeFontSizeOverride("font_size", Math.Max(1, fontSize));
-        }
-        _shown = (region, life, maxLife, shield, gold);
+        if (_shown?.Hope != hope) SetCounterText(_hope, hope, _hopeFontSize);
+        if (_shown?.Gold != gold) SetCounterText(_gold, gold, _goldFontSize);
+        _shown = (region, life, maxLife, shield, hope, gold);
+    }
+
+    private static void SetCounterText(Label label, int value, int normalFontSize)
+    {
+        label.Text = value.ToString();
+        var width = label.GetThemeFont("font").GetStringSize(label.Text, fontSize: normalFontSize).X;
+        var fontSize = (int)Math.Floor(normalFontSize * Math.Min(1f, label.Size.X / width));
+        label.AddThemeFontSizeOverride("font_size", Math.Max(1, fontSize));
     }
 
     private void Restore()

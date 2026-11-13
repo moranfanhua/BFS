@@ -1,97 +1,199 @@
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using BlackFlowSpire.Combat;
+using BlackFlowSpire.Map.Collectibles;
+using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Persistence;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Audio.Debug;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
+using MegaCrit.Sts2.Core.Models.Monsters;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Audio;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.TestSupport;
+using MegaCrit.Sts2.Core.ValueProps;
 
 namespace BlackFlowSpire.Integration;
 
 internal static class ForestCombatHealthRuntime
 {
-    private sealed class Battle
+    private sealed class Battle(decimal playerAttack, decimal allyLife, ForestCollectibleInventory collectibles)
     {
         public ForestCombatHealth Health { get; } = new();
+        public decimal PlayerAttack { get; } = playerAttack;
+        public decimal AllyLife { get; } = allyLife;
+        public HashSet<Creature> AdjustedCreatures { get; } = [];
+        public Dictionary<Creature, int>? UnhurtTurns { get; } = collectibles.Has(120) ? [] : null;
+        public HashSet<Creature>? PendingKnockdowns { get; } = collectibles.Has(244) ? [] : null;
+        public bool LifeRestored { get; set; }
         public bool Settled { get; set; }
+        public bool SpecialVictoryRecorded { get; set; }
         public bool TargetDefeat { get; set; }
     }
 
     private static readonly ConditionalWeakTable<CombatState, Battle> Battles = new();
-    private sealed record PlayerLife(CombatState Combat, ForestPlayerCombatLife Life);
-    private static readonly ConditionalWeakTable<Creature, PlayerLife> PlayerLives = new();
+    private sealed record TrackedLife(CombatState Combat, ForestPlayerCombatLife Life);
+    private static readonly ConditionalWeakTable<Creature, TrackedLife> CreatureLives = new();
 
     public static void Begin(RunState run, CombatState combat)
     {
+        var inventory = ForestGenerationService.GetEngine(run);
+        var appraisal = inventory.Collectibles.Has(216) ? ForestPartService.TotalAppraisal(inventory) : 0;
+        var (playerLife, attackMultiplier) = ForestCollectibleRules.PlayerModifiers(
+            inventory.Collectibles, inventory.TotalPartCount, appraisal);
+        var allyLifeBonus = ForestCollectibleRules.AllyLifeBonus(inventory.Collectibles,
+            ForestGenerationService.GetTargetLife(run).Shield > 0);
+        var lifeMultiplier = playerLife + allyLifeBonus;
+        RestoreCombatLife(combat);
         Battles.Remove(combat);
-        Battles.Add(combat, new Battle());
+        var battle = new Battle(attackMultiplier, 1m + allyLifeBonus, inventory.Collectibles);
+        Battles.Add(combat, battle);
         try
         {
             foreach (var player in run.Players)
             {
                 var creature = player.Creature;
-                RestorePlayerLife(creature);
+                RestoreCreatureLife(creature);
                 var multiplier = ForestGenerationService.GetPlayerLifeMultiplier(run, player.NetId);
-                if (multiplier != 1m)
+                if (multiplier != 1m || lifeMultiplier != 1m)
                 {
-                    var life = new ForestPlayerCombatLife(creature.MaxHp, multiplier);
+                    var life = new ForestPlayerCombatLife(creature.MaxHp, multiplier, lifeMultiplier);
                     creature.SetMaxHpInternal(life.CombatMaximum);
-                    PlayerLives.Add(creature, new(combat, life));
+                    TrackLife(creature, combat, battle, life);
                 }
                 creature.HealInternal(creature.MaxHp - creature.CurrentHp);
             }
         }
         catch
         {
-            RestorePlayerLives(combat);
+            RestoreCombatLife(combat);
             throw;
         }
     }
 
-    internal static int? GetBaseMaximum(Creature creature) =>
-        PlayerLives.TryGetValue(creature, out var entry) ? entry.Life.BaseMaximum : null;
-
-    internal static void AdjustPlayerMaximum(Creature creature, ref decimal amount)
+    internal static async Task ApplySummonLife(Task original, Creature creature, CombatState combat)
     {
-        if (amount >= 0m && PlayerLives.TryGetValue(creature, out var entry))
+        await original;
+        if (!Battles.TryGetValue(combat, out var battle) || battle.LifeRestored || battle.AllyLife == 1m
+            || CreatureLives.TryGetValue(creature, out _)) return;
+
+        var life = new ForestPlayerCombatLife(creature.MaxHp, battle.AllyLife);
+        var wasAlive = creature.IsAlive;
+        creature.SetMaxHpInternal(life.CombatMaximum);
+        TrackLife(creature, combat, battle, life);
+        if (wasAlive) creature.HealInternal(creature.MaxHp - life.BaseMaximum);
+    }
+
+    internal static async Task<decimal> SetOstySummonMaximum(Creature osty, decimal amount)
+    {
+        if (osty.CombatState is not CombatState combat || !Battles.TryGetValue(combat, out var battle)
+            || battle.LifeRestored || battle.AllyLife == 1m) return await CreatureCmd.SetMaxHp(osty, amount);
+
+        var life = new ForestPlayerCombatLife((int)Math.Clamp(amount, 0m, ForestPlayerCombatLife.MaxSupportedLife), battle.AllyLife);
+        CreatureLives.Remove(osty);
+        var change = await CreatureCmd.SetMaxHp(osty, life.CombatMaximum);
+        if (!battle.LifeRestored) TrackLife(osty, combat, battle, life);
+        return change;
+    }
+
+    internal static Task HealOstyOnSummon(Creature osty, decimal amount, bool playAnim) =>
+        CreatureCmd.Heal(osty, CreatureLives.TryGetValue(osty, out _) ? osty.MaxHp : amount, playAnim);
+
+    private static void TrackLife(Creature creature, CombatState combat, Battle battle, ForestPlayerCombatLife life)
+    {
+        CreatureLives.Add(creature, new(combat, life));
+        battle.AdjustedCreatures.Add(creature);
+    }
+
+    internal static decimal PlayerAttack(ICombatState combat) =>
+        combat is CombatState state && Battles.TryGetValue(state, out var battle) ? battle.PlayerAttack : 1m;
+
+    internal static int? GetBaseMaximum(Creature creature) =>
+        CreatureLives.TryGetValue(creature, out var entry) ? entry.Life.BaseMaximum : null;
+
+    internal static void AdjustMaximum(Creature creature, ref decimal amount)
+    {
+        if (amount >= 0m && CreatureLives.TryGetValue(creature, out var entry))
             amount = entry.Life.AdjustBaseMaximum(creature.MaxHp, amount);
     }
 
-    internal static void RestorePlayerLives(CombatState combat)
+    internal static void RestoreCombatLife(CombatState combat)
     {
-        if (!Battles.TryGetValue(combat, out _)) return;
-        foreach (var player in combat.RunState.Players)
-        {
-            var creature = player.Creature;
-            if (PlayerLives.TryGetValue(creature, out var entry) && ReferenceEquals(entry.Combat, combat))
-                RestorePlayerLife(creature);
-        }
+        if (!Battles.TryGetValue(combat, out var battle)) return;
+        battle.LifeRestored = true;
+        foreach (var creature in battle.AdjustedCreatures)
+            if (CreatureLives.TryGetValue(creature, out var entry) && ReferenceEquals(entry.Combat, combat))
+                RestoreCreatureLife(creature);
+        battle.AdjustedCreatures.Clear();
     }
 
-    private static void RestorePlayerLife(Creature creature)
+    private static void RestoreCreatureLife(Creature creature)
     {
-        if (!PlayerLives.TryGetValue(creature, out var entry)) return;
-        PlayerLives.Remove(creature);
+        if (!CreatureLives.TryGetValue(creature, out var entry)) return;
+        CreatureLives.Remove(creature);
         creature.SetMaxHpInternal(entry.Life.BaseMaximum);
     }
 
     public static void RecordHpChange(Creature creature, int previousHp)
     {
         var hpLost = previousHp - creature.CurrentHp;
-        if (hpLost <= 0 || !creature.IsPlayer || creature.CombatState is not CombatState combat
+        if (creature.Side != CombatSide.Player || creature.CombatState is not CombatState combat
             || !Battles.TryGetValue(combat, out var battle) || battle.Settled) return;
+        if (hpLost <= 0)
+        {
+            if (previousHp == 0 && creature.IsAlive) battle.PendingKnockdowns?.Remove(creature);
+            return;
+        }
         var manager = CombatManager.Instance;
         if (manager.IsInProgress && ReferenceEquals(manager.DebugOnlyGetState(), combat))
-            battle.Health.RecordLoss(hpLost);
+        {
+            battle.UnhurtTurns?.Remove(creature);
+            if (creature.IsPlayer)
+            {
+                battle.Health.RecordLoss(hpLost);
+                if (creature.IsDead) battle.PendingKnockdowns?.Add(creature);
+            }
+        }
+    }
+
+    internal static bool TakeKnockdown(CombatState combat, Creature creature) =>
+        Battles.TryGetValue(combat, out var battle) && !battle.Settled && battle.PendingKnockdowns?.Remove(creature) == true;
+
+    internal static async Task GrantUnhurtBlock(CombatState combat)
+    {
+        if (!Battles.TryGetValue(combat, out var battle) || battle.Settled || battle.LifeRestored
+            || battle.UnhurtTurns is not { } turns) return;
+
+        var recipients = new List<Creature>();
+        foreach (var ally in combat.Allies)
+        {
+            if (ally.IsDead)
+            {
+                turns.Remove(ally);
+                continue;
+            }
+
+            // A missing entry starts a new streak at this turn boundary.
+            // A recorded entry completes one interval since the previous allied turn start.
+            var completed = turns.TryGetValue(ally, out var previous) ? previous + 1 : 0;
+            if (completed == 3)
+            {
+                recipients.Add(ally);
+                completed = 0;
+            }
+            turns[ally] = completed;
+        }
+
+        foreach (var ally in recipients)
+            await CreatureCmd.GainBlock(ally, ally.MaxHp * 0.2m, ValueProp.Unpowered, null);
     }
 
     public static bool Settle(CombatState? combat, bool won)
@@ -108,13 +210,63 @@ internal static class ForestCombatHealthRuntime
 
     public static bool IsTargetDefeat(CombatState combat) =>
         Battles.TryGetValue(combat, out var battle) && battle.TargetDefeat;
+
+    internal static void RecordSpecialVictory(RunState run, CombatRoom room)
+    {
+        var kind = ForestEncounterFactory.SpecialKind(room.Encounter);
+        if (kind == ForestSpecialEncounter.None || !Battles.TryGetValue(room.CombatState, out var battle)
+            || battle.SpecialVictoryRecorded || battle.TargetDefeat) return;
+
+        ForestGenerationService.RecordSpecialVictory(run, kind);
+        battle.SpecialVictoryRecorded = true;
+    }
 }
 
 [HarmonyPatch(typeof(Creature), nameof(Creature.SetMaxHpInternal))]
-internal static class ForestPlayerCombatMaximumPatch
+internal static class ForestCombatMaximumPatch
 {
     private static void Prefix(Creature __instance, ref decimal amount) =>
-        ForestCombatHealthRuntime.AdjustPlayerMaximum(__instance, ref amount);
+        ForestCombatHealthRuntime.AdjustMaximum(__instance, ref amount);
+}
+
+[HarmonyPatch(typeof(CombatManager), "AfterCreatureAdded", new[] { typeof(Creature), typeof(CombatState) })]
+internal static class ForestSummonLifePatch
+{
+    private static void Postfix(Creature creature, CombatState state, ref Task __result)
+    {
+        if (creature.Side == CombatSide.Player && !creature.IsPlayer && creature.Monster is not Osty)
+            __result = ForestCombatHealthRuntime.ApplySummonLife(__result, creature, state);
+    }
+}
+
+[HarmonyPatch]
+internal static class ForestOstySummonLifePatch
+{
+    private static MethodBase TargetMethod() => AccessTools.Method(typeof(OstyCmd), nameof(OstyCmd.Summon))
+        .GetCustomAttribute<AsyncStateMachineAttribute>()!.StateMachineType
+        .GetMethod("MoveNext", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+    private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> source)
+    {
+        var instructions = source.ToList();
+        var setMaximum = AccessTools.Method(typeof(CreatureCmd), nameof(CreatureCmd.SetMaxHp));
+        var heal = AccessTools.Method(typeof(CreatureCmd), nameof(CreatureCmd.Heal));
+        var maximumCalls = instructions.Where(instruction => instruction.Calls(setMaximum)).ToArray();
+        var healCalls = instructions.Where(instruction => instruction.Calls(heal)).ToArray();
+        if (maximumCalls.Length != 1 || healCalls.Length != 1)
+        {
+            Entry.Logger.Warn("[Forest] Could not locate Osty's initial summon and revival health setup.");
+            return instructions;
+        }
+
+        // Initial summon and revival set an absolute base. Growth while alive
+        // uses native GainMaxHp and goes through the ordinary maximum HP patch.
+        maximumCalls[0].opcode = OpCodes.Call;
+        maximumCalls[0].operand = AccessTools.Method(typeof(ForestCombatHealthRuntime), nameof(ForestCombatHealthRuntime.SetOstySummonMaximum));
+        healCalls[0].opcode = OpCodes.Call;
+        healCalls[0].operand = AccessTools.Method(typeof(ForestCombatHealthRuntime), nameof(ForestCombatHealthRuntime.HealOstyOnSummon));
+        return instructions;
+    }
 }
 
 [HarmonyPatch(typeof(Player), nameof(Player.ToSerializable))]
@@ -140,7 +292,7 @@ internal static class ForestPlayerCombatLifeRestorePatch
     private static async Task RestoreAfterCombat(Task original, CombatState combat)
     {
         try { await original; }
-        finally { ForestCombatHealthRuntime.RestorePlayerLives(combat); }
+        finally { ForestCombatHealthRuntime.RestoreCombatLife(combat); }
     }
 }
 
@@ -150,7 +302,7 @@ internal static class ForestPlayerCombatLifeResetPatch
     private static void Prefix(CombatManager __instance)
     {
         if (__instance.DebugOnlyGetState() is { } combat)
-            ForestCombatHealthRuntime.RestorePlayerLives(combat);
+            ForestCombatHealthRuntime.RestoreCombatLife(combat);
     }
 }
 
@@ -178,7 +330,7 @@ internal static class ForestCombatHealthEntryPatch
         try { await original; }
         catch
         {
-            ForestCombatHealthRuntime.RestorePlayerLives(combat);
+            ForestCombatHealthRuntime.RestoreCombatLife(combat);
             throw;
         }
     }
@@ -234,7 +386,7 @@ internal static class ForestCombatHealthDefeatPatch
         if (!CombatManager.Instance.IsAboutToLose) return;
         var combat = ForestNativeTurnAccess.State(__0);
         __state = ForestCombatHealthRuntime.IsTargetDefeat(combat);
-        ForestCombatHealthRuntime.RestorePlayerLives(combat);
+        ForestCombatHealthRuntime.RestoreCombatLife(combat);
     }
 
     private static void Postfix(bool __state)

@@ -1,37 +1,42 @@
 using BlackFlowSpire.Map.Generation;
 using BlackFlowSpire.Map.Models;
-using MegaCrit.Sts2.Core.Runs;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Encounters;
+using MegaCrit.Sts2.Core.Models.Monsters;
 
 namespace BlackFlowSpire.Integration;
 
-// Dedicated encounter entry points. Fill these two methods when the resident battles
-// are authored; a null setup keeps entry/intelligence disabled, without drawing vanilla fights.
 internal static class ForestResidentEncounterService
 {
-    internal static ForestCombatSetup? CreateStronghold(RunState state, ForestNode node, ulong seed) => null;
-    internal static ForestCombatSetup? CreateRoamer(RunState state, ForestRoamingResident resident, ulong seed) => null;
-
-    public static bool Populate(RunState state, ForestMap map)
+    public static bool Populate(ForestMap map)
     {
         var changed = false;
-        ulong Seed(string category, int id)
-        {
-            var random = new StableRandom(map.Seed, map.ActIndex, $"resident-combat/v1/{category}/{id}");
-            return ((ulong)(uint)random.Next(int.MaxValue) << 32) | (uint)random.Next(int.MaxValue);
-        }
         foreach (var node in map.Nodes.Where(node => node.Content == ForestNodeContent.BattleSavage
                      && node.CombatSetup == null))
-            if (CreateStronghold(state, node, Seed("stronghold", node.Id)) is { } setup)
-            {
-                node.CombatSetup = setup;
-                changed = true;
-            }
+        {
+            node.CombatSetup = CreateHoppers(map, $"resident-combat/v1/stronghold/{node.Id}", ForestSpecialEncounter.Resident, 1);
+            changed = true;
+        }
         foreach (var resident in map.RoamingResidents.Where(resident => resident.CombatSetup == null))
-            if (CreateRoamer(state, resident, Seed("roamer", resident.Id)) is { } setup)
-            {
-                resident.CombatSetup = setup;
-                changed = true;
-            }
+        {
+            resident.CombatSetup = CreateHoppers(map, $"resident-combat/v1/roamer/{resident.Id}", ForestSpecialEncounter.Resident, 1);
+            changed = true;
+        }
         return changed;
+    }
+
+    internal static ForestCombatSetup CreateHunt(ForestMap map) =>
+        CreateHoppers(map, "hunt-combat/v1", ForestSpecialEncounter.Hunt, 2);
+
+    private static ForestCombatSetup CreateHoppers(ForestMap map, string salt, ForestSpecialEncounter special, int count)
+    {
+        var random = new StableRandom(map.Seed, map.ActIndex, salt);
+        var seed = ((ulong)(uint)random.Next(int.MaxValue) << 32) | (uint)random.Next(int.MaxValue);
+        var enemy = new ForestEnemySlot(ModelDb.Monster<ThievingHopper>().Id.ToString(), null);
+        return new()
+        {
+            EncounterId = ModelDb.Encounter<ThievingHopperWeak>().Id.ToString(),
+            Seed = seed, Enemies = Enumerable.Repeat(enemy, count).ToList(), Special = special
+        };
     }
 }

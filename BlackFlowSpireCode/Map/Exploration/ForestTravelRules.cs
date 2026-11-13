@@ -60,12 +60,13 @@ public static class ForestTravelRules
     // Other completed rooms can be crossed and will be consumed when the route leaves them.
     // BFS finds the shortest legal detour, rather than checking a potentially blocked shortest path.
     public static IReadOnlyDictionary<int, ForestTravelRoute> FindRoutes(ForestMap map, ForestEngineInventory? inventory = null) =>
-        FindRoutes(map, inventory?.LoadedPart, inventory?.IsOverloaded == true);
+        FindRoutes(map, inventory?.LoadedPart, inventory?.IsOverloaded == true, inventory?.Collectibles.Has(203) == true);
 
-    internal static IReadOnlyDictionary<int, ForestTravelRoute> FindRoutes(ForestMap map, ForestProcessedPart? part, bool isOverloaded)
+    internal static IReadOnlyDictionary<int, ForestTravelRoute> FindRoutes(ForestMap map, ForestProcessedPart? part,
+        bool isOverloaded, bool freeLastUse)
     {
         if (isOverloaded) return new Dictionary<int, ForestTravelRoute>();
-        if (part != null) return ForestProcessedPartRules.FindRoutes(map, part);
+        if (part != null) return ForestProcessedPartRules.FindRoutes(map, part, freeLastUse);
         var nodes = map.Nodes.ToDictionary(node => node.Id);
         var paths = new Dictionary<int, ForestTravelRoute>
         {

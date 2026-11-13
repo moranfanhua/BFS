@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using BlackFlowSpire.Combat;
+using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Persistence;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
@@ -14,6 +15,7 @@ public static class ForestSpeedRuntime
     private sealed class BattleClock
     {
         public ForestActionTimeline Timeline { get; } = new();
+        public decimal GoldSpeedBonus { get; set; }
         public HashSet<Creature> PreparedIntents { get; } = [];
         public Queue<Func<Task>> EnemyActions { get; } = [];
     }
@@ -38,10 +40,14 @@ public static class ForestSpeedRuntime
 
     internal static void BeginCombat(CombatState state, decimal playerSpeedBonus)
     {
-        if (!IsEnabled(state)) return;
+        if (!IsEnabled(state) || state.RunState is not RunState run) return;
         var clock = GetClock(state);
         if (clock.Timeline.Started) return;
-        clock.Timeline.SetSpeed(ForestActionSide.Player, clock.Timeline.PlayerSpeed + playerSpeedBonus);
+        clock.GoldSpeedBonus = GoldSpeedBonus(state);
+        var collectibles = ForestCollectibleService.GetInventory(run);
+        var collectibleBonus = ForestCollectibleRules.AllySpeedBonus(collectibles) + (decimal)collectibles.SpecialVictoryAttackSpeed;
+        clock.Timeline.SetSpeed(ForestActionSide.Player,
+            clock.Timeline.PlayerSpeed + playerSpeedBonus + clock.GoldSpeedBonus + collectibleBonus);
         state.CurrentSide = ToCombatSide(clock.Timeline.Start());
         if (state.CurrentSide == CombatSide.Enemy)
         {
@@ -53,12 +59,26 @@ public static class ForestSpeedRuntime
         }
     }
 
+    internal static void RefreshGoldSpeed(CombatState state)
+    {
+        if (!IsEnabled(state) || !CombatManager.Instance.IsInProgress
+            || !Clocks.TryGetValue(state, out var clock) || !clock.Timeline.Started) return;
+        var bonus = GoldSpeedBonus(state);
+        if (bonus == clock.GoldSpeedBonus) return;
+        AddSpeed(state, CombatSide.Player, bonus - clock.GoldSpeedBonus);
+        clock.GoldSpeedBonus = bonus;
+    }
+
+    private static decimal GoldSpeedBonus(CombatState state) =>
+        state.RunState is RunState run && ForestCollectibleService.GetInventory(run).Has(192)
+            && ForestTeam.Owner(run) is { } owner ? 7m * (owner.Gold / (5 * ForestPartService.GoldPerOriginium)) : 0m;
+
     public static CombatSide PreviewNextSide(CombatState state)
     {
         if (!IsEnabled(state)) throw new InvalidOperationException("The forest speed system is not active for this combat.");
         // Query the same native extra-turn rule used when the turn actually
         // ends. Previewing must not advance the clock or consume that effect.
-        if (state.CurrentSide == CombatSide.Player && state.Players.Any(player => Hook.ShouldTakeExtraTurn(state, player)))
+        if (state.CurrentSide == CombatSide.Player && state.Players.Any(player => Hook.ShouldTakeExtraTurn(state, player, out _)))
             return CombatSide.Player;
         return ToCombatSide(GetTimeline(state).Preview(1)[0]);
     }

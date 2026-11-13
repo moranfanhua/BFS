@@ -28,7 +28,11 @@ public static class ForestNaturalService
     public static async Task Discard(int id)
     {
         var state = RequireState();
+        var part = ForestGenerationService.GetEngine(state).NaturalParts.FirstOrDefault(part => part.Id == id)
+            ?? throw new ArgumentException("Unknown natural part.", nameof(id));
+        var saleGold = ForestCollectibleService.GetInventory(state).Has(212) ? SaleGold(part) : 0;
         ForestGenerationService.ModifyEngine(state, engine => engine.DiscardNatural(id));
+        await ForestCollectibleService.PayDiscard(state, saleGold);
         await ForestPartService.SaveAndRefresh(state);
     }
 

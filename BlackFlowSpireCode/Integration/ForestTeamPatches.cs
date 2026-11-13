@@ -62,8 +62,10 @@ internal static class ForestCombatArrivalRewardPatch
 {
     private static void Postfix(IRunState runState, AbstractRoom room, ref Task __result)
     {
-        if (room is CombatRoom && runState is RunState state && ForestGenerationService.IsEnabled(state)
-            && (ForestTeam.IsOnline || ForestGenerationService.GetEngine(state).PendingConceptRewards.Any(reward => reward.Shield > 0)))
+        if (room is not CombatRoom || runState is not RunState state || !ForestGenerationService.IsEnabled(state)) return;
+        var engine = ForestGenerationService.GetEngine(state);
+        if (ForestTeam.IsOnline || engine.Collectibles.PendingGold > 0
+            || engine.PendingConceptRewards.Any(reward => reward.Shield > 0 || reward.CollectibleIds.Count > 0))
             __result = SettleBeforeCombat(__result, state);
     }
 
@@ -73,7 +75,8 @@ internal static class ForestCombatArrivalRewardPatch
         // Native player and RNG synchronization is complete. Settle shared rewards
         // and apply any movement shield before combat starts.
         var progress = ForestGenerationService.GetProgress(state);
-        if (progress.PendingPartReward != null || ForestGenerationService.GetEngine(state).PendingConceptRewards.Count > 0)
+        var engine = ForestGenerationService.GetEngine(state);
+        if (progress.PendingPartReward != null || engine.PendingConceptRewards.Count > 0 || engine.Collectibles.PendingGold > 0)
             await ForestPartService.SettleMovementRewards(state, ForestGenerationService.GetOrGenerate(state), progress);
     }
 }

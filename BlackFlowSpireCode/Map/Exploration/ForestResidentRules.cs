@@ -17,7 +17,7 @@ public static class ForestResidentRules
     public static ForestCombatSetup? CombatSetupFor(ForestMap map, ForestNode node) =>
         Occupant(map, node.Id) is { } resident ? resident.CombatSetup : node.CombatSetup;
 
-    // Dedicated encounters intentionally have no vanilla fallback while still unimplemented.
+    // Dedicated encounters require their fixed formation before entry.
     public static bool CanEnter(ForestMap map, ForestNode node) =>
         !IsSpecialCombat(map, node) || CombatSetupFor(map, node) != null;
 

@@ -2,6 +2,7 @@ using BlackFlowSpire.Integration;
 using BlackFlowSpire.Persistence;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.ControllerInput;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 using MegaCrit.Sts2.Core.Runs;
@@ -12,6 +13,7 @@ namespace BlackFlowSpire.Ui;
 internal partial class ForestPartsBar(NGlobalUi globalUi, RunState state) : Control
 {
     private Control _view = null!;
+    private ForestCollectibleBar _collectibles = null!;
     private (long Value, int Count, int Capacity)? _shown;
     private double _refreshIn;
 
@@ -31,12 +33,22 @@ internal partial class ForestPartsBar(NGlobalUi globalUi, RunState state) : Cont
         MouseFilter = MouseFilterEnum.Ignore;
         _view = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Ui/ForestPartsBar.tscn").Instantiate<Control>();
         AddChild(_view);
-        _view.GetNode<Button>("Canvas/PartsBox").Pressed += () => ForestPartsUi.OpenBox(state);
+        _collectibles = new ForestCollectibleBar(_view, ToggleCollectibles,
+            item => ForestCollectibleScreen.OpenOwnedDetail(state, item));
+        _view.GetNode<Button>("Canvas/PartsBox").Pressed += () =>
+        {
+            _collectibles.Close(immediate: true);
+            ForestPartsUi.OpenBox(state);
+        };
         ForestLocalization.BindStaticText(_view);
-        ForestLocalization.RefreshWithLocale(this, () => { ForestLocalization.BindStaticText(_view); RefreshBox(); });
+        ForestLocalization.RefreshWithLocale(this, () =>
+        {
+            ForestLocalization.BindStaticText(_view);
+            _collectibles.RefreshText();
+        });
         ActiveScreenContext.Instance.Updated += RefreshVisibility;
         RefreshVisibility();
-        RefreshBox();
+        if (Visible) RefreshContents();
     }
 
     public override void _Process(double delta)
@@ -46,7 +58,26 @@ internal partial class ForestPartsBar(NGlobalUi globalUi, RunState state) : Cont
         _refreshIn -= delta;
         if (_refreshIn > 0) return;
         _refreshIn = 0.1;
-        RefreshBox();
+        RefreshContents();
+    }
+
+    public override void _Input(InputEvent input)
+    {
+        if (!IsVisibleInTree() || !_collectibles.IsOpen || NModalContainer.Instance?.OpenModal != null) return;
+        if (!input.IsActionPressed(MegaInput.cancel) && !input.IsActionPressed(MegaInput.back)) return;
+        _collectibles.Close();
+        GetViewport().SetInputAsHandled();
+    }
+
+    private void ToggleCollectibles()
+    {
+        if (!IsVisibleInTree() || NModalContainer.Instance?.OpenModal != null) return;
+        if (_collectibles.IsOpen) _collectibles.Close();
+        else
+        {
+            _collectibles.Refresh(ForestCollectibleService.GetInventory(state).OwnedIds);
+            _collectibles.Open();
+        }
     }
 
     private void RefreshVisibility()
@@ -54,16 +85,20 @@ internal partial class ForestPartsBar(NGlobalUi globalUi, RunState state) : Cont
         if (!IsNodeReady()) return;
         // Keep selection screens, battle controls and the native pause/menu layers clear.
         var mapOpen = globalUi.MapScreen.IsOpen;
+        var modal = NModalContainer.Instance?.OpenModal;
+        var inspectingCollectible = modal is ForestCollectibleScreen { IsOwnedDetail: true };
         Visible = ReferenceEquals(ForestRuntime.State, state) && ForestRuntime.CanContinueRun
             && !ForestRuntime.IsTraveling && !CombatManager.Instance.IsInProgress
-            && NModalContainer.Instance?.OpenModal == null && !globalUi.SubmenuStack.Stack.SubmenusOpen
+            && (modal == null || inspectingCollectible) && !globalUi.SubmenuStack.Stack.SubmenusOpen
             && (mapOpen || (globalUi.Overlays.ScreenCount == 0 && !globalUi.CapstoneContainer.InUse));
+        if (!Visible) _collectibles.Close(immediate: true);
     }
 
-    private void RefreshBox()
+    private void RefreshContents()
     {
         if (!ForestGenerationService.IsEnabled(state)) return;
         var inventory = ForestGenerationService.GetEngine(state);
+        _collectibles.Refresh(inventory.Collectibles.OwnedIds);
         var data = (ForestPartService.TotalAppraisal(inventory), inventory.TotalPartCount, inventory.Capacity);
         if (_shown == data) return;
         _shown = data;

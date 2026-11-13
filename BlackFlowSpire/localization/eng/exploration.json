@@ -64,7 +64,7 @@
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.title": "End of the Perilous Road",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.description": "Deep in the forest, you discover a black pool. A shimmering film of oil hides its depths. Jagged stones surround it like the teeth of a vicious hound. You do not know where it leads. Perhaps the way to escape the pursuing hounds is to step into another hound’s jaws.",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept": "Convince your companions",
-  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept_description": "Obtain 1 Processed Part, consume all Action Points, and enter the next area.",
+  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept_description": "Obtain 1 Processed Part, convert each remaining Action Point into 1 Hope, and enter the next area.",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave": "Leave the black pool",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave_description": "Now is not the time to explore its secrets."
 }

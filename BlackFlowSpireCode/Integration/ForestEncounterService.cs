@@ -18,7 +18,7 @@ internal static class ForestEncounterService
 
     public static bool Populate(RunState state, ForestMap map, ForestExplorationProgress? progress)
     {
-        var changed = ForestResidentEncounterService.Populate(state, map);
+        var changed = ForestResidentEncounterService.Populate(map);
         foreach (var node in map.Nodes.Where(node => node.Details == null && node.CombatSetup != null
                      && node.Content != ForestNodeContent.BattleSavage))
         {

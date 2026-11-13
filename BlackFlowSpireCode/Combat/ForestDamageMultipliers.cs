@@ -24,10 +24,11 @@ public sealed record ForestDamageMultipliers
         EnemyDefense = enemyDefense;
     }
 
-    internal decimal Apply(CombatSide dealerSide, decimal damage) => dealerSide switch
+    internal decimal Apply(CombatSide dealerSide, decimal damage, decimal allyDefenseFactor = 1m,
+        decimal enemyDefenseFactor = 1m, decimal allyAttackFactor = 1m) => dealerSide switch
     {
-        CombatSide.Player => Math.Ceiling(damage * Attack / EnemyDefense),
-        CombatSide.Enemy => Math.Ceiling(damage * EnemyAttack / Defense),
+        CombatSide.Player => Math.Ceiling(damage * Attack * allyAttackFactor / (EnemyDefense * enemyDefenseFactor)),
+        CombatSide.Enemy => Math.Ceiling(damage * EnemyAttack / (Defense * allyDefenseFactor)),
         _ => damage
     };
 }

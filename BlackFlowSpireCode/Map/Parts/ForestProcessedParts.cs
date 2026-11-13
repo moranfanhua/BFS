@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Models;
 
 namespace BlackFlowSpire.Map.Parts;
@@ -68,6 +69,7 @@ public sealed class ForestProcessedPart
 // Run-wide inventory: moving to a new floor preserves surviving parts and loadout.
 public sealed class ForestEngineInventory
 {
+    public ForestCollectibleInventory Collectibles { get; set; } = new();
     public int Capacity { get; set; } = 10;
     public int NextId { get; set; }
     public int LastFloorIndex { get; set; } = -1;

@@ -1,5 +1,6 @@
 using System.Globalization;
 using BlackFlowSpire.Combat;
+using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Map.Generation;
 using BlackFlowSpire.Map.Models;
@@ -22,12 +23,21 @@ public sealed class ForestRunData
     public int TargetLife { get; set; } = ForestCombatHealth.InitialTargetLife;
     public int MaxTargetLife { get; set; } = ForestCombatHealth.InitialTargetLife;
     public int TargetShield { get; set; }
+    public int Hope { get; set; }
     public ForestDamageMultipliers DamageMultipliers { get; set; } = new();
     public Dictionary<ulong, decimal> PlayerLifeMultipliers { get; set; } = [];
     public Dictionary<int, ForestMap> Maps { get; set; } = [];
     public Dictionary<int, ForestExplorationProgress> Progress { get; set; } = [];
     public ForestEngineInventory Engine { get; set; } = new();
     public ForestFloorTransition? PendingFloorTransition { get; set; }
+
+    internal bool TryChangeHope(int delta)
+    {
+        var balance = (long)Hope + delta;
+        if (balance is < 0 or > int.MaxValue) return false;
+        Hope = (int)balance;
+        return true;
+    }
 }
 
 public static class ForestGenerationService
@@ -45,6 +55,22 @@ public static class ForestGenerationService
 
     public static void Enable(RunState state) => _slot!.Modify(state, data => data.Enabled = true);
     internal static ulong? GetTeamOwnerId(RunState state) => _slot!.Get(state).TeamOwnerId;
+
+    public static int GetHope(RunState state) => _slot!.Get(state).Hope;
+
+    // A negative delta spends Hope. Replicated effects apply the same delta once on every peer.
+    public static bool TryChangeHope(RunState state, int delta, bool replicated = false)
+    {
+        if (!IsEnabled(state) || (!replicated && ForestTeam.IsGuest)) return false;
+        if (delta == 0) return true;
+        var changed = false;
+        _slot!.Modify(state, data => changed = data.TryChangeHope(delta));
+        if (changed && !replicated) ForestTeam.Publish(state);
+        return changed;
+    }
+
+    internal static void RestoreHope(RunState state, int hope) =>
+        _slot!.Modify(state, data => data.Hope = Math.Max(0, hope));
 
     public static ForestDamageMultipliers GetDamageMultipliers(RunState state) => _slot!.Get(state).DamageMultipliers;
 
@@ -133,6 +159,38 @@ public static class ForestGenerationService
             data.TargetShield -= shieldUsed;
         }).TargetLife;
 
+    internal static void RecordSpecialVictory(RunState state, ForestSpecialEncounter kind)
+    {
+        _slot!.Modify(state, data =>
+        {
+            if (kind == ForestSpecialEncounter.Hunt
+                && (!data.Progress.TryGetValue(state.CurrentActIndex, out var progress) || !ForestHuntRules.WinBattle(progress))) return;
+            var collectibles = data.Engine.Collectibles;
+            collectibles.SpecialVictoryAttackSpeed = checked(collectibles.SpecialVictoryAttackSpeed
+                + ForestCollectibleRules.SpecialVictoryAttackSpeed(collectibles, kind));
+        });
+    }
+
+    internal static void GrantCollectible(RunState state, ForestMap map, ForestCollectible item)
+    {
+        _slot!.Modify(state, data =>
+        {
+            var collectibles = data.Engine.Collectibles;
+            if (collectibles.Has(item.Number)) return;
+            var reward = ForestCollectibleRules.OnAcquired(item, data.Engine, map);
+            var maxLife = checked(data.MaxTargetLife + reward.MaxLife);
+            var shield = checked(data.TargetShield + reward.Shield);
+            if (!data.TryChangeHope(reward.Hope))
+                throw new InvalidOperationException("The collectible's Hope reward exceeds the balance range.");
+            collectibles.OwnedIds.Add(item.Id);
+            data.MaxTargetLife = maxLife;
+            data.TargetLife = (int)Math.Min(maxLife, (long)data.TargetLife + reward.Life);
+            data.TargetShield = shield;
+            collectibles.PendingGold += reward.Originium * ForestPartService.GoldPerOriginium;
+            ForestCollectibleRules.RevealMap(map, data.Engine);
+        });
+    }
+
     internal static bool IsTeamLobbyEnabled(StartRunLobby lobby) => _slot!.Lobby.TryGet(lobby, out var data) && data.Enabled;
 
     internal static void SetTeamLobby(StartRunLobby lobby, bool enabled)
@@ -150,17 +208,34 @@ public static class ForestGenerationService
     public static void SetFloorTransition(RunState state, ForestFloorTransition? transition) =>
         _slot!.Modify(state, data => data.PendingFloorTransition = transition);
 
-    internal static void ApplyFloorTransition(RunState state)
+    internal static void ApplyFloorTransition(RunState state, ForestMap map, ForestExplorationProgress progress)
     {
-        if (GetFloorTransition(state) is not { } transition || state.CurrentActIndex != transition.SourceActIndex + 1) return;
-        var map = GetOrGenerate(state);
-        var progress = GetProgress(state);
-        progress.ActionPointsRemaining = checked(map.Options.InitialActionPoints + transition.ActionPointBonus);
-        // Add after EnterFloor has expired old temporary parts, so a newly won
-        // spring or XiaoBajie survives for use on the destination floor.
-        ModifyEngine(state, engine => engine.Add(transition.Reward));
-        MarkChanged(state, map, progress);
-        SetFloorTransition(state, null);
+        if (GetFloorTransition(state) is not { } transition || map.ActIndex != transition.SourceActIndex + 1) return;
+        var actionPoints = checked(map.Options.InitialActionPoints + transition.ActionPointBonus);
+        _slot!.Modify(state, data =>
+        {
+            if (data.PendingFloorTransition != transition) return;
+            if (!data.TryChangeHope(transition.Hope))
+                throw new InvalidOperationException("The floor exit's Hope reward exceeds the balance range.");
+            progress.ActionPointsRemaining = actionPoints;
+            // EnterFloor has already expired the previous floor's temporary parts.
+            data.Engine.Add(transition.Reward);
+            data.PendingFloorTransition = null;
+        });
+    }
+
+    internal static ForestPartMovementReward? TakeMovementReward(RunState state, ForestMap map, ForestExplorationProgress progress)
+    {
+        if (progress.PendingPartReward is not { } reward) return null;
+        if (reward.ActIndex != map.ActIndex || reward.NodeId != map.PositionNodeId)
+            throw new InvalidOperationException("The part reward does not match the movement destination.");
+        _slot!.Modify(state, data =>
+        {
+            if (!data.TryChangeHope(reward.Hope))
+                throw new InvalidOperationException("The movement's Hope reward exceeds the balance range.");
+            progress.PendingPartReward = null;
+        });
+        return reward;
     }
 
     public static void ModifyEngine(RunState state, Action<ForestEngineInventory> update) =>
@@ -199,7 +274,9 @@ public static class ForestGenerationService
                 ForestMapValidator.Validate(existing);
                 saved.Progress.TryGetValue(runState.CurrentActIndex, out var progress);
                 var populated = ForestEncounterService.Populate(runState, existing, progress);
-                if (ForestFog.RevealNearby(existing, GetEngine(runState)).Count > 0 || populated)
+                var revealed = ForestFog.RevealNearby(existing, saved.Engine).Count > 0;
+                revealed |= ForestCollectibleRules.RevealMap(existing, saved.Engine);
+                if (revealed || populated)
                     slot.Modify(runState, data => data.Maps[runState.CurrentActIndex] = existing);
                 return existing;
             }
@@ -207,8 +284,15 @@ public static class ForestGenerationService
         var seed = string.IsNullOrWhiteSpace(runState.Rng.StringSeed)
             ? runState.Rng.Seed.ToString(CultureInfo.InvariantCulture)
             : runState.Rng.StringSeed;
+        var engine = GetEngine(runState);
+        if (engine.Collectibles.Has(32))
+        {
+            options ??= ForestFloorPlan.GenerationOptions(runState.CurrentActIndex);
+            options = options with { InitialActionPoints = checked(options.InitialActionPoints + 1) };
+        }
         var map = ForestMapGenerator.Generate(seed, runState.CurrentActIndex, options);
-        ForestNaturalRules.NodesRevealed(GetEngine(runState), map.Nodes.Count(node => node.Revealed && node.Kind != ForestNodeKind.Empty));
+        ForestNaturalRules.NodesRevealed(engine, map.Nodes.Count(node => node.Revealed && node.Kind != ForestNodeKind.Empty));
+        ForestCollectibleRules.RevealMap(map, engine);
         // Opt in only newly generated maps; existing maps keep their frozen
         // encounters, while still receiving stage text when a matching key exists.
         if (ForestStageCatalog.ForRegion(runState.Act.Id.Entry).Count > 0

@@ -3,8 +3,10 @@ using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Ui;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
+using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 
 namespace BlackFlowSpire.Integration;
@@ -81,5 +83,52 @@ public static partial class ForestRuntime
         ForestMapUi.Show(screen, state, false);
         ActiveScreenContext.Instance.Update();
         await SaveManager.Instance.SaveRun(null);
+    }
+
+    public static Task StartHunt() => SubmitTeamAction(ForestTeamAction.HuntBattle, 0, StartHuntCore);
+
+    internal static async Task StartHuntCore()
+    {
+        if (IsTraveling || !CanContinueRun || CombatManager.Instance.IsInProgress
+            || State is not { } state || NMapScreen.Instance is not { } screen) return;
+        var map = ForestGenerationService.GetOrGenerate(state);
+        var progress = ForestGenerationService.GetProgress(state);
+        if (!ForestHuntRules.StartBattle(progress, ForestGenerationService.GetEngine(state))) return;
+
+        var manager = RunManager.Instance;
+        IsTraveling = true;
+        LastError = null;
+        try
+        {
+            ForestGenerationService.MarkChanged(state, map, progress);
+            await manager.FadeOut();
+            // A hunt adds a native room and checkpoint at the current coordinate.
+            await manager.EnterMapPointInternal(progress.StepsTaken, MapPointType.Monster, null, true);
+        }
+        catch (Exception error)
+        {
+            LastError = error.Message;
+            Entry.Logger.Error($"[Forest] Hunt entry failed: {error}");
+            if (CanContinueRun && ReferenceEquals(State, state)
+                && !CombatManager.Instance.IsInProgress && !CombatManager.Instance.IsStarting)
+            {
+                progress.HuntPhase = ForestHuntPhase.AwaitingBattle;
+                ForestGenerationService.MarkChanged(state, map, progress);
+                await SaveManager.Instance.SaveRun(null);
+            }
+        }
+        finally
+        {
+            IsTraveling = false;
+            if (CanContinueRun && ReferenceEquals(State, state))
+            {
+                await manager.FadeIn();
+                if (progress.HuntPhase == ForestHuntPhase.AwaitingBattle)
+                {
+                    if (screen.IsOpen) ForestMapUi.Show(screen, state, false);
+                    else OpenMap(screen, false);
+                }
+            }
+        }
     }
 }

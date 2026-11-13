@@ -26,12 +26,9 @@ public static class ForestPartService
 
     public static long TotalSaleGold(ForestEngineInventory inventory) => checked(TotalAppraisal(inventory) * GoldPerOriginium);
 
-    // The hope system is deferred. A future implementation can install this
-    // handler without changing movement rules, inventory or saved part data.
-    public static Func<RunState, int, Task>? HopeRewardHandler { get; set; }
-
     internal static void PrepareMovementRewards(RunState state, ForestMap map, ForestExplorationProgress progress, ForestMoveResult result)
     {
+        ForestCollectibleService.QueueSurvey(state, map);
         ForestConceptService.PrepareMovement(state, map, result);
         var teamEffects = ForestTeam.IsOnline ? result.ConceptEffects : null;
         if (result.HopeGain == 0 && result.OriginiumGain == 0
@@ -46,24 +43,22 @@ public static class ForestPartService
     internal static async Task SettleMovementRewards(RunState state, ForestMap map, ForestExplorationProgress progress)
     {
         var replicated = ForestTeam.IsOnline;
-        if (progress.PendingPartReward is not { } reward)
+        // The native room-entry checkpoint contains the pending reward. Apply
+        // its Hope and clear the record together in the new room's history.
+        if (ForestGenerationService.TakeMovementReward(state, map, progress) is not { } reward)
         {
             if (ForestGenerationService.GetEngine(state).PendingConceptRewards.Count > 0)
             {
                 await ForestConceptService.SettleRewards(state, replicated);
                 await SaveManager.Instance.SaveRun(null);
             }
+            else if (await ForestCollectibleService.SettleGold(state, map, replicated))
+                await SaveManager.Instance.SaveRun(null);
             return;
         }
-        if (reward.ActIndex != state.CurrentActIndex || reward.NodeId != map.PositionNodeId)
-            throw new InvalidOperationException("The part reward does not match the movement destination.");
-        // A native room-entry checkpoint is taken before entering the destination.
-        // Save the pending reward there, then settle it in the new room's history.
-        progress.PendingPartReward = null;
-        ForestGenerationService.MarkChanged(state, map, progress);
         // The destination's native room sync has aligned the host's player RNG
         // and relic bag before the peers roll any part rewards.
-        if (reward.ConceptEffects is { } effects) ForestConceptService.QueueRewards(state, effects, replicated);
+        if (reward.ConceptEffects is { } effects) ForestConceptService.QueueRewards(state, effects);
         if (reward.Originium > 0)
         {
             var gold = checked(reward.Originium * GoldPerOriginium);
@@ -71,7 +66,6 @@ public static class ForestPartService
             await PlayerCmd.GainGold(gold, player);
             if (!replicated) RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
         }
-        if (reward.Hope > 0 && HopeRewardHandler is { } grantHope) await grantHope(state, reward.Hope);
         await ForestNaturalService.PayMovementCosts(state, reward.NaturalPaymentIds, replicated);
         await ForestConceptService.SettleRewards(state, replicated);
         await SaveManager.Instance.SaveRun(null);
@@ -109,6 +103,7 @@ public static class ForestPartService
     {
         var state = RequireState();
         ForestGenerationService.ModifyEngine(state, engine => engine.Discard(id));
+        await ForestCollectibleService.PayDiscard(state, FixedSaleGold);
         await SaveAndRefresh(state);
     }
 

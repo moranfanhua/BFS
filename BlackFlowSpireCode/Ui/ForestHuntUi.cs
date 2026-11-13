@@ -53,6 +53,16 @@ internal partial class ForestHuntLayer(RunState state, NMapScreen screen) : Cont
             AddChild(details);
             details.GetNode<Control>("%Artwork").GetNode<Control>("btn_certain").Hide();
             ForestHuntUi.Bind(details);
+            var start = details.GetNode<Button>("%StartHuntBattle");
+            start.Disabled = ForestGenerationService.GetEngine(state).IsOverloaded;
+            start.Pressed += () => TaskHelper.RunSafely(ForestRuntime.StartHunt());
+            details.GetNode<Label>("Canvas/Availability").Visible = start.Disabled;
+            var intelligence = details.GetNode<Button>("%EnemyIntelligence");
+            intelligence.Disabled = false;
+            intelligence.GetNode<TextureRect>("Image").Modulate = Colors.White;
+            intelligence.Pressed += () =>
+                ForestEnemyIntelModal.Open(ForestResidentEncounterService.CreateHunt(ForestGenerationService.GetOrGenerate(state)));
+            if (!start.Disabled) start.GrabFocus();
             SetProcess(false);
         }
     }

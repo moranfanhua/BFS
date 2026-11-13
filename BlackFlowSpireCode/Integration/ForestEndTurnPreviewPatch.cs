@@ -36,7 +36,7 @@ internal static class ForestEndTurnPreviewPatch
         title.Add("Hotkey", input.GetCurrentHotkey(MegaInput.endTurn).ToString());
         hoverTip = new HoverTip(title, ForestText.Get("UI.SPEED.end_turn_description", ("Side", side)), original.Icon)
         {
-            Id = original.Id
+            ShouldOverrideTextOverflow = original.ShouldOverrideTextOverflow
         };
     }
 }

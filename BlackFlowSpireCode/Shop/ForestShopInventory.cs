@@ -5,6 +5,7 @@ using BlackFlowSpire.Map.Parts;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Entities.Relics;
+using MegaCrit.Sts2.Core.Extensions;
 using MegaCrit.Sts2.Core.Factories;
 using MegaCrit.Sts2.Core.Runs;
 using BlackFlowSpire.Persistence;
@@ -52,7 +53,7 @@ internal sealed class ForestShopInventory
             DrawOffers();
             // Keep the native three relics (including the shop relic), plus two random rarities.
             while (inventory.RelicEntries.Count < 5)
-                inventory.AddRelicEntry(new MerchantRelicEntry(RelicFactory.RollRarity(inventory.Player), inventory.Player));
+                AddRelic(RelicFactory.RollRarity(inventory.Player.PlayerRng.Shops));
         }
         Subscribe();
     }
@@ -76,7 +77,7 @@ internal sealed class ForestShopInventory
         else
         {
             var kinds = Enum.GetValues<ForestShopOfferKind>().ToList();
-            _inventory.Player.PlayerRng.Shops.Shuffle(kinds);
+            kinds.UnstableShuffle(_inventory.Player.PlayerRng.Shops);
             stocks = kinds.Take(2).Select(kind => new ForestShopOfferStock { Kind = kind }).ToList();
         }
         Offers = stocks.Select(stock => new ForestShopOfferEntry(_inventory.Player, stock)).ToArray();
@@ -110,10 +111,13 @@ internal sealed class ForestShopInventory
             DrawOffers(refresh: true);
             ((IList<MerchantRelicEntry>)_inventory.RelicEntries).Clear();
             for (var index = 0; index < 5; index++)
-                _inventory.AddRelicEntry(new MerchantRelicEntry(index == 2 ? RelicRarity.Shop : RelicFactory.RollRarity(_inventory.Player), _inventory.Player));
+                AddRelic(index == 2 ? RelicRarity.Shop : RelicFactory.RollRarity(_inventory.Player.PlayerRng.Shops));
         }
         Subscribe();
     }
+
+    private void AddRelic(RelicRarity rarity) =>
+        ((IList<MerchantRelicEntry>)_inventory.RelicEntries).Add(new MerchantRelicEntry(rarity, _inventory.Player));
 
     internal void ReadSharedStock()
     {

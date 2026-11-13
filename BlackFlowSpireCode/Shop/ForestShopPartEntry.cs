@@ -82,7 +82,7 @@ internal sealed class ForestShopPartEntry : MerchantEntry
 
     public override void CalcCost() => _cost = checked(Part.PurchaseOriginium * ForestPartService.GoldPerOriginium);
 
-    protected override async Task<(bool, int)> OnTryPurchase(MerchantInventory? inventory, bool ignoreCost)
+    protected override async Task<(bool, int)> OnTryPurchaseInternal(MerchantInventory? inventory, bool ignoreCost)
     {
         if (!ForestTeam.CanManage(_state)) return (false, 0);
         var price = ignoreCost ? 0 : Cost;

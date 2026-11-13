@@ -1,8 +1,8 @@
 namespace BlackFlowSpire.Combat;
 
-internal sealed class ForestPlayerCombatLife(int baseMaximum, decimal multiplier)
+internal sealed class ForestPlayerCombatLife(int baseMaximum, decimal multiplier, decimal collectibleMultiplier = 1m)
 {
-    private const int MaxSupportedLife = 999_999_999;
+    internal const int MaxSupportedLife = 999_999_999;
 
     public int BaseMaximum { get; private set; } = baseMaximum;
 
@@ -11,8 +11,9 @@ internal sealed class ForestPlayerCombatLife(int baseMaximum, decimal multiplier
         get
         {
             if (BaseMaximum == 0) return 0;
-            if (multiplier >= (decimal)MaxSupportedLife / BaseMaximum) return MaxSupportedLife;
-            return Math.Max(1, (int)decimal.Round(BaseMaximum * multiplier, 0, MidpointRounding.AwayFromZero));
+            var collectibleMaximum = BaseMaximum * collectibleMultiplier;
+            if (multiplier >= MaxSupportedLife / collectibleMaximum) return MaxSupportedLife;
+            return Math.Max(1, (int)decimal.Round(collectibleMaximum * multiplier, 0, MidpointRounding.AwayFromZero));
         }
     }
 

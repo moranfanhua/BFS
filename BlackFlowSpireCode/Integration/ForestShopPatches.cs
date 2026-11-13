@@ -6,7 +6,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
 
 namespace BlackFlowSpire.Integration;
 
-[HarmonyPatch(typeof(NMerchantRoom), nameof(NMerchantRoom._Ready))]
+[HarmonyPatch(typeof(NStandardMerchantRoom), nameof(NStandardMerchantRoom._Ready))]
 internal static class ForestShopReadyPatch
 {
     private static void Postfix(NMerchantRoom __instance)
@@ -15,7 +15,7 @@ internal static class ForestShopReadyPatch
     }
 }
 
-[HarmonyPatch(typeof(NMerchantRoom), nameof(NMerchantRoom.OpenInventory))]
+[HarmonyPatch(typeof(NStandardMerchantRoom), nameof(NStandardMerchantRoom.OpenInventory))]
 internal static class ForestShopOpenPatch
 {
     private static bool Prefix(NMerchantRoom __instance)
