@@ -24,6 +24,8 @@ public sealed class ForestRunData
     public int MaxTargetLife { get; set; } = ForestCombatHealth.InitialTargetLife;
     public int TargetShield { get; set; }
     public int Hope { get; set; }
+    public int? MaxHope { get; set; }
+    public int CommandExperience { get; set; }
     public ForestDamageMultipliers DamageMultipliers { get; set; } = new();
     public Dictionary<ulong, decimal> PlayerLifeMultipliers { get; set; } = [];
     public Dictionary<int, ForestMap> Maps { get; set; } = [];
@@ -33,10 +35,15 @@ public sealed class ForestRunData
 
     internal bool TryChangeHope(int delta)
     {
-        var balance = (long)Hope + delta;
-        if (balance is < 0 or > int.MaxValue) return false;
-        Hope = (int)balance;
+        if (!ForestHope.FromSaved(Hope, MaxHope).TryChange(delta, out var result)) return false;
+        SetHope(result);
         return true;
+    }
+
+    internal void SetHope(ForestHope hope)
+    {
+        Hope = hope.Balance;
+        MaxHope = hope.Maximum;
     }
 }
 
@@ -53,12 +60,25 @@ public static class ForestGenerationService
     public static bool IsEnabled(RunState? state) => state != null && _slot != null
         && _slot.TryGet(state, out var data) && data.Enabled;
 
-    public static void Enable(RunState state) => _slot!.Modify(state, data => data.Enabled = true);
+    public static void Enable(RunState state) => _slot!.Modify(state, data =>
+    {
+        if (data.Enabled) return;
+        data.Enabled = true;
+        data.SetHope(new(ForestHope.Initial, ForestHope.Initial));
+    });
     internal static ulong? GetTeamOwnerId(RunState state) => _slot!.Get(state).TeamOwnerId;
 
-    public static int GetHope(RunState state) => _slot!.Get(state).Hope;
+    public static int GetHope(RunState state) => GetHopeStatus(state).Balance;
 
-    // A negative delta spends Hope. Replicated effects apply the same delta once on every peer.
+    internal static ForestHope GetHopeStatus(RunState state)
+    {
+        var data = _slot!.Get(state);
+        return ForestHope.FromSaved(data.Hope, data.MaxHope);
+    }
+
+    internal static int GetCommandExperience(RunState state) => _slot!.Get(state).CommandExperience;
+
+    // Gains raise both values. Spending reduces only the balance.
     public static bool TryChangeHope(RunState state, int delta, bool replicated = false)
     {
         if (!IsEnabled(state) || (!replicated && ForestTeam.IsGuest)) return false;
@@ -69,8 +89,30 @@ public static class ForestGenerationService
         return changed;
     }
 
-    internal static void RestoreHope(RunState state, int hope) =>
-        _slot!.Modify(state, data => data.Hope = Math.Max(0, hope));
+    internal static void RestoreCommandProgress(RunState state, int hope, int? maxHope, int experience) =>
+        _slot!.Modify(state, data =>
+        {
+            data.SetHope(ForestHope.FromSaved(hope, maxHope));
+            data.CommandExperience = Math.Clamp(experience, 0, ForestCommandLevel.MaximumExperience);
+        });
+
+    internal static void GrantCommandExperience(RunState state, int amount)
+    {
+        if (amount <= 0) return;
+        _slot!.Modify(state, data =>
+        {
+            var previous = Math.Clamp(data.CommandExperience, 0, ForestCommandLevel.MaximumExperience);
+            var next = previous + Math.Min(amount, ForestCommandLevel.MaximumExperience - previous);
+            if (previous == next) return;
+            var hope = ForestHope.FromSaved(data.Hope, data.MaxHope);
+            var earned = ForestCommandLevel.FromExperience(next).HopeEarned
+                - ForestCommandLevel.FromExperience(previous).HopeEarned;
+            // An extreme balance from the console can exhaust the stored range.
+            hope.TryChange(Math.Min(earned, int.MaxValue - hope.Maximum), out var result);
+            data.SetHope(result);
+            data.CommandExperience = next;
+        });
+    }
 
     public static ForestDamageMultipliers GetDamageMultipliers(RunState state) => _slot!.Get(state).DamageMultipliers;
 
@@ -195,7 +237,10 @@ public static class ForestGenerationService
 
     internal static void SetTeamLobby(StartRunLobby lobby, bool enabled)
     {
-        if (enabled) _slot!.Lobby.Set(lobby, new ForestRunData { Enabled = true, TeamOwnerId = lobby.NetService.NetId });
+        if (enabled) _slot!.Lobby.Set(lobby, new ForestRunData
+        {
+            Enabled = true, TeamOwnerId = lobby.NetService.NetId, Hope = ForestHope.Initial, MaxHope = ForestHope.Initial
+        });
         else _slot!.Lobby.Remove(lobby);
     }
 

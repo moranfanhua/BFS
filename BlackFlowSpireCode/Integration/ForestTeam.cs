@@ -37,7 +37,7 @@ internal sealed record ForestTeamSnapshot(ForestTeamPosition Position, long Revi
     int TargetShield = 0,
     ForestDamageMultipliers? DamageMultipliers = null,
     Dictionary<ulong, decimal>? PlayerLifeMultipliers = null,
-    int Hope = 0);
+    int Hope = 0, int? MaxHope = null, int CommandExperience = 0);
 internal sealed record ForestTeamCommand(ForestTeamAction Action, int Argument, ForestTeamSnapshot Snapshot);
 
 internal static class ForestTeam
@@ -246,11 +246,12 @@ internal static class ForestTeam
     {
         var progress = ForestGenerationService.GetProgress(state);
         var (life, maxLife, shield) = ForestGenerationService.GetTargetLife(state);
+        var hope = ForestGenerationService.GetHopeStatus(state);
         return new(Position(state), ++Sessions.GetOrCreateValue(state).Revision,
             ForestGenerationService.GetEngine(state), progress.ActionPointsRemaining, progress.HuntPhase,
             progress.ShopParts, progress.ShopOffers, progress.SecretShops, life, maxLife, shield,
             ForestGenerationService.GetDamageMultipliers(state), ForestGenerationService.CopyPlayerLifeMultipliers(state),
-            ForestGenerationService.GetHope(state));
+            hope.Balance, hope.Maximum, ForestGenerationService.GetCommandExperience(state));
     }
 
     internal static void Publish(RunState state)
@@ -301,7 +302,7 @@ internal static class ForestTeam
         // The host inventory already includes the appraisal from these discoveries.
         ForestCollectibleRules.RevealMap(map, snapshot.Engine, countInformation: false);
         ForestGenerationService.SetTargetLife(state, snapshot.TargetLife, snapshot.MaxTargetLife, snapshot.TargetShield);
-        ForestGenerationService.RestoreHope(state, snapshot.Hope);
+        ForestGenerationService.RestoreCommandProgress(state, snapshot.Hope, snapshot.MaxHope, snapshot.CommandExperience);
         ForestGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers ?? new());
         ForestGenerationService.RestorePlayerLifeMultipliers(state, snapshot.PlayerLifeMultipliers);
         progress.ActionPointsRemaining = snapshot.ActionPoints;

@@ -1,3 +1,4 @@
+using BlackFlowSpire.Combat;
 using BlackFlowSpire.Integration;
 using BlackFlowSpire.Map.Presentation;
 using BlackFlowSpire.Persistence;
@@ -23,11 +24,14 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
     private Label _maxTargetLife = null!;
     private HBoxContainer _shield = null!;
     private Label _shieldCount = null!;
-    private Label _hope = null!;
+    private Label _level = null!;
+    private Label _experience = null!;
+    private Label _experienceGoal = null!;
+    private TextureProgressBar _experienceRing = null!;
+    private TextureRect _levelArrow = null!;
     private Label _gold = null!;
-    private int _hopeFontSize;
     private int _goldFontSize;
-    private (int Region, int Life, int MaxLife, int Shield, int Hope, int Gold)? _shown;
+    private (int Region, int Life, int MaxLife, int Shield, ForestHope Hope, int Experience, int Gold)? _shown;
     private bool _suppressed;
     private bool _updating;
     private bool _disposed;
@@ -39,6 +43,7 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
             existing._updating = true;
             existing.Restore();
             existing._state = state;
+            existing._shown = null;
             existing._updating = false;
             existing.Refresh();
             return;
@@ -63,8 +68,11 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
         _maxTargetLife = _view.GetNode<Label>("Canvas/LifeValue/Maximum");
         _shield = _view.GetNode<HBoxContainer>("Canvas/LifeValue/Shield");
         _shieldCount = _shield.GetNode<Label>("Count");
-        _hope = _view.GetNode<Label>("Canvas/Hope");
-        _hopeFontSize = _hope.GetThemeFontSize("font_size");
+        _level = _view.GetNode<Label>("Canvas/Level");
+        _experience = _view.GetNode<Label>("Canvas/Experience/Current");
+        _experienceGoal = _view.GetNode<Label>("Canvas/Experience/Maximum");
+        _experienceRing = _view.GetNode<TextureProgressBar>("Canvas/ExpFill");
+        _levelArrow = _view.GetNode<TextureRect>("Canvas/LevelArrow");
         _gold = _view.GetNode<Label>("Canvas/Gold");
         _goldFontSize = _gold.GetThemeFontSize("font_size");
         void RefreshText()
@@ -110,7 +118,8 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
     {
         var region = ForestMapAssets.RegionNumber(_state.CurrentActIndex);
         var (life, maxLife, shield) = ForestGenerationService.GetTargetLife(_state);
-        var hope = ForestGenerationService.GetHope(_state);
+        var hope = ForestGenerationService.GetHopeStatus(_state);
+        var experience = ForestGenerationService.GetCommandExperience(_state);
         var gold = LocalContext.GetMe(_state)?.Gold ?? 0;
         if (_shown?.Region != region)
             _floorTitle.Texture = ForestMapAssets.Texture($"res://BlackFlowSpire/Images/Ui/TopBar/zone-{region}.png");
@@ -121,9 +130,19 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
             _shieldCount.Text = shield.ToString();
             _shield.Visible = shield > 0;
         }
-        if (_shown?.Hope != hope) SetCounterText(_hope, hope, _hopeFontSize);
+        if (_shown?.Hope != hope) _view.Call("set_hope", hope.Balance, hope.Maximum, _shown.HasValue);
+        if (_shown?.Experience != experience)
+        {
+            var command = ForestCommandLevel.FromExperience(experience);
+            var hasNextLevel = command.ExperienceToNext > 0;
+            _level.Text = command.Level.ToString();
+            _experience.Text = hasNextLevel ? command.Experience.ToString() : "";
+            _experienceGoal.Text = hasNextLevel ? $"/{command.ExperienceToNext}" : "";
+            _experienceRing.Value = hasNextLevel ? (double)command.Experience / command.ExperienceToNext : 1;
+            _levelArrow.Visible = hasNextLevel;
+        }
         if (_shown?.Gold != gold) SetCounterText(_gold, gold, _goldFontSize);
-        _shown = (region, life, maxLife, shield, hope, gold);
+        _shown = (region, life, maxLife, shield, hope, experience, gold);
     }
 
     private static void SetCounterText(Label label, int value, int normalFontSize)

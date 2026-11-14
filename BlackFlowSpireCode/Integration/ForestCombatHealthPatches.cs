@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using BlackFlowSpire.Combat;
 using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Models;
+using BlackFlowSpire.Map.Stages;
 using BlackFlowSpire.Persistence;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Audio.Debug;
@@ -35,6 +36,7 @@ internal static class ForestCombatHealthRuntime
         public HashSet<Creature>? PendingKnockdowns { get; } = collectibles.Has(244) ? [] : null;
         public bool LifeRestored { get; set; }
         public bool Settled { get; set; }
+        public bool CommandExperienceRecorded { get; set; }
         public bool SpecialVictoryRecorded { get; set; }
         public bool TargetDefeat { get; set; }
     }
@@ -211,6 +213,31 @@ internal static class ForestCombatHealthRuntime
     public static bool IsTargetDefeat(CombatState combat) =>
         Battles.TryGetValue(combat, out var battle) && battle.TargetDefeat;
 
+    internal static void RecordCommandExperience(RunState run, CombatRoom room)
+    {
+        if (!Battles.TryGetValue(room.CombatState, out var battle) || battle.CommandExperienceRecorded || battle.TargetDefeat)
+            return;
+        var experience = ForestEncounterFactory.SpecialKind(room.Encounter) switch
+        {
+            ForestSpecialEncounter.Hunt => 0,
+            ForestSpecialEncounter.Resident => ResidentExperience(run),
+            _ => ForestCommandLevel.BattleExperience(run.CurrentActIndex, room.RoomType switch
+            {
+                RoomType.Boss => ForestBattleVariant.Boss,
+                RoomType.Elite => ForestBattleVariant.Emergency,
+                _ => ForestBattleVariant.Normal
+            })
+        };
+        ForestGenerationService.GrantCommandExperience(run, experience);
+        battle.CommandExperienceRecorded = true;
+    }
+
+    private static int ResidentExperience(RunState run)
+    {
+        var map = ForestGenerationService.GetOrGenerate(run);
+        return map.GetNode(map.PositionNodeId).Content == ForestNodeContent.BattleSavage ? 25 : 15;
+    }
+
     internal static void RecordSpecialVictory(RunState run, CombatRoom room)
     {
         var kind = ForestEncounterFactory.SpecialKind(room.Encounter);
@@ -354,7 +381,13 @@ internal static class ForestCombatHealthVictorySettlementPatch
     private static bool Prefix(CombatManager __instance, object __0, ref Task __result)
     {
         var combat = ForestNativeTurnAccess.State(__0);
-        if (!ForestCombatHealthRuntime.Settle(combat, won: true)) return true;
+        if (!ForestCombatHealthRuntime.Settle(combat, won: true))
+        {
+            // Settle on each peer before the game clears IsInProgress and allows host snapshots to apply.
+            if (combat?.RunState is RunState run && run.CurrentRoom is CombatRoom room)
+                ForestCombatHealthRuntime.RecordCommandExperience(run, room);
+            return true;
+        }
 
         // The game has determined the fight was won. Apply the run-wide result before rewards and saving.
         __result = Task.CompletedTask;
