@@ -26,6 +26,8 @@ namespace BlackFlowSpire.Integration;
 
 internal static class ForestCombatHealthRuntime
 {
+    internal readonly record struct Settlement(int Damage, int Experience, int Hope);
+
     private sealed class Battle(decimal playerAttack, decimal allyLife, ForestCollectibleInventory collectibles)
     {
         public ForestCombatHealth Health { get; } = new();
@@ -36,12 +38,15 @@ internal static class ForestCombatHealthRuntime
         public HashSet<Creature>? PendingKnockdowns { get; } = collectibles.Has(244) ? [] : null;
         public bool LifeRestored { get; set; }
         public bool Settled { get; set; }
-        public bool CommandExperienceRecorded { get; set; }
+        public int Damage { get; set; }
+        public Settlement? Result { get; set; }
         public bool SpecialVictoryRecorded { get; set; }
         public bool TargetDefeat { get; set; }
     }
 
     private static readonly ConditionalWeakTable<CombatState, Battle> Battles = new();
+    private sealed record SavedSettlement(Settlement Value);
+    private static readonly ConditionalWeakTable<CombatRoom, SavedSettlement> RestoredResults = new();
     private sealed record TrackedLife(CombatState Combat, ForestPlayerCombatLife Life);
     private static readonly ConditionalWeakTable<Creature, TrackedLife> CreatureLives = new();
 
@@ -204,7 +209,10 @@ internal static class ForestCombatHealthRuntime
         if (battle.Settled) return battle.TargetDefeat;
 
         var maxHp = combat.Players.Sum(player => (long)player.Creature.MaxHp);
+        var (life, _, shield) = ForestGenerationService.GetTargetLife(run);
         var lifeRemaining = ForestGenerationService.SettleCombatHealth(run, battle.Health, maxHp);
+        var shieldUsed = shield - ForestGenerationService.GetTargetLife(run).Shield;
+        battle.Damage = life - lifeRemaining + shieldUsed;
         battle.Settled = true;
         battle.TargetDefeat = won && lifeRemaining == 0;
         return battle.TargetDefeat;
@@ -215,7 +223,7 @@ internal static class ForestCombatHealthRuntime
 
     internal static void RecordCommandExperience(RunState run, CombatRoom room)
     {
-        if (!Battles.TryGetValue(room.CombatState, out var battle) || battle.CommandExperienceRecorded || battle.TargetDefeat)
+        if (!Battles.TryGetValue(room.CombatState, out var battle) || battle.Result.HasValue || battle.TargetDefeat)
             return;
         var experience = ForestEncounterFactory.SpecialKind(room.Encounter) switch
         {
@@ -228,9 +236,17 @@ internal static class ForestCombatHealthRuntime
                 _ => ForestBattleVariant.Normal
             })
         };
+        var previousExperience = ForestGenerationService.GetCommandExperience(run);
+        var previousHope = ForestGenerationService.GetHopeStatus(run).Maximum;
         ForestGenerationService.GrantCommandExperience(run, experience);
-        battle.CommandExperienceRecorded = true;
+        battle.Result = new(battle.Damage, ForestGenerationService.GetCommandExperience(run) - previousExperience,
+            ForestGenerationService.GetHopeStatus(run).Maximum - previousHope);
     }
+
+    internal static Settlement? GetSettlement(CombatRoom room) => Battles.TryGetValue(room.CombatState, out var battle)
+        ? battle.Result : RestoredResults.TryGetValue(room, out var restored) ? restored.Value : null;
+
+    internal static void RestoreSettlement(CombatRoom room, Settlement value) => RestoredResults.Add(room, new(value));
 
     private static int ResidentExperience(RunState run)
     {

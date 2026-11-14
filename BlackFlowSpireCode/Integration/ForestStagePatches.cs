@@ -2,9 +2,11 @@ using System.Reflection;
 using System.Text.Json;
 using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Stages;
+using BlackFlowSpire.Persistence;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Monsters;
@@ -124,11 +126,14 @@ internal static class ForestStageHatchHealthPatch
 internal static class ForestStageSavePatch
 {
     internal const string StateKey = "BlackFlowSpire.FixedStage.v1";
+    internal const string SettlementKey = "BlackFlowSpire.BattleSettlement.v1";
 
     private static void Postfix(CombatRoom __instance, SerializableRoom __result)
     {
         if (ForestEncounterFactory.TryGetFixedSetup(__instance.Encounter, out var setup))
             __result.EncounterState[StateKey] = JsonSerializer.Serialize(setup);
+        if (__instance.IsPreFinished && ForestCombatHealthRuntime.GetSettlement(__instance) is { } result)
+            __result.EncounterState[SettlementKey] = JsonSerializer.Serialize(result);
     }
 }
 
@@ -159,9 +164,11 @@ internal static class ForestStageRestorePatch
             throw new InvalidDataException("Saved stage and room variant differ.");
     }
 
-    private static void Postfix(CombatRoom __result, IRunState? runState, ForestCombatSetup? __state)
+    private static void Postfix(CombatRoom __result, SerializableRoom serializableRoom, IRunState? runState, ForestCombatSetup? __state)
     {
         if (__state != null)
             ForestEncounterFactory.Prepare(__result.Encounter, __state.Stage != null ? runState : null, __state);
+        if (__result.IsPreFinished && serializableRoom.EncounterState.TryGetValue(ForestStageSavePatch.SettlementKey, out var json))
+            ForestCombatHealthRuntime.RestoreSettlement(__result, JsonSerializer.Deserialize<ForestCombatHealthRuntime.Settlement>(json));
     }
 }

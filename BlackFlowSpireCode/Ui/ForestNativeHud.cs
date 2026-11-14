@@ -108,7 +108,8 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
             _view.Visible = _suppressed && ForestRuntime.CanContinueRun
                 && !CombatManager.Instance.IsInProgress && !globalUi.SubmenuStack.Stack.SubmenusOpen
                 && NModalContainer.Instance?.OpenModal == null
-                && (globalUi.MapScreen.IsOpen || (globalUi.Overlays.ScreenCount == 0 && !globalUi.CapstoneContainer.InUse));
+                && (globalUi.MapScreen.IsOpen || ForestBattleSettlementScreen.LootIsOpen
+                    || (globalUi.Overlays.ScreenCount == 0 && !globalUi.CapstoneContainer.InUse));
             if (_view.Visible) RefreshValues();
         }
         finally { _updating = false; }

@@ -49,11 +49,13 @@ internal readonly record struct ForestCommandLevel(int Level, int Experience, in
     private static readonly int[] NormalExperience = [10, 12, 13, 15, 20];
     private static readonly int[] EmergencyExperience = [12, 18, 25, 30, 36];
 
-    // BFS uses the original base rewards by floor. Its earlier boss rooms use the first boss reward.
+    // Floors II and IV have no original boss reward. Use floor(2.5 × normal XP),
+    // which matches the original rewards on floors III (13 → 32) and V (20 → 50).
     public static int BattleExperience(int actIndex, ForestBattleVariant variant) => variant switch
     {
         ForestBattleVariant.Normal => NormalExperience[actIndex],
         ForestBattleVariant.Emergency => EmergencyExperience[actIndex],
+        ForestBattleVariant.Boss when actIndex is 1 or 3 => NormalExperience[actIndex] * 5 / 2,
         ForestBattleVariant.Boss => actIndex == NormalExperience.Length - 1 ? 50 : 32,
         _ => throw new ArgumentOutOfRangeException(nameof(variant))
     };

@@ -90,7 +90,8 @@ internal partial class ForestPartsBar(NGlobalUi globalUi, RunState state) : Cont
         Visible = ReferenceEquals(ForestRuntime.State, state) && ForestRuntime.CanContinueRun
             && !ForestRuntime.IsTraveling && !CombatManager.Instance.IsInProgress
             && (modal == null || inspectingCollectible) && !globalUi.SubmenuStack.Stack.SubmenusOpen
-            && (mapOpen || (globalUi.Overlays.ScreenCount == 0 && !globalUi.CapstoneContainer.InUse));
+            && (mapOpen || ForestBattleSettlementScreen.LootIsOpen
+                || (globalUi.Overlays.ScreenCount == 0 && !globalUi.CapstoneContainer.InUse));
         if (!Visible) _collectibles.Close(immediate: true);
     }
 

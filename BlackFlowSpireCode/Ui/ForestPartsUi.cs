@@ -20,7 +20,8 @@ internal static class ForestPartsUi
         if (!ReferenceEquals(ForestRuntime.State, state) || !ForestRuntime.CanContinueRun
             || ForestRuntime.IsTraveling || CombatManager.Instance.IsInProgress
             || NModalContainer.Instance is not { OpenModal: null } container
-            || (NOverlayStack.Instance is { ScreenCount: > 0 } && NMapScreen.Instance is not { IsOpen: true })) return;
+            || (NOverlayStack.Instance is { ScreenCount: > 0 } && NMapScreen.Instance is not { IsOpen: true }
+                && !ForestBattleSettlementScreen.LootIsOpen)) return;
         // Native overlay stacks are hidden while the map is open. A modal stays
         // above the map and also protects the underlying room from input.
         var mapInspection = NMapScreen.Instance is { IsOpen: true } screen
