@@ -19,8 +19,7 @@ func _collect_materials(node: Node) -> void:
 		_materials.append(node.material)
 	for child in node.get_children(): _collect_materials(child)
 
-func bind_background(id: String) -> void:
-	var texture := load("res://BlackFlowSpire/Images/Events/Exit/%s.png" % id)
+func bind_background(texture: Texture2D) -> void:
 	for path in ["choice_scene_bg", "cg_light_outline", "cg_light_outline2", "cg_add"]:
 		get_node("group_cg/%s/Image" % path).texture = texture
 

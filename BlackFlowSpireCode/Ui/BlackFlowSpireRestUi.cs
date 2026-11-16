@@ -37,45 +37,22 @@ internal partial class BlackFlowSpireRestScreen(RunState state, NMapScreen scree
     IReadOnlyList<BlackFlowSpireRestChoice> choices) : Control, IScreenContext
 {
     private const string Key = "UI.REST.";
-    private Control _view = null!;
-    private Button _leave = null!;
-    private Button _firstChoice = null!;
+    private BlackFlowSpireEventView _view = null!;
     private BlackFlowSpireRestChoice? _result;
     private bool _submitting;
     private bool _focused;
 
     public NMapScreen Screen => screen;
     public NetScreenType ScreenType => NetScreenType.Room;
-    public Control? DefaultFocusedControl => _submitting ? null : _result.HasValue ? _leave : _firstChoice;
+    public Control? DefaultFocusedControl => _submitting ? null : _result.HasValue ? _view?.LeaveButton : _view?.GetChoice(0);
 
     public override void _Ready()
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.TopLeft);
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
-        _view = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Events/BlackFlowSpireExitChoice.tscn").Instantiate<Control>();
-        AddChild(_view);
+        _view = new BlackFlowSpireEventView(this, index => Submit(choices[index]), () => Submit(null));
         if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state));
-        _view.Call("configure_rest_choices", choices.Count);
-        _firstChoice = _view.GetNode<Button>("Canvas/Choices/Option0");
-        _leave = _view.GetNode<Button>("Canvas/Leave");
-        _leave.Pressed += () =>
-        {
-            if (!_view.Call("finish_result_text").AsBool()) Submit(null);
-        };
-        for (var index = 0; index < choices.Count; index++)
-        {
-            var selectedIndex = index;
-            var choice = choices[index];
-            var button = _view.GetNode<Button>("Canvas/Choices/Option" + index);
-            var confirm = button.GetNode<Button>("Confirm");
-            button.Pressed += () =>
-            {
-                _view.Call("select_choice", selectedIndex);
-                confirm.GrabFocus();
-            };
-            confirm.Pressed += () => Submit(choice);
-        }
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
     }
@@ -90,7 +67,7 @@ internal partial class BlackFlowSpireRestScreen(RunState state, NMapScreen scree
         }
         FitViewport();
         var busy = _submitting || BlackFlowSpireRuntime.IsTraveling;
-        _view.Call("set_busy", busy);
+        _view.SetBusy(busy);
         if (!busy && _result != progress.RestChoice) Refresh();
         if (!_focused && DefaultFocusedControl is Button { Disabled: false } button)
         {
@@ -111,23 +88,22 @@ internal partial class BlackFlowSpireRestScreen(RunState state, NMapScreen scree
     {
         var result = progress.RestChoice;
         var description = result is { } chosen ? ChoiceKey(chosen) + ".result" : Key + "description";
-        _view.Call("bind_story", "pic_rogue_6_33", BlackFlowSpireText.Get(Key + "title"), BlackFlowSpireText.Get(description));
-        _leave.TooltipText = BlackFlowSpireText.Get(Key + "leave");
+        _view.SetStory(BlackFlowSpireEventView.LoadTexture("pic_rogue_6_33"),
+            BlackFlowSpireText.Get(Key + "title"), BlackFlowSpireText.Get(description));
         if (result.HasValue)
         {
-            if (_result != result)
-            {
-                _view.Call("show_rest_result");
-                _focused = false;
-            }
+            _view.ShowResult(BlackFlowSpireText.Get(Key + "leave"));
+            if (_result != result) _focused = false;
         }
         else
-            for (var index = 0; index < choices.Count; index++)
+        {
+            _view.SetOptions(choices.Select(choice =>
             {
-                var choice = choices[index];
                 var key = ChoiceKey(choice);
-                _view.Call("bind_choice", index, BlackFlowSpireText.Get(key + ".title"), BlackFlowSpireText.Get(key + ".description"), Icon(choice));
-            }
+                return new BlackFlowSpireEventOption(BlackFlowSpireText.Get(key + ".title"),
+                    BlackFlowSpireText.Get(key + ".description"), BlackFlowSpireEventView.LoadTexture(Icon(choice)));
+            }).ToArray());
+        }
         _result = result;
     }
 
@@ -135,7 +111,7 @@ internal partial class BlackFlowSpireRestScreen(RunState state, NMapScreen scree
     {
         if (_submitting || BlackFlowSpireRuntime.IsTraveling || !BlackFlowSpireTeam.CanTravel(state)) return;
         _submitting = true;
-        _view.Call("set_busy", true);
+        _view.SetBusy(true);
         Callable.From(() => TaskHelper.RunSafely(SubmitAsync(choice))).CallDeferred();
     }
 

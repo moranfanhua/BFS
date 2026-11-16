@@ -29,11 +29,11 @@ internal partial class BlackFlowSpireFloorExitUi(RunState state, NMapScreen scre
 
 internal partial class BlackFlowSpireFloorExitScreen(RunState state, NMapScreen screen) : Control, IScreenContext
 {
-    private Control _view = null!;
+    private BlackFlowSpireEventView _view = null!;
     private bool _submitted;
     private bool _focused;
     public NetScreenType ScreenType => NetScreenType.Room;
-    public Control? DefaultFocusedControl => _submitted || _view == null ? null : _view.GetNode<Button>("Canvas/Choices/Option1");
+    public Control? DefaultFocusedControl => _submitted ? null : _view?.GetChoice(1);
     private bool ValidContext => BlackFlowSpireRuntime.CanContinueRun && ReferenceEquals(BlackFlowSpireRuntime.State, state)
         && GodotObject.IsInstanceValid(screen) && screen.IsOpen;
 
@@ -42,20 +42,8 @@ internal partial class BlackFlowSpireFloorExitScreen(RunState state, NMapScreen 
         SetAnchorsAndOffsetsPreset(LayoutPreset.TopLeft);
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
-        _view = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Events/BlackFlowSpireExitChoice.tscn").Instantiate<Control>();
-        AddChild(_view);
+        _view = new BlackFlowSpireEventView(this, index => Choose(index == 0));
         if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state));
-        for (var index = 0; index < 2; index++)
-        {
-            var choice = index;
-            var button = _view.GetNode<Button>("Canvas/Choices/Option" + index);
-            button.Pressed += () =>
-            {
-                _view.Call("select_choice", choice);
-                button.GetNode<Button>("Confirm").GrabFocus();
-            };
-            button.GetNode<Button>("Confirm").Pressed += () => Choose(choice == 0);
-        }
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
     }
@@ -74,10 +62,14 @@ internal partial class BlackFlowSpireFloorExitScreen(RunState state, NMapScreen 
         var node = map.GetNode(map.PositionNodeId);
         var final = node.Content == BlackFlowSpireNodeContent.Final;
         var key = final ? "UI.FLOOR_EXIT.FINAL" : "UI.FLOOR_EXIT.PATH";
-        _view.Call("bind_event", BlackFlowSpireFloorExitRules.Background(map, node),
-            BlackFlowSpireText.Get(key + ".title"), BlackFlowSpireText.Get(key + ".description"),
-            BlackFlowSpireText.Get(key + ".accept"), BlackFlowSpireText.Get(key + ".accept_description"),
-            BlackFlowSpireText.Get(key + ".leave"), BlackFlowSpireText.Get(key + ".leave_description"), final);
+        var background = BlackFlowSpireEventView.LoadTexture(BlackFlowSpireFloorExitRules.Background(map, node));
+        _view.SetStory(background, BlackFlowSpireText.Get(key + ".title"), BlackFlowSpireText.Get(key + ".description"));
+        _view.SetOptions([
+            new(BlackFlowSpireText.Get(key + ".accept"), BlackFlowSpireText.Get(key + ".accept_description"),
+                BlackFlowSpireEventView.LoadTexture(final ? "zone_end" : "scrap_drop")),
+            new(BlackFlowSpireText.Get(key + ".leave"), BlackFlowSpireText.Get(key + ".leave_description"),
+                BlackFlowSpireEventView.LoadTexture("leave"))
+        ]);
     }
 
     public override void _Process(double delta)
@@ -100,7 +92,7 @@ internal partial class BlackFlowSpireFloorExitScreen(RunState state, NMapScreen 
     {
         if (_submitted || !ValidContext || !BlackFlowSpireTeam.CanTravel(state)) return;
         _submitted = true;
-        _view.Call("set_busy", true);
+        _view.SetBusy(true);
         if (ReferenceEquals(NModalContainer.Instance?.OpenModal, this)) NModalContainer.Instance.Clear();
         Callable.From(() => { TaskHelper.RunSafely(BlackFlowSpireRuntime.ResolveFloorExit(accept)); }).CallDeferred();
     }

@@ -1,0 +1,98 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/choice_item_bg_fold.png" id="r6"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/choice_item_bg_expand.png" id="r7"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/choice_item_title.png" id="r8"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/choice_item_confirm_back.png" id="r10"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/btn_confirm.png" id="r11"]
+
+[node name="EventOption" type="Button"]
+offset_right = 453
+offset_bottom = 145
+mouse_default_cursor_shape = 2
+
+[node name="Background" type="TextureRect" parent="."]
+offset_left = 4.745
+offset_top = 10.13
+offset_right = 438.745
+offset_bottom = 217.13
+texture = ExtResource("r6")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="ExpandedBackground" type="TextureRect" parent="."]
+offset_left = 15.305
+offset_top = -0.164
+offset_right = 619.305
+offset_bottom = 243.836
+texture = ExtResource("r7")
+expand_mode = 1
+mouse_filter = 2
+modulate = Color(1,1,1,0)
+
+[node name="Header" type="TextureRect" parent="."]
+offset_left = -49
+offset_top = -5.4
+offset_right = 489
+offset_bottom = 67.6
+texture = ExtResource("r8")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="."]
+offset_left = 50.045
+offset_top = 16.155
+offset_right = 405.755
+offset_bottom = 55.645
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0,0,0,1)
+mouse_filter = 2
+vertical_alignment = 1
+
+[node name="Function" type="TextureRect" parent="."]
+offset_left = 332.5
+offset_top = 68.5
+offset_right = 404.5
+offset_bottom = 140.5
+expand_mode = 1
+mouse_filter = 2
+modulate = Color(1,1,1,0.3)
+stretch_mode = 5
+
+[node name="Description" type="RichTextLabel" parent="."]
+offset_left = 75.1
+offset_top = 63.66
+offset_right = 453.0
+offset_bottom = 138.66
+bbcode_enabled = true
+scroll_active = false
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.53725493,0.53725493,0.53725493,1)
+theme_override_font_sizes/normal_font_size = 19
+theme_override_constants/line_separation = 4
+
+[node name="Confirm" type="Button" parent="."]
+offset_left = 495.865
+offset_top = 110.14
+offset_right = 571.865
+offset_bottom = 186.14
+visible = false
+mouse_default_cursor_shape = 2
+
+[node name="Glow" type="TextureRect" parent="Confirm"]
+offset_left = -104
+offset_top = -99
+offset_right = 180
+offset_bottom = 175
+texture = ExtResource("r10")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Check" type="TextureRect" parent="Confirm"]
+offset_left = 0
+offset_top = 0
+offset_right = 76
+offset_bottom = 76
+texture = ExtResource("r11")
+expand_mode = 1
+mouse_filter = 2

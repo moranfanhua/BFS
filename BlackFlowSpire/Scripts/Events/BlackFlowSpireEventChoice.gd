@@ -1,79 +1,113 @@
 extends Control
 
-const DESIGN := Vector2(1422.222222,800)
+signal choice_confirmed(index: int)
+signal leave_pressed
+
+const DESIGN := Vector2(1422.222222, 800)
+const OPTION_SCENE := preload("res://BlackFlowSpire/Scenes/Events/BlackFlowSpireEventOption.tscn")
+const CHOICE_SPACING := 20.0
+const TEXT_INTERVAL := 0.04
+const INTRO_BLOCK_TIME := 2.0
+
 var _elapsed := 0.0
 var _busy := false
 var _selected := -1
 var _complete_text := false
 var _choice_layout: Dictionary
-var _choice_count := 2
-var _rest_event := false
 var _result := false
 var _result_elapsed := 0.0
-var _expansion: Array[float] = [0.0, 0.0]
-var _choice_tweens: Array[Tween] = [null, null]
+var _expansion: Array[float] = []
+var _choice_tweens: Array[Tween] = []
+
+@onready var _choices: Control = $Canvas/Choices
+@onready var _description: RichTextLabel = $Canvas/Story/Description
+@onready var _leave: Button = $Canvas/Leave
 
 func _ready() -> void:
 	_choice_layout = JSON.parse_string(FileAccess.get_file_as_string("res://BlackFlowSpire/Data/Events/exit-choice-layout.json"))
 	resized.connect(_layout)
+	_leave.pressed.connect(_on_leave_pressed)
 	_layout()
-	set_busy(false)
+	_update_intro()
 
 func _layout() -> void:
 	var factor := minf(size.x / DESIGN.x, size.y / DESIGN.y)
 	$Canvas.scale = Vector2.ONE * factor
 	$Canvas.position = (size - DESIGN * factor) / 2.0
 
-func bind_event(background: String, title: String, description: String, accept_title: String, accept_description: String, leave_title: String, leave_description: String, final: bool) -> void:
-	bind_story(background, title, description)
-	$Canvas/Choices/Option0/Title.text = accept_title
-	$Canvas/Choices/Option0/Description.text = accept_description
-	$Canvas/Choices/Option1/Title.text = leave_title
-	$Canvas/Choices/Option1/Description.text = leave_description
-	$Canvas/Choices/Option0/Function.texture = load("res://BlackFlowSpire/Images/Events/Exit/%s.png" % ("zone_end" if final else "scrap_drop"))
-
-func bind_story(background: String, title: String, description: String) -> void:
+func bind_story(background: Texture2D, title: String, description: String) -> void:
 	$Canvas/Artwork.bind_background(background)
 	$Canvas/Story/Title.text = title
-	$Canvas/Story/Description.text = description
+	_description.text = description
 
-func configure_rest_choices(count: int) -> void:
-	_rest_event = true
-	_choice_count = count
-	for i in range($Canvas/Choices.get_child_count(), count):
-		var option := $Canvas/Choices/Option0.duplicate() as Button
-		option.name = "Option%s" % i
-		$Canvas/Choices.add_child(option)
-		_expansion.append(0.0)
-		_choice_tweens.append(null)
+func configure_choices(count: int) -> void:
+	if _result:
+		_result = false
+		_choices.show()
+		_leave.hide()
+		_select_choice(-1)
+	if count == _choices.get_child_count():
+		_update_intro()
+		return
+	for tween in _choice_tweens:
+		if tween: tween.kill()
+	for child in _choices.get_children():
+		_choices.remove_child(child)
+		child.queue_free()
+	_selected = -1
+	_expansion.resize(count)
+	_expansion.fill(0.0)
+	_choice_tweens.resize(count)
+	_choice_tweens.fill(null)
+	for index in count:
+		var option := OPTION_SCENE.instantiate() as Button
+		_choices.add_child(option)
+		option.pressed.connect(_on_choice_pressed.bind(index))
+		option.get_node("Confirm").pressed.connect(_on_choice_confirmed.bind(index))
 	_update_intro()
 
-func bind_choice(index: int, title: String, description: String, icon: String) -> void:
-	var option := get_node("Canvas/Choices/Option%s" % index)
+func get_choice(index: int) -> Button:
+	return _choices.get_child(index) as Button if index >= 0 and index < _choices.get_child_count() else null
+
+func bind_choice(index: int, title: String, description: String, icon: Texture2D) -> void:
+	var option := get_choice(index)
 	option.get_node("Title").text = title
 	option.get_node("Description").text = description
-	option.get_node("Function").texture = load("res://BlackFlowSpire/Images/Events/Exit/%s.png" % icon)
+	option.get_node("Function").texture = icon
 
-func show_rest_result() -> void:
+func show_result(leave_tooltip: String) -> void:
+	_leave.tooltip_text = leave_tooltip
+	if _result:
+		return
 	_result = true
 	_result_elapsed = 0.0
-	$Canvas/Choices.hide()
-	$Canvas/Leave.show()
+	_choices.hide()
+	_leave.show()
 	_update_intro()
 
-func finish_result_text() -> bool:
-	var description := $Canvas/Story/Description as RichTextLabel
-	if description.visible_characters < 0 or description.visible_characters >= description.get_total_character_count():
-		return false
-	_result_elapsed = description.get_total_character_count() * 0.04
-	description.visible_characters = -1
-	return true
+func _on_leave_pressed() -> void:
+	if _is_typing():
+		_result_elapsed = _description.get_total_character_count() * TEXT_INTERVAL
+		_description.visible_characters = -1
+		return
+	leave_pressed.emit()
 
-func select_choice(index: int) -> void:
+func _is_typing() -> bool:
+	return _description.visible_characters >= 0 and _description.visible_characters < _description.get_total_character_count()
+
+func _on_choice_pressed(index: int) -> void:
+	_select_choice(index)
+	get_choice(index).get_node("Confirm").grab_focus()
+
+func _on_choice_confirmed(index: int) -> void:
+	if _selected == index:
+		choice_confirmed.emit(index)
+
+func _select_choice(index: int) -> void:
 	if index == _selected: return
 	_selected = index
-	for i in _choice_count:
-		var option := get_node("Canvas/Choices/Option%s" % i)
+	for i in _choices.get_child_count():
+		var option := get_choice(i)
 		option.get_node("Confirm").visible = i == index
 		if _choice_tweens[i]: _choice_tweens[i].kill()
 		_choice_tweens[i] = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -93,22 +127,21 @@ func _set_rect(control: Control, rect: Rect2) -> void:
 	control.size = rect.size
 
 func _layout_choices() -> void:
-	if _choice_layout.is_empty(): return
-	var top := 0.0
-	if _rest_event:
-		var height := _choice_count * float(_choice_layout.folded.size[1]) + (_choice_count - 1) * 20.0
-		for expansion in _expansion:
-			height += expansion * (float(_choice_layout.expanded.size[1]) - float(_choice_layout.folded.size[1]))
-		top = (DESIGN.y / 2.0 - $Canvas/Choices.position.y) / $Canvas/Choices.scale.y - height / 2.0
-	for i in _choice_count:
-		var option := get_node("Canvas/Choices/Option%s" % i) as Button
+	var count := _choices.get_child_count()
+	if count == 0 or _choice_layout.is_empty(): return
+	var folded: Array = _choice_layout.folded.size
+	var expanded: Array = _choice_layout.expanded.size
+	var height := count * float(folded[1]) + (count - 1) * CHOICE_SPACING
+	for expansion in _expansion:
+		height += expansion * (float(expanded[1]) - float(folded[1]))
+	var top := (DESIGN.y / 2.0 - _choices.position.y) / _choices.scale.y - height / 2.0
+	for i in count:
+		var option := get_choice(i)
 		var amount := _expansion[i]
-		var folded: Array = _choice_layout.folded.size
-		var expanded: Array = _choice_layout.expanded.size
 		var dimensions := Vector2(lerpf(folded[0], expanded[0], amount), lerpf(folded[1], expanded[1], amount))
 		option.size = dimensions
-		option.position = Vector2($Canvas/Choices.size.x - dimensions.x, top)
-		top += dimensions.y + 20.0
+		option.position = Vector2(_choices.size.x - dimensions.x, top)
+		top += dimensions.y + CHOICE_SPACING
 		for item in [["Background", "fold"], ["ExpandedBackground", "expand"], ["Header", "header"], ["Title", "title"], ["Confirm", "confirm"]]:
 			_set_rect(option.get_node(item[0]), _choice_rect(item[1], amount))
 		option.get_node("Background").modulate.a = 1.0 - amount
@@ -134,12 +167,6 @@ func set_busy(busy: bool) -> void:
 	_busy = busy
 	_update_buttons()
 
-func finish_entry() -> void:
-	_elapsed = 5.25
-	_complete_text = true
-	$Canvas/Artwork.seek_entry(4.65)
-	_update_intro()
-
 func _process(delta: float) -> void:
 	_elapsed += delta
 	if _result: _result_elapsed += delta
@@ -150,30 +177,30 @@ func _update_intro() -> void:
 	# serialized 0.6-second slide and 0.04-second typewriter settings.
 	var intro := clampf((_elapsed - 1.0) / 0.6, 0.0, 1.0)
 	intro = 1.0 - pow(1.0 - intro, 3)
-	$Canvas/Choices.position.x = DESIGN.x - $Canvas/Choices.size.x * $Canvas/Choices.scale.x + 650.0 * (1.0 - intro)
+	_choices.position.x = DESIGN.x - _choices.size.x * _choices.scale.x + 650.0 * (1.0 - intro)
 	$Canvas/Story.modulate.a = intro
 	$Canvas/Story.position.x = 168.0 * (1.0 - intro)
 	if _result:
-		$Canvas/Story/Description.visible_characters = floori(_result_elapsed / 0.04)
+		_description.visible_characters = floori(_result_elapsed / TEXT_INTERVAL)
 	else:
-		$Canvas/Story/Description.visible_characters = -1 if _complete_text else maxi(0, floori((_elapsed - 1.0) / 0.04))
+		_description.visible_characters = -1 if _complete_text else maxi(0, floori((_elapsed - 1.0) / TEXT_INTERVAL))
 		_layout_choices()
 	_update_buttons()
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var description := $Canvas/Story/Description as RichTextLabel
-		if not _rest_event:
-			finish_entry()
-		elif _elapsed < 2.0 or (description.visible_characters >= 0 and description.visible_characters < description.get_total_character_count()):
+		if _result:
+			return
+		if _elapsed < INTRO_BLOCK_TIME or _is_typing():
 			_complete_text = true
 		else:
-			select_choice(-1)
+			_select_choice(-1)
+		_update_intro()
 		accept_event()
 
 func _update_buttons() -> void:
-	$Canvas/Leave.disabled = _busy or _elapsed < 2.0
-	for i in _choice_count:
-		var option := get_node("Canvas/Choices/Option%s" % i) as Button
-		option.disabled = _busy or _result or _elapsed < 2.0
+	_leave.disabled = _busy or _elapsed < INTRO_BLOCK_TIME
+	for i in _choices.get_child_count():
+		var option := get_choice(i)
+		option.disabled = _busy or _result or _elapsed < INTRO_BLOCK_TIME
 		option.get_node("Confirm").disabled = option.disabled
