@@ -1,0 +1,476 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Numbers.tres" id="bf_font_Numbers"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Title.tres" id="bf_font_Title"]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Shop/BlackFlowSpireCultivationLayout.gd" id="r0"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/img_scrap_shop_top.png" id="r1"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/img_scrap_shop_plant_grow.png" id="r2"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/img_scrap_shop_start_content.png" id="r3"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/bg_scrap_shop_seed.png" id="r4"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Parts/rogue_6_scrap_G_01.png" id="r5"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/img_scrap_shop_arrow.png" id="r6"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/img_scrap_shop_bubble.png" id="r7"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/icon_scrap_shop_seed.png" id="r8"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/btn_scrap_shop_cancel.png" id="r9"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/btn_scrap_shop_confirm.png" id="r10"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/bg_scrap_shop.png" id="r11"]
+
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Shop/BlackFlowSpireSeedGrowth.tscn" id="r12"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/bkg_confirm.png" id="r13"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/Secret/btn_confirm.png" id="r14"]
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[sub_resource type="Theme" id="theme"]
+default_font = ExtResource("bf_font_Body")
+default_font_size = 20
+Button/styles/normal = SubResource("empty")
+Button/styles/hover = SubResource("empty")
+Button/styles/pressed = SubResource("empty")
+Button/styles/disabled = SubResource("empty")
+Button/styles/focus = SubResource("empty")
+
+[node name="Cultivation" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("theme")
+script = ExtResource("r0")
+
+[node name="Canvas" type="Control" parent="."]
+offset_left = 0
+offset_top = 0
+offset_right = 1422.222222
+offset_bottom = 800
+mouse_filter = 2
+
+[node name="Entry" type="Control" parent="Canvas"]
+offset_left = 510
+offset_top = 160
+offset_right = 1232
+offset_bottom = 580
+
+[node name="Background" type="ColorRect" parent="Canvas/Entry"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0,0,0,0.91)
+mouse_filter = 2
+
+[node name="Top" type="TextureRect" parent="Canvas/Entry"]
+offset_left = -2
+offset_top = 0
+offset_right = 724
+offset_bottom = 125
+texture = ExtResource("r1")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Tree" type="TextureRect" parent="Canvas/Entry"]
+offset_left = 213
+offset_top = 0
+offset_right = 545
+offset_bottom = 350
+texture = ExtResource("r2")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="TitleBackground" type="TextureRect" parent="Canvas/Entry"]
+offset_left = 263
+offset_top = -2
+offset_right = 459
+offset_bottom = 78
+texture = ExtResource("r3")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Canvas/Entry"]
+offset_left = 226
+offset_top = 16
+offset_right = 496
+offset_bottom = 60
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.start"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Description" type="Label" parent="Canvas/Entry"]
+offset_left = 35
+offset_top = 57
+offset_right = 687
+offset_bottom = 95
+theme_override_font_sizes/font_size = 18
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.description"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SeedGlow" type="TextureRect" parent="Canvas/Entry"]
+offset_left = 107
+offset_top = 58
+offset_right = 343
+offset_bottom = 281
+texture = ExtResource("r4")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Seed" type="TextureRect" parent="Canvas/Entry"]
+offset_left = 140
+offset_top = 84
+offset_right = 310
+offset_bottom = 254
+texture = ExtResource("r5")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Arrow" type="TextureRect" parent="Canvas/Entry"]
+offset_left = 334
+offset_top = 140
+offset_right = 410
+offset_bottom = 179
+texture = ExtResource("r6")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Result" type="TextureRect" parent="Canvas/Entry"]
+offset_left = 402
+offset_top = 82
+offset_right = 634
+offset_bottom = 254
+texture = ExtResource("r7")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Counter" type="Control" parent="Canvas/Entry"]
+offset_left = 171
+offset_top = 263
+offset_right = 551
+offset_bottom = 314
+
+[node name="Minimum" type="Button" parent="Canvas/Entry/Counter"]
+offset_left = 0
+offset_top = 0
+offset_right = 80
+offset_bottom = 51
+mouse_default_cursor_shape = 2
+
+[node name="Background" type="ColorRect" parent="Canvas/Entry/Counter/Minimum"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.31,0.31,0.31,1)
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Entry/Counter/Minimum"]
+offset_left = 0
+offset_top = 0
+offset_right = 80
+offset_bottom = 51
+theme_override_font_sizes/font_size = 25
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.minimum"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Minus" type="Button" parent="Canvas/Entry/Counter"]
+offset_left = 81
+offset_top = 0
+offset_right = 149
+offset_bottom = 51
+mouse_default_cursor_shape = 2
+
+[node name="Background" type="ColorRect" parent="Canvas/Entry/Counter/Minus"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2,0.2,0.2,1)
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Entry/Counter/Minus"]
+offset_left = 0
+offset_top = 0
+offset_right = 68
+offset_bottom = 51
+theme_override_font_sizes/font_size = 25
+mouse_filter = 2
+text = "−"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Plus" type="Button" parent="Canvas/Entry/Counter"]
+offset_left = 231
+offset_top = 0
+offset_right = 299
+offset_bottom = 51
+mouse_default_cursor_shape = 2
+
+[node name="Background" type="ColorRect" parent="Canvas/Entry/Counter/Plus"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2,0.2,0.2,1)
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Entry/Counter/Plus"]
+offset_left = 0
+offset_top = 0
+offset_right = 68
+offset_bottom = 51
+theme_override_font_sizes/font_size = 25
+mouse_filter = 2
+text = "+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Maximum" type="Button" parent="Canvas/Entry/Counter"]
+offset_left = 300
+offset_top = 0
+offset_right = 380
+offset_bottom = 51
+mouse_default_cursor_shape = 2
+
+[node name="Background" type="ColorRect" parent="Canvas/Entry/Counter/Maximum"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.31,0.31,0.31,1)
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Entry/Counter/Maximum"]
+offset_left = 0
+offset_top = 0
+offset_right = 80
+offset_bottom = 51
+theme_override_font_sizes/font_size = 25
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.maximum"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NumberBackground" type="ColorRect" parent="Canvas/Entry/Counter"]
+offset_left = 150
+offset_top = 0
+offset_right = 230
+offset_bottom = 51
+color = Color(1,1,1,1)
+mouse_filter = 2
+
+[node name="Number" type="Label" parent="Canvas/Entry/Counter"]
+theme_override_fonts/font = ExtResource("bf_font_Numbers")
+offset_left = 150
+offset_top = 0
+offset_right = 230
+offset_bottom = 51
+theme_override_font_sizes/font_size = 25
+mouse_filter = 2
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.2,0.2,0.2,1)
+
+[node name="StockIcon" type="TextureRect" parent="Canvas/Entry"]
+offset_left = 289
+offset_top = 330
+offset_right = 312
+offset_bottom = 354
+texture = ExtResource("r8")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Stock" type="Label" parent="Canvas/Entry"]
+offset_left = 317
+offset_top = 327
+offset_right = 517
+offset_bottom = 357
+theme_override_font_sizes/font_size = 20
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.stock"
+theme_override_colors/font_color = Color(0.6,0.6,0.6,1)
+
+[node name="Cancel" type="Button" parent="Canvas/Entry"]
+offset_left = 0
+offset_top = 369
+offset_right = 361
+offset_bottom = 420
+mouse_default_cursor_shape = 2
+
+[node name="Background" type="TextureRect" parent="Canvas/Entry/Cancel"]
+offset_left = -10
+offset_top = -10
+offset_right = 371
+offset_bottom = 60
+texture = ExtResource("r9")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Entry/Cancel"]
+offset_left = 0
+offset_top = 0
+offset_right = 361
+offset_bottom = 51
+theme_override_font_sizes/font_size = 21
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.cancel"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Confirm" type="Button" parent="Canvas/Entry"]
+offset_left = 361
+offset_top = 369
+offset_right = 722
+offset_bottom = 420
+mouse_default_cursor_shape = 2
+
+[node name="Background" type="TextureRect" parent="Canvas/Entry/Confirm"]
+offset_left = -10
+offset_top = -10
+offset_right = 371
+offset_bottom = 60
+texture = ExtResource("r10")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Text" type="Label" parent="Canvas/Entry/Confirm"]
+offset_left = 0
+offset_top = 0
+offset_right = 361
+offset_bottom = 51
+theme_override_font_sizes/font_size = 21
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.confirm"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0,0,0,1)
+
+[node name="Playback" type="Control" parent="Canvas"]
+offset_left = 0
+offset_top = 0
+offset_right = 1422.222222
+offset_bottom = 800
+visible = false
+
+[node name="Background" type="TextureRect" parent="Canvas/Playback"]
+offset_left = -68.889
+offset_top = 0
+offset_right = 1491.111
+offset_bottom = 960
+texture = ExtResource("r11")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Growth" parent="Canvas/Playback" instance=ExtResource("r12")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Skip" type="Button" parent="Canvas/Playback"]
+offset_left = 1244
+offset_top = 28
+offset_right = 1386
+offset_bottom = 74
+mouse_default_cursor_shape = 2
+
+[node name="Text" type="Label" parent="Canvas/Playback/Skip"]
+offset_left = 0
+offset_top = 0
+offset_right = 142
+offset_bottom = 46
+theme_override_font_sizes/font_size = 25
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.skip"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Results" type="Control" parent="Canvas/Playback"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+mouse_filter = 2
+
+[node name="TitleBackground" type="TextureRect" parent="Canvas/Playback/Results"]
+offset_left = 590.111
+offset_top = 52
+offset_right = 832.111
+offset_bottom = 141
+texture = ExtResource("r13")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Canvas/Playback/Results"]
+theme_override_fonts/font = ExtResource("bf_font_Title")
+offset_left = 590.111
+offset_top = 52
+offset_right = 832.111
+offset_bottom = 141
+theme_override_font_sizes/font_size = 27
+mouse_filter = 2
+metadata/loc_key = "UI.SECRET_SHOP.harvest"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Canvas/Playback/Results"]
+offset_left = 20
+offset_top = 142
+offset_right = 1402.222
+offset_bottom = 687
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+follow_focus = true
+
+[node name="Center" type="CenterContainer" parent="Canvas/Playback/Results/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Cards" type="HBoxContainer" parent="Canvas/Playback/Results/Scroll/Center"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Confirm" type="Button" parent="Canvas/Playback/Results"]
+offset_left = 678.61
+offset_top = 705
+offset_right = 743.61
+offset_bottom = 770
+mouse_default_cursor_shape = 2
+
+[node name="Icon" type="TextureRect" parent="Canvas/Playback/Results/Confirm"]
+offset_left = 0
+offset_top = 0
+offset_right = 65
+offset_bottom = 65
+texture = ExtResource("r14")
+expand_mode = 1
+mouse_filter = 2

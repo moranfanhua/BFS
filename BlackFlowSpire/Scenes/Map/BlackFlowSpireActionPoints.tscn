@@ -1,0 +1,198 @@
+[gd_scene format=3 uid="uid://cdraqnffcsphj"]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/ActionPoints.tres" id="bf_font_ActionPoints"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+
+[ext_resource type="Texture2D" uid="uid://dy4upn80b7cka" path="res://BlackFlowSpire/Images/Map/Movement/bg_action_point.png" id="1_ap"]
+[ext_resource type="Texture2D" uid="uid://bexutdyef7d0j" path="res://BlackFlowSpire/Images/Map/Movement/bg_action_walk.png" id="2_glow"]
+[ext_resource type="Texture2D" uid="uid://crtasnub73tab" path="res://BlackFlowSpire/Images/Map/Movement/icon_walk.png" id="3_walk"]
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Map/BlackFlowSpireActionPoints.gd" id="4_script"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_move_scrap_bkg.png" id="5_ring"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/move_mode_icon_times.png" id="6_star"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/move_mode_icon_times_empty.png" id="7_empty_star"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/icon_change_back.png" id="8_change_back"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/icon_change.png" id="9_change"]
+
+[sub_resource type="Theme" id="Theme_ActionPoints"]
+default_font = ExtResource("bf_font_Body")
+Label/colors/font_color = Color(1, 1, 1, 1)
+Label/colors/font_shadow_color = Color(0, 0, 0, 0.9)
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 2
+
+[node name="BlackFlowSpireActionPoints" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 224.0
+offset_bottom = 148.0
+mouse_filter = 2
+theme = SubResource("Theme_ActionPoints")
+script = ExtResource("4_script")
+
+[node name="ActionPointBackground" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 57.0
+offset_top = 9.0
+offset_right = 177.0
+offset_bottom = 121.0
+mouse_filter = 2
+texture = ExtResource("1_ap")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="WalkGlow" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 91.0
+offset_top = -1.0
+offset_right = 241.0
+offset_bottom = 141.0
+mouse_filter = 2
+texture = ExtResource("2_glow")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PartGlow" type="TextureRect" parent="."]
+visible = false
+offset_left = 39.645
+offset_top = -47.96
+offset_right = 288.755
+offset_bottom = 187.96
+mouse_filter = 2
+texture = ExtResource("2_glow")
+modulate = Color(0.5852616, 0.6400149, 0.9056604, 1)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ActionPointsCaption" type="Label" parent="."]
+layout_mode = 0
+offset_left = 107.0
+offset_top = 27.0
+offset_right = 188.0
+offset_bottom = 51.0
+theme_override_font_sizes/font_size = 12
+text = "BLACK_FLOW_SPIRE.UI.AP.caption"
+metadata/loc_key = "UI.AP.caption"
+
+[node name="ActionPointsValue" type="Label" parent="."]
+theme_override_fonts/font = ExtResource("bf_font_ActionPoints")
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 66.0
+offset_top = 38.0
+offset_right = 157.0
+offset_bottom = 111.0
+theme_override_font_sizes/font_size = 40
+text = "13"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="WalkIcon" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 130.0
+offset_top = 32.0
+offset_right = 202.0
+offset_bottom = 108.0
+mouse_filter = 2
+texture = ExtResource("3_walk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LoadedPart" type="Control" parent="."]
+visible = false
+offset_left = 102.0
+offset_top = 6.0
+offset_right = 262.0
+offset_bottom = 166.0
+scale = Vector2(0.8, 0.8)
+mouse_filter = 2
+
+[node name="Ring" type="TextureRect" parent="LoadedPart"]
+offset_right = 160.0
+offset_bottom = 160.0
+texture = ExtResource("5_ring")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Artwork" type="TextureRect" parent="LoadedPart"]
+offset_left = 32.0
+offset_top = 32.0
+offset_right = 128.0
+offset_bottom = 128.0
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Stars" type="Control" parent="LoadedPart"]
+mouse_filter = 2
+
+[node name="Star1" type="TextureRect" parent="LoadedPart/Stars"]
+offset_left = 103.6
+offset_top = 20.6
+offset_right = 123.6
+offset_bottom = 42.6
+texture = ExtResource("6_star")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Star2" type="TextureRect" parent="LoadedPart/Stars"]
+offset_left = 113.9
+offset_top = 28.4
+offset_right = 133.9
+offset_bottom = 50.4
+texture = ExtResource("6_star")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Star3" type="TextureRect" parent="LoadedPart/Stars"]
+offset_left = 118.2
+offset_top = 44.1
+offset_right = 138.2
+offset_bottom = 66.1
+texture = ExtResource("6_star")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Star4" type="TextureRect" parent="LoadedPart/Stars"]
+visible = false
+offset_left = 116.6
+offset_top = 61.2
+offset_right = 136.6
+offset_bottom = 83.2
+texture = ExtResource("7_empty_star")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Star5" type="TextureRect" parent="LoadedPart/Stars"]
+visible = false
+offset_left = 114.7
+offset_top = 79.2
+offset_right = 134.7
+offset_bottom = 101.2
+texture = ExtResource("7_empty_star")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Change" type="Control" parent="."]
+visible = false
+offset_left = 168.9
+offset_top = 76.69
+offset_right = 220.9
+offset_bottom = 128.69
+mouse_filter = 2
+
+[node name="Background" type="TextureRect" parent="Change"]
+offset_right = 52.0
+offset_bottom = 52.0
+texture = ExtResource("8_change_back")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Arrows" type="TextureRect" parent="Change"]
+offset_left = 12.8
+offset_top = 13.5
+offset_right = 40.8
+offset_bottom = 37.5
+texture = ExtResource("9_change")
+expand_mode = 1
+mouse_filter = 2

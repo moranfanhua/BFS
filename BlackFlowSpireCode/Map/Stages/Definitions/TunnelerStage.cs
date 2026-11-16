@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class TunnelerStage : ForestPairedStageDefinition
+public sealed class TunnelerStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "TUNNELER";
     public override string Region => "HIVE";
-    public override ForestStageVersionDefinition Normal { get; } = new TunnelerNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new TunnelerEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new TunnelerNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new TunnelerEmergency();
 }
 
 #endregion
@@ -19,14 +19,14 @@ public sealed class TunnelerStage : ForestPairedStageDefinition
 
 // 邻里暗道 / Normal. Edit this version independently of the other version.
 //*1.2
-public sealed class TunnelerNormal : ForestStageVersionDefinition
+public sealed class TunnelerNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TUNNELER.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.TUNNELER_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TUNNELER.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TUNNELER.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
@@ -34,8 +34,8 @@ public sealed class TunnelerNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TUNNELER", native[0].Slot)
     ];
@@ -47,14 +47,14 @@ public sealed class TunnelerNormal : ForestStageVersionDefinition
 
 // 邻里暗道 / Emergency. Edit this version independently of the other version.
 //*1.5
-public sealed class TunnelerEmergency : ForestStageVersionDefinition
+public sealed class TunnelerEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TUNNELER.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.TUNNELER_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TUNNELER.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TUNNELER.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.5m,
         AttackDamageMultiplier = 1.5m
@@ -62,8 +62,8 @@ public sealed class TunnelerEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TUNNELER", native[0].Slot)
     ];

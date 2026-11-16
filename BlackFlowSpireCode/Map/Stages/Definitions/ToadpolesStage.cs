@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class ToadpolesStage : ForestPairedStageDefinition
+public sealed class ToadpolesStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "TOADPOLES";
     public override string Region => "UNDERDOCKS";
-    public override ForestStageVersionDefinition Normal { get; } = new ToadpolesNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new ToadpolesEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new ToadpolesNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new ToadpolesEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class ToadpolesStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 浅滩新客 / Normal. Edit this version independently of the other version.
-public sealed class ToadpolesNormal : ForestStageVersionDefinition
+public sealed class ToadpolesNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TOADPOLES.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.TOADPOLES_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TOADPOLES.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TOADPOLES.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
@@ -33,8 +33,8 @@ public sealed class ToadpolesNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TOADPOLE", native[0].Slot),
         new("MONSTER.TOADPOLE", native[1].Slot)
@@ -47,14 +47,14 @@ public sealed class ToadpolesNormal : ForestStageVersionDefinition
 
 // 浅滩新客 / Emergency. Edit this version independently of the other version.
 //数值*1.5
-public sealed class ToadpolesEmergency : ForestStageVersionDefinition
+public sealed class ToadpolesEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TOADPOLES.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.TOADPOLES_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TOADPOLES.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TOADPOLES.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.5m,
         AttackDamageMultiplier = 1.5m
@@ -62,8 +62,8 @@ public sealed class ToadpolesEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TOADPOLE", native[0].Slot),
         new("MONSTER.TOADPOLE", native[1].Slot)

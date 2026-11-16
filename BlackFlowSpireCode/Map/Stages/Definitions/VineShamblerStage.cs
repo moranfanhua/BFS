@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class VineShamblerStage : ForestPairedStageDefinition
+public sealed class VineShamblerStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "VINE_SHAMBLER";
     public override string Region => "OVERGROWTH";
-    public override ForestStageVersionDefinition Normal { get; } = new VineShamblerNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new VineShamblerEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new VineShamblerNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new VineShamblerEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class VineShamblerStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 旧屋攀客 / Normal. Edit this version independently of the other version.
-public sealed class VineShamblerNormal : ForestStageVersionDefinition
+public sealed class VineShamblerNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "VINE_SHAMBLER.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.VINE_SHAMBLER_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.VINE_SHAMBLER.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.VINE_SHAMBLER.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -33,8 +33,8 @@ public sealed class VineShamblerNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.VINE_SHAMBLER", native[0].Slot)
     ];
@@ -46,14 +46,14 @@ public sealed class VineShamblerNormal : ForestStageVersionDefinition
 
 // 旧屋攀客 / Emergency. Edit this version independently of the other version.
 // 增加一个缩小虫
-public sealed class VineShamblerEmergency : ForestStageVersionDefinition
+public sealed class VineShamblerEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "VINE_SHAMBLER.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.VINE_SHAMBLER_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.VINE_SHAMBLER.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.VINE_SHAMBLER.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -61,8 +61,8 @@ public sealed class VineShamblerEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         ..native,
         new("MONSTER.SHRINKER_BEETLE", null)

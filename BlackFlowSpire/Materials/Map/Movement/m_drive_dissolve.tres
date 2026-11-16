@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" load_steps=5 format=3]
 
-[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_ui_fx_add.gdshader" id="1_ax2o5"]
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/BlackFlowSpire_ui_fx_add.gdshader" id="1_ax2o5"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_disturb_01.png" id="2_bf4xx"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_sweep_repeat_01.png" id="3_h82h8"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/img_uifx_basicmask_09.png" id="4_dk0sk"]

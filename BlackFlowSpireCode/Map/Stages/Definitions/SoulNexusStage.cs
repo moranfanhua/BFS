@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class SoulNexusStage : ForestPairedStageDefinition
+public sealed class SoulNexusStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "SOUL_NEXUS";
     public override string Region => "GLORY";
-    public override ForestStageVersionDefinition Normal { get; } = new SoulNexusNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new SoulNexusEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new SoulNexusNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new SoulNexusEmergency();
 }
 
 #endregion
@@ -19,14 +19,14 @@ public sealed class SoulNexusStage : ForestPairedStageDefinition
 
 // 寄存亡声 / Normal. Edit this version independently of the other version.
 //*0.7
-public sealed class SoulNexusNormal : ForestStageVersionDefinition
+public sealed class SoulNexusNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "SOUL_NEXUS.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.SOUL_NEXUS_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SOUL_NEXUS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SOUL_NEXUS.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 0.7m,
         AttackDamageMultiplier = 0.7m
@@ -34,8 +34,8 @@ public sealed class SoulNexusNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.SOUL_NEXUS", native[0].Slot)
     ];
@@ -46,14 +46,14 @@ public sealed class SoulNexusNormal : ForestStageVersionDefinition
 #region 紧急作战
 
 // 寄存亡声 / Emergency. Edit this version independently of the other version.
-public sealed class SoulNexusEmergency : ForestStageVersionDefinition
+public sealed class SoulNexusEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "SOUL_NEXUS.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.SOUL_NEXUS_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SOUL_NEXUS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SOUL_NEXUS.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -61,8 +61,8 @@ public sealed class SoulNexusEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.SOUL_NEXUS", native[0].Slot)
     ];

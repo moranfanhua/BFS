@@ -1,0 +1,323 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Bender.tres" id="bf_font_Bender"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/NumbersNormal.tres" id="bf_font_NumbersNormal"]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Ui/BlackFlowSpireWarehouseLayout.gd" id="script"]
+
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Ui/BlackFlowSpireWarehouseEye.tscn" id="eye"]
+
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Ui/BlackFlowSpirePartsBar.tscn" id="footer"]
+
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Ui/BlackFlowSpireWarehouseDetail.tscn" id="detail"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/Warehouse/total-value.png" id="total-value"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/Warehouse/estimate.png" id="estimate"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/Warehouse/sort.png" id="sort"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/Warehouse/sort-line.png" id="sort-line"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/Warehouse/sort-arrow.png" id="sort-arrow"]
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[sub_resource type="StyleBoxFlat" id="sort_backdrop"]
+bg_color = Color(0,0,0,1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_left = 25
+corner_radius_bottom_right = 25
+corner_detail = 12
+
+[sub_resource type="StyleBoxFlat" id="focus"]
+bg_color = Color(0,0,0,0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2,0.75,0.85,0.6)
+
+[sub_resource type="Theme" id="theme"]
+default_font = ExtResource("bf_font_Body")
+default_font_size = 18
+Button/styles/normal = SubResource("empty")
+Button/styles/hover = SubResource("empty")
+Button/styles/pressed = SubResource("empty")
+Button/styles/disabled = SubResource("empty")
+Button/styles/focus = SubResource("focus")
+
+[node name="BlackFlowSpireWarehouse" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("theme")
+script = ExtResource("script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.0745098, 0.0745098, 0.0745098, 1)
+mouse_filter = 0
+
+[node name="Canvas" type="Control" parent="."]
+offset_left = 0
+offset_top = 0
+offset_right = 1422.222222
+offset_bottom = 800
+mouse_filter = 2
+
+[node name="Eye" parent="Canvas" instance=ExtResource("eye")]
+offset_left = -10
+offset_top = 100
+offset_right = 340
+offset_bottom = 450
+
+[node name="EyeButton" type="Button" parent="Canvas"]
+offset_left = 12
+offset_top = 140
+offset_right = 302
+offset_bottom = 420
+mouse_default_cursor_shape = 2
+
+[node name="Count" type="HBoxContainer" parent="Canvas"]
+offset_left = 67
+offset_top = 420
+offset_right = 297
+offset_bottom = 460
+theme_override_constants/separation = 4
+alignment = 1
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="Canvas/Count"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.35,0.35,0.35,1)
+vertical_alignment = 1
+mouse_filter = 2
+metadata/loc_key = "UI.PARTS.capacity_label"
+
+[node name="Current" type="Label" parent="Canvas/Count"]
+theme_override_fonts/font = ExtResource("bf_font_Bender")
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1,1,1,1)
+vertical_alignment = 1
+mouse_filter = 2
+text = "0"
+
+[node name="Slash" type="Label" parent="Canvas/Count"]
+theme_override_fonts/font = ExtResource("bf_font_Bender")
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.35,0.35,0.35,1)
+vertical_alignment = 1
+mouse_filter = 2
+text = "/"
+
+[node name="Capacity" type="Label" parent="Canvas/Count"]
+theme_override_fonts/font = ExtResource("bf_font_Bender")
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.35,0.35,0.35,1)
+vertical_alignment = 1
+mouse_filter = 2
+text = "10"
+
+[node name="Dots" type="Control" parent="Canvas"]
+offset_left = 50
+offset_top = 468
+offset_right = 300
+offset_bottom = 573
+mouse_filter = 2
+
+[node name="EstimateTitle" type="Label" parent="Canvas"]
+offset_left = 51
+offset_top = 575
+offset_right = 285
+offset_bottom = 605
+theme_override_font_sizes/font_size = 18
+mouse_filter = 2
+metadata/loc_key = "UI.PARTS.total_value"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_colors/font_color = Color(0.42,0.42,0.42,1)
+
+[node name="Estimate" type="TextureRect" parent="Canvas"]
+offset_left = 51
+offset_top = 610
+offset_right = 285
+offset_bottom = 662
+texture = ExtResource("total-value")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Content" type="Control" parent="Canvas/Estimate"]
+offset_left = 0
+offset_top = 0
+offset_right = 234
+offset_bottom = 52
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="Canvas/Estimate/Content"]
+offset_left = 44.6
+offset_top = 7
+offset_right = 87.6
+offset_bottom = 45
+texture = ExtResource("estimate")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Value" type="Label" parent="Canvas/Estimate/Content"]
+theme_override_fonts/font = ExtResource("bf_font_NumbersNormal")
+offset_left = 96.9
+offset_top = -4.6
+offset_right = 204.95
+offset_bottom = 47.4
+theme_override_font_sizes/font_size = 42
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "0"
+mouse_filter = 2
+
+[node name="Items" type="ScrollContainer" parent="Canvas"]
+offset_left = 360
+offset_top = 142
+offset_right = 1422.222222
+offset_bottom = 631
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+follow_focus = true
+mouse_filter = 0
+
+[node name="Padding" type="MarginContainer" parent="Canvas/Items"]
+layout_mode = 2
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="Columns" type="HBoxContainer" parent="Canvas/Items/Padding"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Sort" type="Control" parent="Canvas"]
+offset_left = 1188.222222
+offset_top = 77.5
+offset_right = 1410.222222
+offset_bottom = 152.5
+mouse_filter = 2
+
+[node name="Occlusion" type="Panel" parent="Canvas/Sort"]
+offset_left = 11
+offset_top = 0
+offset_right = 211
+offset_bottom = 51
+theme_override_styles/panel = SubResource("sort_backdrop")
+mouse_filter = 2
+
+[node name="Background" type="TextureRect" parent="Canvas/Sort"]
+offset_left = 0
+offset_top = 0
+offset_right = 222
+offset_bottom = 75
+texture = ExtResource("sort")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Divider" type="TextureRect" parent="Canvas/Sort"]
+offset_left = 110
+offset_top = 12.58
+offset_right = 112
+offset_bottom = 34.58
+texture = ExtResource("sort-line")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Type" type="Button" parent="Canvas/Sort"]
+offset_left = 25.2
+offset_top = 0
+offset_right = 99.2
+offset_bottom = 50
+mouse_default_cursor_shape = 2
+
+[node name="Text" type="Label" parent="Canvas/Sort/Type"]
+offset_left = 0
+offset_top = 9
+offset_right = 74
+offset_bottom = 29
+theme_override_font_sizes/font_size = 16
+mouse_filter = 2
+metadata/loc_key = "UI.PARTS.sort_type"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Arrow" type="TextureRect" parent="Canvas/Sort/Type"]
+offset_left = 27.7787
+offset_top = 28.6448
+offset_right = 46.2213
+offset_bottom = 38.9727
+texture = ExtResource("sort-arrow")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+pivot_offset = Vector2(9.2213,5.164)
+modulate = Color(0,0.6941176,1,1)
+
+[node name="Value" type="Button" parent="Canvas/Sort"]
+offset_left = 122.8
+offset_top = 0
+offset_right = 196.8
+offset_bottom = 50
+mouse_default_cursor_shape = 2
+
+[node name="Text" type="Label" parent="Canvas/Sort/Value"]
+offset_left = 0
+offset_top = 9
+offset_right = 74
+offset_bottom = 29
+theme_override_font_sizes/font_size = 16
+mouse_filter = 2
+metadata/loc_key = "UI.PARTS.sort_value"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Arrow" type="TextureRect" parent="Canvas/Sort/Value"]
+offset_left = 27.7787
+offset_top = 28.6448
+offset_right = 46.2213
+offset_bottom = 38.9727
+texture = ExtResource("sort-arrow")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+pivot_offset = Vector2(9.2213,5.164)
+modulate = Color(0,0.6941176,1,1)
+
+[node name="Footer" parent="." instance=ExtResource("footer")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Detail" parent="." instance=ExtResource("detail")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false

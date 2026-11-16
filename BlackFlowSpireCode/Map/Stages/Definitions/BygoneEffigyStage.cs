@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class BygoneEffigyStage : ForestPairedStageDefinition
+public sealed class BygoneEffigyStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "BYGONE_EFFIGY";
     public override string Region => "OVERGROWTH";
-    public override ForestStageVersionDefinition Normal { get; } = new BygoneEffigyNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new BygoneEffigyEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new BygoneEffigyNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new BygoneEffigyEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class BygoneEffigyStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 敬礼之后 / Normal. Edit this version independently of the other version.
-public sealed class BygoneEffigyNormal : ForestStageVersionDefinition
+public sealed class BygoneEffigyNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "BYGONE_EFFIGY.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.BYGONE_EFFIGY_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.BYGONE_EFFIGY.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.BYGONE_EFFIGY.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -33,8 +33,8 @@ public sealed class BygoneEffigyNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.BYGONE_EFFIGY", native[0].Slot)
     ];
@@ -46,20 +46,20 @@ public sealed class BygoneEffigyNormal : ForestStageVersionDefinition
 
 // 敬礼之后 / Emergency. Edit this version independently of the other version.
 //攻击提前一回合。
-public sealed class BygoneEffigyEmergency : ForestStageVersionDefinition
+public sealed class BygoneEffigyEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "BYGONE_EFFIGY.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.BYGONE_EFFIGY_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.BYGONE_EFFIGY.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.BYGONE_EFFIGY.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -70,8 +70,8 @@ public sealed class BygoneEffigyEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.BYGONE_EFFIGY", native[0].Slot)
     ];

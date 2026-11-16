@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class TurretOperatorStage : ForestPairedStageDefinition
+public sealed class TurretOperatorStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "TURRET_OPERATOR";
     public override string Region => "GLORY";
-    public override ForestStageVersionDefinition Normal { get; } = new TurretOperatorNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new TurretOperatorEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new TurretOperatorNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new TurretOperatorEmergency();
 }
 
 #endregion
@@ -19,20 +19,20 @@ public sealed class TurretOperatorStage : ForestPairedStageDefinition
 
 // 代人受过 / Normal. Edit this version independently of the other version.
 //活体盾的盾墙增加10点
-public sealed class TurretOperatorNormal : ForestStageVersionDefinition
+public sealed class TurretOperatorNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TURRET_OPERATOR.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.TURRET_OPERATOR_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TURRET_OPERATOR.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TURRET_OPERATOR.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -43,8 +43,8 @@ public sealed class TurretOperatorNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.LIVING_SHIELD", native[0].Slot),
         new("MONSTER.TURRET_OPERATOR", native[1].Slot)
@@ -57,20 +57,20 @@ public sealed class TurretOperatorNormal : ForestStageVersionDefinition
 
 // 代人受过 / Emergency. Edit this version independently of the other version.
 //活体盾的盾墙增加25点
-public sealed class TurretOperatorEmergency : ForestStageVersionDefinition
+public sealed class TurretOperatorEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TURRET_OPERATOR.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.TURRET_OPERATOR_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TURRET_OPERATOR.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TURRET_OPERATOR.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -81,8 +81,8 @@ public sealed class TurretOperatorEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.LIVING_SHIELD", native[0].Slot),
         new("MONSTER.TURRET_OPERATOR", native[1].Slot)

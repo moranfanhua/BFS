@@ -1,0 +1,62 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Map/BlackFlowSpireMapNodeCaption.gd" id="script"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Markers/node_completed.svg" id="completed"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Markers/node_name_bkg.png" id="background"]
+
+[sub_resource type="Theme" id="theme"]
+default_font = ExtResource("bf_font_Body")
+default_font_size = 20
+Label/colors/font_color = Color(0.73,0.75,0.74,1)
+Label/colors/font_outline_color = Color(0.015,0.025,0.02,0.9)
+Label/constants/outline_size = 3
+
+[node name="NodeCaption" type="Control"]
+offset_left = -38.0
+offset_top = 74.0
+offset_right = 118.0
+offset_bottom = 122.0
+mouse_filter = 2
+theme = SubResource("theme")
+script = ExtResource("script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -10.0
+offset_top = -8.0
+offset_right = 10.0
+offset_bottom = 8.0
+mouse_filter = 2
+texture = ExtResource("background")
+expand_mode = 1
+modulate = Color(1,1,1,0.65)
+
+[node name="Row" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Completed" type="TextureRect" parent="Row"]
+visible = false
+custom_minimum_size = Vector2(24,24)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("completed")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Row"]
+layout_mode = 2
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+max_lines_visible = 2

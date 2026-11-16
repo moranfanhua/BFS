@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class FabricatorStage : ForestPairedStageDefinition
+public sealed class FabricatorStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "FABRICATOR";
     public override string Region => "GLORY";
-    public override ForestStageVersionDefinition Normal { get; } = new FabricatorNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new FabricatorEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new FabricatorNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new FabricatorEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class FabricatorStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 缺员补足 / Normal. Edit this version independently of the other version.
-public sealed class FabricatorNormal : ForestStageVersionDefinition
+public sealed class FabricatorNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "FABRICATOR.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.FABRICATOR_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FABRICATOR.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FABRICATOR.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -33,8 +33,8 @@ public sealed class FabricatorNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.FABRICATOR", native[0].Slot)
     ];
@@ -46,14 +46,14 @@ public sealed class FabricatorNormal : ForestStageVersionDefinition
 
 // 缺员补足 / Emergency. Edit this version independently of the other version.
 //组装师血量+20，所有召唤物血量+5
-public sealed class FabricatorEmergency : ForestStageVersionDefinition
+public sealed class FabricatorEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "FABRICATOR.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.FABRICATOR_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FABRICATOR.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FABRICATOR.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m,
@@ -66,8 +66,8 @@ public sealed class FabricatorEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.FABRICATOR", native[0].Slot)
     ];

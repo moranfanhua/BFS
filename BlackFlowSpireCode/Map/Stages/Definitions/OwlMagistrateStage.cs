@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class OwlMagistrateStage : ForestPairedStageDefinition
+public sealed class OwlMagistrateStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "OWL_MAGISTRATE";
     public override string Region => "GLORY";
-    public override ForestStageVersionDefinition Normal { get; } = new OwlMagistrateNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new OwlMagistrateEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new OwlMagistrateNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new OwlMagistrateEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class OwlMagistrateStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 有罪先行 / Normal. Edit this version independently of the other version.
-public sealed class OwlMagistrateNormal : ForestStageVersionDefinition
+public sealed class OwlMagistrateNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "OWL_MAGISTRATE.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.OWL_MAGISTRATE_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.OWL_MAGISTRATE.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.OWL_MAGISTRATE.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -33,8 +33,8 @@ public sealed class OwlMagistrateNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.OWL_MAGISTRATE", native[0].Slot)
     ];
@@ -46,20 +46,20 @@ public sealed class OwlMagistrateNormal : ForestStageVersionDefinition
 
 // 有罪先行 / Emergency. Edit this version independently of the other version.
 //初始即处于翱翔 在首回合使用“Verdict”
-public sealed class OwlMagistrateEmergency : ForestStageVersionDefinition
+public sealed class OwlMagistrateEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "OWL_MAGISTRATE.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.OWL_MAGISTRATE_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.OWL_MAGISTRATE.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.OWL_MAGISTRATE.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -71,8 +71,8 @@ public sealed class OwlMagistrateEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.OWL_MAGISTRATE", native[0].Slot)
     ];

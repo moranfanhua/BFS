@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class TerrorEelStage : ForestPairedStageDefinition
+public sealed class TerrorEelStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "TERROR_EEL";
     public override string Region => "UNDERDOCKS";
-    public override ForestStageVersionDefinition Normal { get; } = new TerrorEelNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new TerrorEelEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new TerrorEelNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new TerrorEelEmergency();
 }
 
 #endregion
@@ -19,14 +19,14 @@ public sealed class TerrorEelStage : ForestPairedStageDefinition
 
 // 深水禁声 / Normal. Edit this version independently of the other version.
 //数值*0.8
-public sealed class TerrorEelNormal : ForestStageVersionDefinition
+public sealed class TerrorEelNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TERROR_EEL.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.TERROR_EEL_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TERROR_EEL.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TERROR_EEL.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 0.8m,
         AttackDamageMultiplier = 0.8m
@@ -34,8 +34,8 @@ public sealed class TerrorEelNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TERROR_EEL", native[0].Slot)
     ];
@@ -46,14 +46,14 @@ public sealed class TerrorEelNormal : ForestStageVersionDefinition
 #region 紧急作战
 
 // 深水禁声 / Emergency. Edit this version independently of the other version.
-public sealed class TerrorEelEmergency : ForestStageVersionDefinition
+public sealed class TerrorEelEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TERROR_EEL.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.TERROR_EEL_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TERROR_EEL.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TERROR_EEL.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -61,8 +61,8 @@ public sealed class TerrorEelEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TERROR_EEL", native[0].Slot)
     ];

@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class BowlbugCrewStage : ForestPairedStageDefinition
+public sealed class BowlbugCrewStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "BOWLBUG_CREW";
     public override string Region => "HIVE";
-    public override ForestStageVersionDefinition Normal { get; } = new BowlbugCrewNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new BowlbugCrewEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new BowlbugCrewNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new BowlbugCrewEmergency();
 }
 
 #endregion
@@ -19,14 +19,14 @@ public sealed class BowlbugCrewStage : ForestPairedStageDefinition
 
 // 分工会议 / Normal. Edit this version independently of the other version.
 
-public sealed class BowlbugCrewNormal : ForestStageVersionDefinition
+public sealed class BowlbugCrewNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "BOWLBUG_CREW.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.BOWLBUGS_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.BOWLBUG_CREW.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.BOWLBUG_CREW.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -35,8 +35,8 @@ public sealed class BowlbugCrewNormal : ForestStageVersionDefinition
     // 盛碗虫（石）固定一只，另从卵／丝／蜜中选不同的两种，每种最多一只。
     // Keep the native seeded random result by default. Replace this return
     // with your own list/seeded selection to customize this version.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) => native;
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) => native;
 }
 
 #endregion
@@ -45,7 +45,7 @@ public sealed class BowlbugCrewNormal : ForestStageVersionDefinition
 
 // 分工会议 / Emergency. Edit this version independently of the other version.
 //盛碗虫四只 石，卵，蜜，丝各一只
-public sealed class BowlbugCrewEmergency : ForestStageVersionDefinition
+public sealed class BowlbugCrewEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "BOWLBUG_CREW.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.BOWLBUGS_NORMAL";
@@ -53,15 +53,15 @@ public sealed class BowlbugCrewEmergency : ForestStageVersionDefinition
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.BOWLBUG_CREW.description";
     public override int Revision => 2;
     public override bool UseGenericEnemyLayout => true;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
     };
 
     // 紧急编成固定为四种各一只，使用原版自动排布。
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.BOWLBUG_ROCK", null),
         new("MONSTER.BOWLBUG_EGG", null),

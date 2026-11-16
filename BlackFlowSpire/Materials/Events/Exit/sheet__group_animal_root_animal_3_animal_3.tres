@@ -1,5 +1,5 @@
 [gd_resource type="ShaderMaterial" format=3]
-[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_exit_sheet.gdshader" id="shader"]
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/BlackFlowSpire_exit_sheet.gdshader" id="shader"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Exit/sheet_rabbit__-6837865652042520983.png" id="texture"]
 [resource]
 resource_local_to_scene = true

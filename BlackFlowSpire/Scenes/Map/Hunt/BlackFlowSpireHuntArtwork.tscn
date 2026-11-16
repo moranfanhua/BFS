@@ -1,0 +1,1550 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Title.tres" id="bf_font_Title"]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Map/BlackFlowSpireHuntArtwork.gd" id="script"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/grad_down__1464091449462937531.png" id="image_1"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/grad_down__1464091449462937531.png" id="image_2"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bg_left__-8094945782661603257.png" id="image_3"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bg_right__3023476307249978748.png" id="image_4"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bg_down_left__-2428535218249749520.png" id="image_5"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/disturb_bg_color_1__group_bg_bg_down_left.tres" id="mat_6"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bg_down_right__4288316982129324331.png" id="image_7"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/disturb_bg_color_2__group_bg_bg_down_right.tres" id="mat_8"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bg_circle_whole__1252462903895377015.png" id="image_9"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/bg_circle__group_bg_circle_bg_circle_whole.tres" id="mat_10"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bone__-3596079308018566254.png" id="image_11"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/wipe_bone__group_bg_circle_bone.tres" id="mat_12"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bone__-3596079308018566254.png" id="image_13"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/wipe_bone_glow__group_bg_circle_bone_bone_glow.tres" id="mat_14"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/left_snake__6431242500535415774.png" id="image_15"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/wipe_snake__group_bg_circle_left_snake.tres" id="mat_16"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/circle__6467519684889252650.png" id="image_17"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_5__-587704503700756106.png" id="image_18"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_4_normal__-1771438801157732017.png" id="image_19"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_4_glow__-4555405412501375583.png" id="image_20"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_3__-1427551419790003259.png" id="image_21"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_3_glow__-7011960334375058053.png" id="image_22"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_2__-6004721675673029277.png" id="image_23"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_2_glow__2940542715709974124.png" id="image_24"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man1_bg2__9078130275966127648.png" id="image_25"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man1_bg1__5618140039241462565.png" id="image_26"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/man_1__5730865789835671592.png" id="image_27"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/wolf_4__1521002471978039317.png" id="image_28"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/wolf_3__5073589310981899299.png" id="image_29"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/wolf_3__5073589310981899299.png" id="image_30"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/wolf_red__group_wolf_root_mask3_wolf_3_wolf_3_red.tres" id="mat_31"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/wolf_2__299167447976118919.png" id="image_32"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/door__-3714055867997433491.png" id="image_33"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/wolf_1__-2428742405142576820.png" id="image_34"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bg_title__-5941308760051710233.png" id="image_35"]
+
+[ext_resource type="Material" path="res://BlackFlowSpire/Materials/Map/Hunt/bg_title_wipe__group_title_bg_title.tres" id="mat_36"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_9__-696194382253462527.png" id="image_37"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_8__-6590293718861281269.png" id="image_38"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_7__-5023735990036112907.png" id="image_39"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_6__-5229439912357377483.png" id="image_40"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_5__-7844833034441411207.png" id="image_41"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_4__-8537320085378026264.png" id="image_42"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_3__7703982636844256292.png" id="image_43"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_2__3779466148573335300.png" id="image_44"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/gold_1__7063777847347573357.png" id="image_45"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/bg_btn__8780000590060092930.png" id="image_46"]
+
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/icon_certain__7064667491830146644.png" id="image_47"]
+
+[sub_resource type="Theme" id="theme"]
+default_font = ExtResource("bf_font_Body")
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[node name="HuntArtwork" type="Control"]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+theme = SubResource("theme")
+script = ExtResource("script")
+
+[node name="panel_block" type="Control" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1280.0
+offset_bottom = 720.0
+pivot_offset = Vector2(640, 360)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="blur_bg" type="Control" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1280.0
+offset_bottom = 720.0
+pivot_offset = Vector2(640, 360)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="black_matte" type="Control" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1280.0
+offset_bottom = 720.0
+pivot_offset = Vector2(640, 360)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="group_bg" type="Control" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1280.0
+offset_bottom = 720.0
+pivot_offset = Vector2(640, 360)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="grad_down" type="Control" parent="group_bg"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 381.0
+offset_right = 1280.0
+offset_bottom = 725.0
+pivot_offset = Vector2(640, 344)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg/grad_down"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_1")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(0.31764707, 0.043137256, 0.047058824, 0.65098041)
+
+[node name="add" type="Control" parent="group_bg/grad_down"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 184.60998582839966
+offset_right = 1280.0
+offset_bottom = 343.9999852180481
+pivot_offset = Vector2(640, 159.39)
+scale = Vector2(1, 0.88526905)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg/grad_down/add"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_2")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(0.56226408, 0, 0.0080325278, 0)
+
+[node name="root_back" type="Control" parent="group_bg"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1280.0
+offset_bottom = 720.0
+pivot_offset = Vector2(640, 360)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="bg_left" type="Control" parent="group_bg/root_back"]
+layout_mode = 0
+offset_left = -8.5
+offset_top = 1.0
+offset_right = 643.5
+offset_bottom = 785.0
+pivot_offset = Vector2(326, 392)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg/root_back/bg_left"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_3")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="bg_right" type="Control" parent="group_bg/root_back"]
+layout_mode = 0
+offset_left = 630.5
+offset_top = 44.000003814697266
+offset_right = 1306.5
+offset_bottom = 800.0000038146973
+pivot_offset = Vector2(338, 378)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg/root_back/bg_right"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_4")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="bg_down_left" type="Control" parent="group_bg"]
+layout_mode = 0
+offset_left = 160.5
+offset_top = 143.99998724460602
+offset_right = 634.5
+offset_bottom = 641.999987244606
+pivot_offset = Vector2(474, 240.50075)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg/bg_down_left"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_5")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_6")
+
+[node name="bg_down_right" type="Control" parent="group_bg"]
+layout_mode = 0
+offset_left = 634.5
+offset_top = 79.0
+offset_right = 1157.5
+offset_bottom = 683.0
+pivot_offset = Vector2(0, 302)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg/bg_down_right"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_7")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_8")
+
+[node name="particle_ctrl_behind" type="Control" parent="group_bg"]
+layout_mode = 0
+offset_left = 595.4999995231628
+offset_top = 333.5
+offset_right = 695.4999995231628
+offset_bottom = 433.5
+pivot_offset = Vector2(50, 50)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="smoke1" type="Control" parent="group_bg/particle_ctrl_behind"]
+layout_mode = 0
+offset_left = -99.0
+offset_top = 11.0
+offset_right = -99.0
+offset_bottom = 11.0
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="smoke2" type="Control" parent="group_bg/particle_ctrl_behind"]
+layout_mode = 0
+offset_left = 212.0
+offset_top = 11.0
+offset_right = 212.0
+offset_bottom = 11.0
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="smoke_down" type="Control" parent="group_bg/particle_ctrl_behind"]
+layout_mode = 0
+offset_left = 48.0
+offset_top = 408.0
+offset_right = 48.0
+offset_bottom = 408.0
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="behind1" type="Control" parent="group_bg/particle_ctrl_behind"]
+layout_mode = 0
+offset_left = -325.0
+offset_top = -144.8000030517578
+offset_right = -325.0
+offset_bottom = -144.8000030517578
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="behind2" type="Control" parent="group_bg/particle_ctrl_behind"]
+layout_mode = 0
+offset_left = 123.0
+offset_top = -239.0
+offset_right = 123.0
+offset_bottom = -239.0
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="particle_burst" type="Control" parent="group_bg"]
+layout_mode = 0
+offset_left = 595.0
+offset_top = 245.0
+offset_right = 695.0
+offset_bottom = 345.0
+pivot_offset = Vector2(50, 50)
+scale = Vector2(100, 100)
+mouse_filter = 2
+visible = false
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="fx_circle2" type="Control" parent="group_bg"]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 252.0
+offset_right = 688.0
+offset_bottom = 352.0
+pivot_offset = Vector2(50, 50)
+scale = Vector2(45.890007, 45.890007)
+mouse_filter = 2
+visible = false
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="group_bg_circle" type="Control" parent="."]
+layout_mode = 0
+offset_left = 308.5
+offset_top = 18.0
+offset_right = 927.5
+offset_bottom = 690.0
+pivot_offset = Vector2(309.5, 336)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="bg_circle_whole" type="Control" parent="group_bg_circle"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 0.5
+offset_right = 619.0
+offset_bottom = 671.5
+pivot_offset = Vector2(309, 335.5)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg_circle/bg_circle_whole"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_9")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_10")
+
+[node name="bg_circle_whole_red" type="Control" parent="group_bg_circle"]
+layout_mode = 0
+offset_left = 1.0
+offset_top = 0.5
+offset_right = 619.0
+offset_bottom = 671.5
+pivot_offset = Vector2(309, 335.5)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="bone" type="Control" parent="group_bg_circle"]
+layout_mode = 0
+offset_left = 162.5
+offset_top = 245.0
+offset_right = 430.5
+offset_bottom = 449.0
+pivot_offset = Vector2(134, 102)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg_circle/bone"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_11")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_12")
+
+[node name="bone_glow" type="Control" parent="group_bg_circle/bone"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 268.0
+offset_bottom = 204.0
+pivot_offset = Vector2(134, 102)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg_circle/bone/bone_glow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_13")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_14")
+
+[node name="left_snake" type="Control" parent="group_bg_circle"]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 149.0
+offset_right = 244.0
+offset_bottom = 381.0
+pivot_offset = Vector2(52, 116)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_bg_circle/left_snake"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_15")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_16")
+
+[node name="left_snake_glow" type="Control" parent="group_bg_circle/left_snake"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 104.0
+offset_bottom = 232.0
+pivot_offset = Vector2(52, 116)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="group_man" type="Control" parent="."]
+layout_mode = 0
+offset_left = 426.49999701976776
+offset_top = 99.99999210238457
+offset_right = 989.4999970197678
+offset_bottom = 530.9999921023846
+pivot_offset = Vector2(223.41849, 290.44385)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="circle" type="Control" parent="group_man"]
+layout_mode = 0
+offset_left = 323.0
+offset_top = 53.0
+offset_right = 427.0
+offset_bottom = 157.0
+pivot_offset = Vector2(52, 52)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/circle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_17")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="man_5" type="Control" parent="group_man"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 87.0
+offset_right = 84.0
+offset_bottom = 179.0
+pivot_offset = Vector2(42, 46)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/man_5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_18")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="root_man_4" type="Control" parent="group_man"]
+layout_mode = 0
+offset_left = 182.0
+offset_top = 0.0
+offset_right = 282.0
+offset_bottom = 148.0
+pivot_offset = Vector2(50, 74)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="man_4_normal" type="Control" parent="group_man/root_man_4"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 16.700000047683716
+offset_right = 82.0
+offset_bottom = 136.70000004768372
+pivot_offset = Vector2(32, 60)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/root_man_4/man_4_normal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_19")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(0.58490562, 0.58490562, 0.58490562, 1)
+
+[node name="man_4_glow" type="Control" parent="group_man/root_man_4"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 1.52587890625e-05
+offset_right = 100.0
+offset_bottom = 148.00001525878906
+pivot_offset = Vector2(50, 74)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/root_man_4/man_4_glow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_20")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="root_man_3" type="Control" parent="group_man"]
+layout_mode = 0
+offset_left = 307.9999705553055
+offset_top = 85.99995040893555
+offset_right = 415.9999705553055
+offset_bottom = 189.99995040893555
+pivot_offset = Vector2(50.432876, 37.374653)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="man_3_normal" type="Control" parent="group_man/root_man_3"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 108.0
+offset_bottom = 104.0
+pivot_offset = Vector2(54, 52)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/root_man_3/man_3_normal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_21")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="man_3_glow" type="Control" parent="group_man/root_man_3"]
+layout_mode = 0
+offset_left = -3.0
+offset_top = 0.0
+offset_right = 108.0
+offset_bottom = 105.0
+pivot_offset = Vector2(55.5, 52.5)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/root_man_3/man_3_glow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_22")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="root_man_2" type="Control" parent="group_man"]
+layout_mode = 0
+offset_left = 377.999963760376
+offset_top = 184.0000102519989
+offset_right = 489.999963760376
+offset_bottom = 260.0000102519989
+pivot_offset = Vector2(50.895224, 24.931661)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="man_2_normal" type="Control" parent="group_man/root_man_2"]
+layout_mode = 0
+offset_left = 1.52587890625e-05
+offset_top = 0.0
+offset_right = 112.00001525878906
+offset_bottom = 76.0
+pivot_offset = Vector2(56, 38)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/root_man_2/man_2_normal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_23")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="man_2_glow" type="Control" parent="group_man/root_man_2"]
+layout_mode = 0
+offset_left = -1.0000085830688477
+offset_top = 0.0
+offset_right = 112.99999141693115
+offset_bottom = 78.0
+pivot_offset = Vector2(57, 39)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/root_man_2/man_2_glow"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_24")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="man1_bg2" type="Control" parent="group_man"]
+layout_mode = 0
+offset_left = 266.9999761581421
+offset_top = 214.99994039535522
+offset_right = 562.9999761581421
+offset_bottom = 430.9999403953552
+pivot_offset = Vector2(39.955728, 99.779295)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/man1_bg2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_25")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="man1_bg1" type="Control" parent="group_man/man1_bg2"]
+layout_mode = 0
+offset_left = 135.00000762939453
+offset_top = 68.0
+offset_right = 227.00000762939453
+offset_bottom = 148.0
+pivot_offset = Vector2(46, 40)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/man1_bg2/man1_bg1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_26")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="man_1" type="Control" parent="group_man/man1_bg2"]
+layout_mode = 0
+offset_left = 153.00003814697266
+offset_top = 83.00006866455078
+offset_right = 209.00003814697266
+offset_bottom = 135.00006866455078
+pivot_offset = Vector2(28, 26)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_man/man1_bg2/man_1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_27")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="group_wolf" type="Control" parent="."]
+layout_mode = 0
+offset_left = 468.5
+offset_top = 414.0
+offset_right = 822.5
+offset_bottom = 503.0
+pivot_offset = Vector2(177, 44.5)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="root_mask4" type="Control" parent="group_wolf"]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 1.0
+offset_right = 354.0
+offset_bottom = 89.0
+pivot_offset = Vector2(52, 44)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="wolf_4" type="Control" parent="group_wolf/root_mask4"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 104.0
+offset_bottom = 88.0
+pivot_offset = Vector2(52, 44)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_wolf/root_mask4/wolf_4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_28")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="root_mask3" type="Control" parent="group_wolf"]
+layout_mode = 0
+offset_left = 174.0
+offset_top = 0.0
+offset_right = 270.0
+offset_bottom = 88.0
+pivot_offset = Vector2(48, 44)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="wolf_3" type="Control" parent="group_wolf/root_mask3"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 96.0
+offset_bottom = 88.0
+pivot_offset = Vector2(48, 44)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_wolf/root_mask3/wolf_3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_29")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="wolf_3_red" type="Control" parent="group_wolf/root_mask3/wolf_3"]
+layout_mode = 0
+offset_left = -0.21347403526306152
+offset_top = 0.0
+offset_right = 95.78652596473694
+offset_bottom = 88.0
+pivot_offset = Vector2(48, 44)
+scale = Vector2(1, 1)
+mouse_filter = 2
+visible = false
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_wolf/root_mask3/wolf_3/wolf_3_red"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_30")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_31")
+
+[node name="root_mask2" type="Control" parent="group_wolf"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 1.0
+offset_right = 120.0
+offset_bottom = 89.0
+pivot_offset = Vector2(60, 44)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="wolf_2" type="Control" parent="group_wolf/root_mask2"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 120.0
+offset_bottom = 88.0
+pivot_offset = Vector2(60, 44)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_wolf/root_mask2/wolf_2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_32")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="door" type="Control" parent="group_wolf"]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 10.0
+offset_right = 159.0
+offset_bottom = 78.0
+pivot_offset = Vector2(6, 34)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_wolf/door"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_33")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="root_mask" type="Control" parent="group_wolf"]
+layout_mode = 0
+offset_left = 96.0054988861084
+offset_top = 6.999992370605469
+offset_right = 159.00049781799316
+offset_bottom = 82.99999237060547
+pivot_offset = Vector2(31.497499, 38)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="wolf_1" type="Control" parent="group_wolf/root_mask"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 100.0
+offset_bottom = 76.0
+pivot_offset = Vector2(50, 38)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_wolf/root_mask/wolf_1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_34")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="group_title" type="Control" parent="."]
+layout_mode = 0
+offset_left = 337.5
+offset_top = 449.0
+offset_right = 917.5
+offset_bottom = 625.0
+pivot_offset = Vector2(290, 88)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="bg_title" type="Control" parent="group_title"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 580.0
+offset_bottom = 176.0
+pivot_offset = Vector2(290, 88)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_title/bg_title"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_35")
+expand_mode = 1
+stretch_mode = 0
+material = ExtResource("mat_36")
+
+[node name="root_txt" type="Control" parent="group_title"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 580.0
+offset_bottom = 176.0
+pivot_offset = Vector2(290, 88)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="text_desc" type="Control" parent="group_title/root_txt"]
+layout_mode = 0
+offset_left = 65.02999877929688
+offset_top = 98.75
+offset_right = 538.9700012207031
+offset_bottom = 157.25
+pivot_offset = Vector2(236.97, 29.25)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Caption" type="Label" parent="group_title/root_txt/text_desc"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+text = "BLACK_FLOW_SPIRE.UI.HUNT.message"
+metadata/loc_key = "UI.HUNT.message"
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.94, 0.94, 0.94, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="text_title" type="Control" parent="group_title/root_txt"]
+layout_mode = 0
+offset_left = 147.5
+offset_top = 52.75
+offset_right = 456.5
+offset_bottom = 96.25
+pivot_offset = Vector2(154.5, 21.75)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Caption" type="Label" parent="group_title/root_txt/text_title"]
+theme_override_fonts/font = ExtResource("bf_font_Title")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+text = "BLACK_FLOW_SPIRE.UI.HUNT.title"
+metadata/loc_key = "UI.HUNT.title"
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(0.63, 0.17, 0.17, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="group_gold" type="Control" parent="."]
+layout_mode = 0
+offset_left = 362.5
+offset_top = 116.0
+offset_right = 923.5
+offset_bottom = 435.0
+pivot_offset = Vector2(280.5, 159.5)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="gold_9" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 307.9999896287918
+offset_top = 1.33514404296875e-05
+offset_right = 391.9999896287918
+offset_bottom = 160.00001335144043
+pivot_offset = Vector2(-37.491258, 236.47893)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_9"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_37")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_8" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 357.0
+offset_top = 235.0
+offset_right = 561.0
+offset_bottom = 239.0
+pivot_offset = Vector2(102, 2)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_8"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_38")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_7" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 264.0
+offset_top = 239.0
+offset_right = 368.0
+offset_bottom = 283.0
+pivot_offset = Vector2(52, 22)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_7"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_39")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_6" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 190.0
+offset_top = 230.0
+offset_right = 222.0
+offset_bottom = 258.0
+pivot_offset = Vector2(16, 14)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_6"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_40")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_5" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 196.0
+offset_top = 247.0
+offset_right = 256.0
+offset_bottom = 291.0
+pivot_offset = Vector2(30, 22)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_41")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_4" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 489.0
+offset_top = 251.0
+offset_right = 553.0
+offset_bottom = 319.0
+pivot_offset = Vector2(32, 34)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_42")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_3" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 470.0
+offset_top = 63.0
+offset_right = 510.0
+offset_bottom = 103.0
+pivot_offset = Vector2(20, 20)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_43")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_2" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 400.0
+offset_top = 29.0
+offset_right = 480.0
+offset_bottom = 89.0
+pivot_offset = Vector2(40, 30)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_44")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="gold_1" type="Control" parent="group_gold"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 196.0
+offset_right = 160.0
+offset_bottom = 260.0
+pivot_offset = Vector2(80, 32)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="group_gold/gold_1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_45")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="btn_certain" type="Control" parent="."]
+layout_mode = 0
+offset_left = 519.5
+offset_top = 592.0
+offset_right = 759.5
+offset_bottom = 688.0
+pivot_offset = Vector2(120, 48)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="bg_btn" type="Control" parent="btn_certain"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 240.0
+offset_bottom = 96.0
+pivot_offset = Vector2(120, 48)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="btn_certain/bg_btn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_46")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="icon_certain" type="Control" parent="btn_certain"]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 18.0
+offset_right = 101.0
+offset_bottom = 82.0
+pivot_offset = Vector2(34, 32)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Image" type="TextureRect" parent="btn_certain/icon_certain"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("image_47")
+expand_mode = 1
+stretch_mode = 0
+self_modulate = Color(1, 1, 1, 1)
+
+[node name="text_btn" type="Control" parent="btn_certain"]
+layout_mode = 0
+offset_left = 95.0
+offset_top = 33.0
+offset_right = 197.01000213623047
+offset_bottom = 63.0
+pivot_offset = Vector2(0, 15)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="Caption" type="Label" parent="btn_certain/text_btn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+text = "BLACK_FLOW_SPIRE.UI.HUNT.confirm"
+metadata/loc_key = "UI.HUNT.confirm"
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.94, 0.94, 0.94, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="hotspot" type="Control" parent="btn_certain"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 240.0
+offset_bottom = 96.0
+pivot_offset = Vector2(120, 48)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="ConfirmHunt" type="Button" parent="btn_certain/hotspot"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_default_cursor_shape = 2
+disabled = true
+theme_override_styles/normal = SubResource("empty")
+theme_override_styles/hover = SubResource("empty")
+theme_override_styles/pressed = SubResource("empty")
+theme_override_styles/disabled = SubResource("empty")
+theme_override_styles/focus = SubResource("empty")
+
+[node name="partcle_front_loop_ctrl" type="Control" parent="."]
+layout_mode = 0
+offset_left = -0.5
+offset_top = 0.0
+offset_right = 1279.5
+offset_bottom = 720.0
+pivot_offset = Vector2(640, 360)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="big1" type="Control" parent="partcle_front_loop_ctrl"]
+layout_mode = 0
+offset_left = 1003.00048828125
+offset_top = 390.99992179870605
+offset_right = 1003.00048828125
+offset_bottom = 390.99992179870605
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="small1" type="Control" parent="partcle_front_loop_ctrl"]
+layout_mode = 0
+offset_left = 1003.00048828125
+offset_top = 390.99992179870605
+offset_right = 1003.00048828125
+offset_bottom = 390.99992179870605
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="up1" type="Control" parent="partcle_front_loop_ctrl"]
+layout_mode = 0
+offset_left = 640.0
+offset_top = 453.7001953125
+offset_right = 640.0
+offset_bottom = 453.7001953125
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="up2" type="Control" parent="partcle_front_loop_ctrl"]
+layout_mode = 0
+offset_left = 640.0
+offset_top = 453.7001953125
+offset_right = 640.0
+offset_bottom = 453.7001953125
+pivot_offset = Vector2(0, 0)
+scale = Vector2(100, 100)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="trans_red" type="Control" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1280.0
+offset_bottom = 720.0
+pivot_offset = Vector2(640, 360)
+scale = Vector2(1, 1)
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="fx_circle2" type="Control" parent="."]
+layout_mode = 0
+offset_left = 588.0
+offset_top = 252.0
+offset_right = 688.0
+offset_bottom = 352.0
+pivot_offset = Vector2(50, 50)
+scale = Vector2(80.270561, 80.270561)
+mouse_filter = 2
+visible = false
+modulate = Color(1, 1, 1, 1.0)

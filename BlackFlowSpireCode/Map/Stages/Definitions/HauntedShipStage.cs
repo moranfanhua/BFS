@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class HauntedShipStage : ForestPairedStageDefinition
+public sealed class HauntedShipStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "HAUNTED_SHIP";
     public override string Region => "UNDERDOCKS";
-    public override ForestStageVersionDefinition Normal { get; } = new HauntedShipNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new HauntedShipEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new HauntedShipNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new HauntedShipEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class HauntedShipStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 无岸航线 / Normal. Edit this version independently of the other version.
-public sealed class HauntedShipNormal : ForestStageVersionDefinition
+public sealed class HauntedShipNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "HAUNTED_SHIP.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.HAUNTED_SHIP_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.HAUNTED_SHIP.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.HAUNTED_SHIP.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -33,8 +33,8 @@ public sealed class HauntedShipNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.HAUNTED_SHIP", native[0].Slot)
     ];
@@ -46,14 +46,14 @@ public sealed class HauntedShipNormal : ForestStageVersionDefinition
 
 // 无岸航线 / Emergency. Edit this version independently of the other version.
 //数值*1.2
-public sealed class HauntedShipEmergency : ForestStageVersionDefinition
+public sealed class HauntedShipEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "HAUNTED_SHIP.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.HAUNTED_SHIP_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.HAUNTED_SHIP.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.HAUNTED_SHIP.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
@@ -61,8 +61,8 @@ public sealed class HauntedShipEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.HAUNTED_SHIP", native[0].Slot)
     ];

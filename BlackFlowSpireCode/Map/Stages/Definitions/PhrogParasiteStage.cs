@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class PhrogParasiteStage : ForestPairedStageDefinition
+public sealed class PhrogParasiteStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "PHROG_PARASITE";
     public override string Region => "OVERGROWTH";
-    public override ForestStageVersionDefinition Normal { get; } = new PhrogParasiteNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new PhrogParasiteEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new PhrogParasiteNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new PhrogParasiteEmergency();
 }
 
 #endregion
@@ -19,14 +19,14 @@ public sealed class PhrogParasiteStage : ForestPairedStageDefinition
 
 // 腹中来客 / Normal. Edit this version independently of the other version.
 // 生成的扭动虫减少一个，异蛙寄生虫初始血量降低
-public sealed class PhrogParasiteNormal : ForestStageVersionDefinition
+public sealed class PhrogParasiteNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "PHROG_PARASITE.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.PHROG_PARASITE_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.PHROG_PARASITE.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.PHROG_PARASITE.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         Monsters = new()
         {
@@ -34,7 +34,7 @@ public sealed class PhrogParasiteNormal : ForestStageVersionDefinition
         }
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -46,8 +46,8 @@ public sealed class PhrogParasiteNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.PHROG_PARASITE", native[0].Slot)
     ];
@@ -58,14 +58,14 @@ public sealed class PhrogParasiteNormal : ForestStageVersionDefinition
 #region 紧急作战
 
 // 腹中来客 / Emergency. Edit this version independently of the other version.
-public sealed class PhrogParasiteEmergency : ForestStageVersionDefinition
+public sealed class PhrogParasiteEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "PHROG_PARASITE.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.PHROG_PARASITE_ELITE";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.PHROG_PARASITE.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.PHROG_PARASITE.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -73,8 +73,8 @@ public sealed class PhrogParasiteEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.PHROG_PARASITE", native[0].Slot)
     ];

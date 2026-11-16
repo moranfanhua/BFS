@@ -22,13 +22,13 @@ public static class Entry
     {
         if (_initialized) return;
         Logger = RitsuLibFramework.CreateLogger(ModId);
-        ForestLocalization.AttachLocaleManager();
+        BlackFlowSpireLocalization.AttachLocaleManager();
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, Assembly.GetExecutingAssembly());
-        ForestGenerationService.Register();
-        ForestTeam.Register();
-        ForestNaturalCardGain.Register();
-        RitsuLibFramework.RegisterHealHookListener(new ForestCollectibleHealing());
-        ForestMusicDirector.RegisterAssets();
+        BlackFlowSpireGenerationService.Register();
+        BlackFlowSpireTeam.Register();
+        BlackFlowSpireNaturalCardGain.Register();
+        RitsuLibFramework.RegisterHealHookListener(new BlackFlowSpireCollectibleHealing());
+        BlackFlowSpireMusicDirector.RegisterAssets();
         new Harmony(ModId).PatchAll(Assembly.GetExecutingAssembly());
         Logger.Info("BlackFlowSpire ready: select the mode from the Play screen.");
         _initialized = true;

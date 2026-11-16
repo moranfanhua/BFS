@@ -1,0 +1,42 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://BlackFlowSpire/Scripts/Map/BlackFlowSpireMapRoad.gd" id="layout"]
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/BlackFlowSpire_map_road.gdshader" id="shader"]
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/BlackFlowSpire_map_route.gdshader" id="route_shader"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Roads/img_uifx_basicmask_09.png" id="mask_a"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Roads/lava_line_grow_dissolve.png" id="mask_b"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Roads/path_find_full.png" id="route"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Roads/img_uifx_basicmask_01.png" id="route_mask"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Roads/lava_line_1.png" id="shape"]
+
+[sub_resource type="ShaderMaterial" id="road_material"]
+shader = ExtResource("shader")
+shader_parameter/dissolve_a = ExtResource("mask_a")
+shader_parameter/dissolve_b = ExtResource("mask_b")
+shader_parameter/shape_texture = ExtResource("shape")
+shader_parameter/passable = true
+
+[sub_resource type="ShaderMaterial" id="route_material"]
+shader = ExtResource("route_shader")
+shader_parameter/dissolve_texture = ExtResource("route_mask")
+
+[node name="BlackFlowSpireMapRoad" type="ColorRect"]
+mouse_filter = 2
+offset_right = 46.0
+offset_bottom = 144.0
+material = SubResource("road_material")
+script = ExtResource("layout")
+
+[node name="Route" type="TextureRect" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_right = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("route")
+expand_mode = 1
+material = SubResource("route_material")

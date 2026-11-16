@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class SlimesStage : ForestPairedStageDefinition
+public sealed class SlimesStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "SLIMES";
     public override string Region => "OVERGROWTH";
-    public override ForestStageVersionDefinition Normal { get; } = new SlimesNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new SlimesEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new SlimesNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new SlimesEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class SlimesStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 清扫未遂 / Normal. Edit this version independently of the other version.
-public sealed class SlimesNormal : ForestStageVersionDefinition
+public sealed class SlimesNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "SLIMES.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.SLIMES_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SLIMES.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SLIMES.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
@@ -34,8 +34,8 @@ public sealed class SlimesNormal : ForestStageVersionDefinition
     // 两只小史莱姆必须一叶一枝；中型史莱姆在树叶／树枝中二选一。
     // Keep the native seeded random result by default. Replace this return
     // with your own list/seeded selection to customize this version.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) => native;
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) => native;
 }
 
 #endregion
@@ -44,22 +44,22 @@ public sealed class SlimesNormal : ForestStageVersionDefinition
 
 // 清扫未遂 / Emergency. Edit this version independently of the other version.
 //暂定中型也一叶一枝
-public sealed class SlimesEmergency : ForestStageVersionDefinition
+public sealed class SlimesEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "SLIMES.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.SLIMES_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SLIMES.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.SLIMES.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
     };
 
     // 紧急编成：小型和中型均各一叶一枝。
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.LEAF_SLIME_S", null),
         new("MONSTER.LEAF_SLIME_M", null),

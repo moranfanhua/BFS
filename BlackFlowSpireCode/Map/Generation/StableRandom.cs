@@ -12,7 +12,7 @@ internal sealed class StableRandom
 
     public StableRandom(string seed, int actIndex, string stream)
     {
-        var material = FormattableString.Invariant($"BFS/map/v1\0{seed}\0{actIndex}\0{stream}");
+        var material = FormattableString.Invariant($"BlackFlowSpire/map/v1\0{seed}\0{actIndex}\0{stream}");
         _state = BinaryPrimitives.ReadUInt64LittleEndian(SHA256.HashData(Encoding.UTF8.GetBytes(material)));
     }
 

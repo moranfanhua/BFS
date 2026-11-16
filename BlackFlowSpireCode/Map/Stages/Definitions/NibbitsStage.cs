@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class NibbitsStage : ForestPairedStageDefinition
+public sealed class NibbitsStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "NIBBITS";
     public override string Region => "OVERGROWTH";
-    public override ForestStageVersionDefinition Normal { get; } = new NibbitsNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new NibbitsEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new NibbitsNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new NibbitsEmergency();
 }
 
 #endregion
@@ -19,14 +19,14 @@ public sealed class NibbitsStage : ForestPairedStageDefinition
 
 // 独享午餐 / Normal. Edit this version independently of the other version.
 //暂定1层
-public sealed class NibbitsNormal : ForestStageVersionDefinition
+public sealed class NibbitsNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "NIBBITS.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.NIBBITS_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.NIBBITS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.NIBBITS.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
@@ -34,8 +34,8 @@ public sealed class NibbitsNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.NIBBIT", native[0].Slot)
     ];
@@ -47,20 +47,20 @@ public sealed class NibbitsNormal : ForestStageVersionDefinition
 
 // 独享午餐 / Emergency. Edit this version independently of the other version.
 // 暂定2再生
-public sealed class NibbitsEmergency : ForestStageVersionDefinition
+public sealed class NibbitsEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "NIBBITS.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.NIBBITS_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.NIBBITS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.NIBBITS.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -71,8 +71,8 @@ public sealed class NibbitsEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.NIBBIT", native[0].Slot)
     ];

@@ -1,0 +1,140 @@
+[gd_scene format=3 uid="uid://cs4v6h4myl7s4"]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="bf_font_Body"]
+
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMovementVfx.tscn" id="1_fx"]
+[ext_resource type="Texture2D" uid="uid://5ps7ptf6bvsc" path="res://BlackFlowSpire/Images/Map/Movement/text_walk_valid.png" id="2_walk"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/text_drive_valid.png" id="2_drive"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Movement/text_drive_invalid.png" id="2_drive_invalid"]
+[ext_resource type="Texture2D" uid="uid://cf3cf0ovrakib" path="res://BlackFlowSpire/Images/Map/Movement/text_can_not_reach.png" id="3_invalid"]
+[ext_resource type="Texture2D" uid="uid://b72dxagiiu5xe" path="res://BlackFlowSpire/Images/Map/Movement/action_point_reachable.png" id="4_cost"]
+[ext_resource type="Texture2D" uid="uid://bhmfhf55r5rld" path="res://BlackFlowSpire/Images/Map/Movement/action_point_icon.png" id="5_icon"]
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Map/Hunt/BlackFlowSpireHuntVfx.tscn" id="6_hunt"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/img_wolf01.png" id="7_wolf1"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/Hunt/img_wolf02.png" id="8_wolf2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_Button"]
+
+[sub_resource type="Theme" id="Theme_Move"]
+default_font = ExtResource("bf_font_Body")
+Button/styles/disabled = SubResource("StyleBoxEmpty_Button")
+Button/styles/focus = SubResource("StyleBoxEmpty_Button")
+Button/styles/hover = SubResource("StyleBoxEmpty_Button")
+Button/styles/normal = SubResource("StyleBoxEmpty_Button")
+Button/styles/pressed = SubResource("StyleBoxEmpty_Button")
+
+[node name="BlackFlowSpireMoveButton" type="Button"]
+offset_right = 312.0
+offset_bottom = 210.0
+mouse_default_cursor_shape = 2
+theme = SubResource("Theme_Move")
+
+[node name="Effects" parent="." instance=ExtResource("1_fx")]
+position = Vector2(212, 99)
+scale = Vector2(0.8, 0.8)
+
+[node name="HuntEffects" parent="." instance=ExtResource("6_hunt")]
+visible = false
+position = Vector2(212, 99)
+scale = Vector2(0.8, 0.8)
+
+[node name="WarningWolf1" type="Sprite2D" parent="HuntEffects"]
+position = Vector2(-42, 65)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("7_wolf1")
+
+[node name="WarningWolf2" type="Sprite2D" parent="HuntEffects"]
+position = Vector2(4, 88)
+scale = Vector2(0.95, 0.95)
+texture = ExtResource("8_wolf2")
+
+[node name="WalkText" type="TextureRect" parent="."]
+layout_mode = 0
+offset_left = 190.0
+offset_top = 72.0
+offset_right = 345.2
+offset_bottom = 189.6
+mouse_filter = 2
+texture = ExtResource("2_walk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="UnreachableText" type="TextureRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 182.0
+offset_top = 69.0
+offset_right = 349.2
+offset_bottom = 196.6
+mouse_filter = 2
+texture = ExtResource("3_invalid")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DriveText" type="TextureRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 190.0
+offset_top = 72.0
+offset_right = 344.1
+offset_bottom = 189.6
+mouse_filter = 2
+texture = ExtResource("2_drive")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DriveUnreachableText" type="TextureRect" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 190.0
+offset_top = 72.0
+offset_right = 344.1
+offset_bottom = 189.6
+mouse_filter = 2
+texture = ExtResource("2_drive_invalid")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cost" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 6.0
+offset_top = 81.0
+offset_right = 144.0
+offset_bottom = 129.0
+mouse_filter = 2
+
+[node name="Background" type="TextureRect" parent="Cost"]
+layout_mode = 0
+offset_left = 100.0
+offset_top = -6.0
+offset_right = 211.0
+offset_bottom = 58.0
+mouse_filter = 2
+texture = ExtResource("4_cost")
+expand_mode = 1
+
+[node name="Icon" type="TextureRect" parent="Cost"]
+layout_mode = 0
+offset_left = 129.0
+offset_top = 9.0
+offset_right = 159.6
+offset_bottom = 45.0
+mouse_filter = 2
+texture = ExtResource("5_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MoveCost" type="Label" parent="Cost"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 138.0
+offset_top = 5.0
+offset_right = 204.0
+offset_bottom = 44.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "−1"
+horizontal_alignment = 1
+vertical_alignment = 1

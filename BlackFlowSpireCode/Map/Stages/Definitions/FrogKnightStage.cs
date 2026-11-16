@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class FrogKnightStage : ForestPairedStageDefinition
+public sealed class FrogKnightStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "FROG_KNIGHT";
     public override string Region => "GLORY";
-    public override ForestStageVersionDefinition Normal { get; } = new FrogKnightNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new FrogKnightEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new FrogKnightNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new FrogKnightEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class FrogKnightStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 湿地封爵 / Normal. Edit this version independently of the other version.
-public sealed class FrogKnightNormal : ForestStageVersionDefinition
+public sealed class FrogKnightNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "FROG_KNIGHT.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.FROG_KNIGHT_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FROG_KNIGHT.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FROG_KNIGHT.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -33,8 +33,8 @@ public sealed class FrogKnightNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.FROG_KNIGHT", native[0].Slot)
     ];
@@ -46,20 +46,20 @@ public sealed class FrogKnightNormal : ForestStageVersionDefinition
 
 // 湿地封爵 / Emergency. Edit this version independently of the other version.
 //初始额外获得五点覆甲
-public sealed class FrogKnightEmergency : ForestStageVersionDefinition
+public sealed class FrogKnightEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "FROG_KNIGHT.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.FROG_KNIGHT_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FROG_KNIGHT.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.FROG_KNIGHT.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -70,8 +70,8 @@ public sealed class FrogKnightEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.FROG_KNIGHT", native[0].Slot)
     ];

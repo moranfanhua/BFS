@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class TwoTailedRatsStage : ForestPairedStageDefinition
+public sealed class TwoTailedRatsStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "TWO_TAILED_RATS";
     public override string Region => "UNDERDOCKS";
-    public override ForestStageVersionDefinition Normal { get; } = new TwoTailedRatsNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new TwoTailedRatsEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new TwoTailedRatsNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new TwoTailedRatsEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class TwoTailedRatsStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 鼠口相传 / Normal. Edit this version independently of the other version.
-public sealed class TwoTailedRatsNormal : ForestStageVersionDefinition
+public sealed class TwoTailedRatsNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TWO_TAILED_RATS.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.TWO_TAILED_RATS_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TWO_TAILED_RATS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TWO_TAILED_RATS.description";
     public override int Revision => 1;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
@@ -33,8 +33,8 @@ public sealed class TwoTailedRatsNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TWO_TAILED_RAT", native[0].Slot),
         new("MONSTER.TWO_TAILED_RAT", native[1].Slot),
@@ -48,20 +48,20 @@ public sealed class TwoTailedRatsNormal : ForestStageVersionDefinition
 
 // 鼠口相传 / Emergency. Edit this version independently of the other version.
 // 所有初始老鼠获得2点力量
-public sealed class TwoTailedRatsEmergency : ForestStageVersionDefinition
+public sealed class TwoTailedRatsEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "TWO_TAILED_RATS.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.TWO_TAILED_RATS_NORMAL";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TWO_TAILED_RATS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.TWO_TAILED_RATS.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1m,
         AttackDamageMultiplier = 1m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -73,8 +73,8 @@ public sealed class TwoTailedRatsEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.TWO_TAILED_RAT", native[0].Slot),
         new("MONSTER.TWO_TAILED_RAT", native[1].Slot),

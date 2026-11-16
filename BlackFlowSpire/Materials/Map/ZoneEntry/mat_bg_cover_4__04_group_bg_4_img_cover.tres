@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" load_steps=6 format=3]
 
-[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/forest_hunt_sprite_mix.gdshader" id="1"]
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Map/BlackFlowSpire_hunt_sprite_mix.gdshader" id="1"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/ZoneEntry/img_uifx_common_flow_02__-6975987085250794212.png" id="2"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/ZoneEntry/img_fx_flow_03__-5569691066752957158.png" id="3"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Map/ZoneEntry/img_uifx_common_flow_01__2381744433976766452.png" id="4"]

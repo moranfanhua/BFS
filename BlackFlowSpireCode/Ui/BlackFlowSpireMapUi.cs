@@ -1,0 +1,340 @@
+using BlackFlowSpire.Integration;
+using BlackFlowSpire.Map.Exploration;
+using BlackFlowSpire.Map.Models;
+using BlackFlowSpire.Map.Parts;
+using BlackFlowSpire.Map.Presentation;
+using BlackFlowSpire.Persistence;
+using Godot;
+using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Map;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
+using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
+using MegaCrit.Sts2.Core.Runs;
+
+namespace BlackFlowSpire.Ui;
+
+public static class BlackFlowSpireMapUi
+{
+    private static readonly Color Ink = new("dce5e2");
+    private const string InspectionMeta = "BlackFlowSpire_inspection";
+
+    public static Control? DefaultFocus { get; private set; }
+
+    // A completed room can remain the native CurrentRoom while exploration is
+    // already open. Refreshes must preserve the mode chosen by OpenMap.
+    public static bool IsInspection(NMapScreen screen) =>
+        screen.GetNodeOrNull<Control>("BlackFlowSpireMap") is not { } root
+        || !root.HasMeta(InspectionMeta) || root.GetMeta(InspectionMeta).AsBool();
+
+    public static void Show(NMapScreen screen, RunState state, bool inspection, int? restoreSelection = null,
+        bool focusCurrent = false)
+    {
+        DefaultFocus = null;
+        var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
+        var progress = BlackFlowSpireGenerationService.GetProgress(state);
+        var engine = BlackFlowSpireGenerationService.GetEngine(state);
+        var canLead = !inspection && !BlackFlowSpireTeam.IsGuest;
+        var cameraKey = map.Seed + "|" + map.ActIndex;
+        var cameraState = new Godot.Collections.Dictionary();
+        if (screen.GetNodeOrNull<Control>("BlackFlowSpireMap") is { } old)
+        {
+            if (old.HasMeta("BlackFlowSpire_camera_map") && old.GetMeta("BlackFlowSpire_camera_map").AsString() == cameraKey)
+                cameraState = old.GetNode<Control>("ExplorationField").Call("capture_camera").AsGodotDictionary();
+            screen.RemoveChild(old);
+            old.QueueFree();
+        }
+        var root = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMapScreen.tscn").Instantiate<Control>();
+        screen.AddChild(root);
+        root.SetMeta("BlackFlowSpire_camera_map", cameraKey);
+        root.SetMeta(InspectionMeta, inspection);
+        root.GetNode<TextureRect>("Background").Texture = BlackFlowSpireMapAssets.Background(map.ActIndex);
+
+        var field = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMapViewport.tscn").Instantiate<Control>();
+        root.AddChild(field);
+        var spacing = root.Get("grid_spacing").AsVector2();
+        var worldSize = new Vector2((map.Options.Width - 1) * spacing.X + 160, (map.Options.Height - 1) * spacing.Y + 160);
+        var world = field.GetNode<Control>("RoadsAndRooms");
+        world.Size = worldSize;
+
+        Vector2 Position(BlackFlowSpireNode node) => new(80 + node.X * spacing.X,
+            80 + (map.Options.Height - 1 - node.Y) * spacing.Y);
+        var routes = BlackFlowSpireTravelRules.FindRoutes(map, engine);
+        var roadScene = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMapRoad.tscn");
+        var roads = new List<(Control Visual, int From, int To)>();
+        foreach (var node in map.Nodes)
+        foreach (var id in node.Neighbors.Where(id => id > node.Id))
+        {
+            var other = map.GetNode(id);
+            var start = Position(node);
+            var distance = start.DistanceTo(Position(other));
+            var road = roadScene.Instantiate<Control>();
+            road.Size = new Vector2(46, Math.Max(1, distance - 56));
+            road.Position = (start + Position(other)) / 2 - road.Size / 2;
+            road.PivotOffset = road.Size / 2;
+            road.Rotation = (Position(other) - start).Angle() - Mathf.Pi / 2;
+            world.AddChild(road);
+            var passable = engine.LoadedPart == null && !engine.IsOverloaded
+                && BlackFlowSpireRoadPresentation.IsPassable(map, progress, node, other, routes, BlackFlowSpireRuntime.IsTraveling);
+            road.Call("configure", passable, 1 + (node.Id * 17 + id * 31) % 7, (node.Id * 43 + id * 17) % 97 / 29f);
+            roads.Add((road, node.Id, id));
+        }
+
+        var buttons = new Dictionary<int, Button>();
+        var reachability = new Dictionary<int, (Control Ring, Control? Caption)>();
+        var captionScene = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMapNodeCaption.tscn");
+        var selectionMarker = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMapSelection.tscn").Instantiate<Control>();
+        world.AddChild(selectionMarker);
+        var bossTitle = state.Act.BossEncounter.Title.GetFormattedText();
+        BlackFlowSpireNodeDetailsPanel? details = null;
+        int? selectedNodeId = null;
+
+        void PreviewRoute(BlackFlowSpireTravelRoute? route)
+        {
+            var edges = new HashSet<(int, int)>();
+            if (route != null)
+                for (var index = 1; index < route.NodeIds.Count; index++)
+                {
+                    var from = route.NodeIds[index - 1];
+                    var to = route.NodeIds[index];
+                    edges.Add((Math.Min(from, to), Math.Max(from, to)));
+                }
+            foreach (var road in roads)
+            {
+                var selected = edges.Contains((road.From, road.To));
+                road.Visual.Call("set_selected", selected);
+            }
+        }
+
+        void SelectNode(int id)
+        {
+            if (BlackFlowSpireRuntime.IsTraveling || !inspection && progress.HuntPhase != BlackFlowSpireHuntPhase.None) return;
+            selectedNodeId = id;
+            var info = BlackFlowSpireNodeInfoPresentation.Get(map, progress, id, !canLead, BlackFlowSpireRuntime.IsTraveling, bossTitle, engine);
+            selectionMarker.Call("select_node", Position(map.GetNode(id)), info.View.IconKey == BlackFlowSpireNodeVisuals.EMPTY);
+            PreviewRoute(info.CanMove ? info.Route : null);
+            details!.Show(info);
+            field.Call("ensure_node_visible", Position(map.GetNode(id)));
+            buttons[id].FocusNext = (info.CanMove ? details.MoveButton : info.CanViewEnemyIntel ? details.EnemyIntelButton : buttons[id]).GetPath();
+            details.MoveButton.FocusPrevious = buttons[id].GetPath();
+            details.MoveButton.FocusNeighborLeft = buttons[id].GetPath();
+            details.EnemyIntelButton.FocusNext = (info.CanMove ? details.MoveButton : buttons[id]).GetPath();
+        }
+
+        void ClearSelection()
+        {
+            selectedNodeId = null;
+            selectionMarker.Call("clear_selection");
+            PreviewRoute(null);
+            details!.Root.Hide();
+        }
+
+        bool IsReachable(BlackFlowSpireNode node, IReadOnlyDictionary<int, BlackFlowSpireTravelRoute> availableRoutes) =>
+            canLead && !BlackFlowSpireRuntime.IsTraveling && !progress.PendingNodeId.HasValue
+            && progress.HuntPhase == BlackFlowSpireHuntPhase.None
+            && availableRoutes.TryGetValue(node.Id, out var route)
+            && progress.ActionPointsRemaining >= route.ActionPointCost && BlackFlowSpireResidentRules.CanEnter(map, node);
+
+        void PreviewMovement(BlackFlowSpireProcessedPart? part)
+        {
+            var previewRoutes = BlackFlowSpireTravelRules.FindRoutes(map, part, engine.IsOverloaded, engine.Collectibles.Has(203));
+            foreach (var (id, (ring, caption)) in reachability)
+            {
+                ring.Visible = IsReachable(map.GetNode(id), previewRoutes);
+                caption?.Call("set_reachable", ring.Visible || id == map.PositionNodeId);
+            }
+            foreach (var (visual, from, to) in roads)
+                visual.Call("set_passable", part == null && !engine.IsOverloaded && BlackFlowSpireRoadPresentation.IsPassable(
+                    map, progress, map.GetNode(from), map.GetNode(to), previewRoutes, BlackFlowSpireRuntime.IsTraveling));
+        }
+
+        void MoveToSelection()
+        {
+            if (!selectedNodeId.HasValue || !BlackFlowSpireTeam.CanTravel(state)) return;
+            // Recheck the current rules at confirmation; selection itself never travels.
+            var info = BlackFlowSpireNodeInfoPresentation.Get(map, progress, selectedNodeId.Value, !canLead, BlackFlowSpireRuntime.IsTraveling, bossTitle, engine);
+            details!.Show(info);
+            if (!info.CanMove) return;
+            details.MoveButton.Disabled = true;
+            field.Call("set_interaction_enabled", false);
+            foreach (var button in buttons.Values) button.Disabled = true;
+            TaskHelper.RunSafely(BlackFlowSpireRuntime.Move(selectedNodeId.Value));
+        }
+
+        foreach (var node in map.Nodes)
+        {
+            var view = BlackFlowSpireNodePresentation.Get(node, bossTitle: bossTitle);
+            var occupied = BlackFlowSpireResidentRules.Occupant(map, node.Id) != null;
+            var isCurrent = node.Id == map.PositionNodeId;
+            var enabled = IsReachable(node, routes);
+            var button = new Button
+            {
+                Name = "Node" + node.Id, Position = Position(node) - new Vector2(80, 40), Size = new Vector2(160, 124),
+                Disabled = BlackFlowSpireRuntime.IsTraveling
+            };
+            BlackFlowSpireMapAssets.ClearButtonStyle(button);
+            world.AddChild(button);
+            buttons[node.Id] = button;
+            var visual = new Control
+            {
+                Position = new Vector2(40, 0), Size = new Vector2(80, 80), PivotOffset = new Vector2(40, 40),
+                MouseFilter = Control.MouseFilterEnum.Ignore
+            };
+            button.AddChild(visual);
+            var ring = BlackFlowSpireMapAssets.Focus(view.IconKey == BlackFlowSpireNodeVisuals.EMPTY ? 58 : 104,
+                new Color(0.83f, 0.92f, 0.9f, 0.26f));
+            ring.Visible = enabled && !isCurrent;
+            visual.AddChild(ring);
+            visual.AddChild(Glyph(view.IconKey, 80, screen, state));
+            if (occupied)
+            {
+                var marker = BlackFlowSpireMapAssets.NodeImage(BlackFlowSpireNodeVisuals.BATTLE_SAVAGE_BUOY, 54, details: true);
+                marker.Position = new Vector2(43, -15);
+                visual.AddChild(marker);
+            }
+            var captionText = BlackFlowSpireNodePresentation.CaptionForIcon(view.IconKey);
+            Control? caption = null;
+            if (!string.IsNullOrWhiteSpace(captionText))
+            {
+                caption = captionScene.Instantiate<Control>();
+                visual.AddChild(caption);
+                caption.GetNode<Label>("Row/Name").AddThemeFontOverride("font", BlackFlowSpireMapAssets.Font);
+                caption.Call("bind_caption", captionText, node.Completed && !occupied, enabled || isCurrent);
+            }
+            reachability.Add(node.Id, (ring, caption));
+            void Focus(bool focused)
+            {
+                visual.Scale = Vector2.One * (focused ? 1.05f : 1);
+            }
+            button.MouseEntered += () => Focus(true);
+            button.MouseExited += () => Focus(false);
+            button.FocusEntered += () =>
+            {
+                Focus(true);
+                field.Call("ensure_keyboard_focus", Position(node));
+            };
+            button.FocusExited += () => Focus(false);
+            button.GuiInput += input => field.Call("map_gui_input", input, button);
+            var target = node.Id;
+            button.Pressed += () => SelectNode(target);
+            if (enabled && DefaultFocus == null) DefaultFocus = button;
+        }
+        // The location marker is independent of selection and is rebuilt only
+        // from the saved current position, never from the node being inspected.
+        // Use sibling order so both markers stay below detail/modal UI layers.
+        world.MoveChild(selectionMarker, world.GetChildCount() - 1);
+        var currentMarker = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMapCurrentMarker.tscn").Instantiate<Control>();
+        currentMarker.Position = Position(map.GetNode(map.PositionNodeId));
+        world.AddChild(currentMarker);
+        foreach (var node in map.Nodes)
+        {
+            var button = buttons[node.Id];
+            foreach (var (dx, dy, direction) in new[] { (-1, 0, Side.Left), (1, 0, Side.Right), (0, 1, Side.Top), (0, -1, Side.Bottom) })
+            {
+                var neighbor = map.Nodes.FirstOrDefault(candidate => candidate.X == node.X + dx && candidate.Y == node.Y + dy && !buttons[candidate.Id].Disabled);
+                var path = (neighbor == null ? button : buttons[neighbor.Id]).GetPath();
+                switch (direction)
+                {
+                    case Side.Left: button.FocusNeighborLeft = path; break;
+                    case Side.Right: button.FocusNeighborRight = path; break;
+                    case Side.Top: button.FocusNeighborTop = path; break;
+                    case Side.Bottom: button.FocusNeighborBottom = path; break;
+                }
+            }
+        }
+
+        details = new BlackFlowSpireNodeDetailsPanel(root, (key, size) => Glyph(key, size, screen, state, details: true), MoveToSelection, () =>
+        {
+            if (!selectedNodeId.HasValue) return;
+            var node = map.GetNode(selectedNodeId.Value);
+            var setup = BlackFlowSpireResidentRules.CombatSetupFor(map, node);
+            if (BlackFlowSpireNodePresentation.Get(node, map: map).IsMasked || setup == null) return;
+            BlackFlowSpireEnemyIntelModal.Open(setup);
+        });
+        field.Connect("background_clicked", Callable.From(ClearSelection));
+        if (inspection || canLead && progress.ActionPointsRemaining < map.Options.MoveCost && progress.HuntPhase == BlackFlowSpireHuntPhase.None)
+        {
+            var action = new Button { Text = BlackFlowSpireText.Get(inspection ? "UI.ACTION.return" : "UI.ACTION.end") };
+            BlackFlowSpireMapAssets.ClearButtonStyle(action);
+            action.AddThemeFontOverride("font", BlackFlowSpireMapAssets.Font);
+            action.AddThemeFontSizeOverride("font_size", 22);
+            action.AddThemeColorOverride("font_color", Ink);
+            action.AddThemeColorOverride("font_hover_color", new Color("b9f4ec"));
+            root.AddChild(action);
+            action.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomRight);
+            action.OffsetLeft = -295;
+            action.OffsetRight = -45;
+            action.OffsetTop = -64;
+            action.OffsetBottom = -16;
+            action.Pressed += () =>
+            {
+                if (inspection) BlackFlowSpireRuntime.CloseMap(screen);
+                else RunManager.Instance.Abandon();
+            };
+            DefaultFocus ??= action;
+        }
+        DefaultFocus ??= buttons[map.PositionNodeId];
+        field.Call("configure_camera", worldSize, cameraState);
+        if (focusCurrent) field.CallDeferred("ensure_node_visible", Position(map.GetNode(map.PositionNodeId)));
+        field.Call("set_interaction_enabled", !BlackFlowSpireRuntime.IsTraveling && progress.HuntPhase == BlackFlowSpireHuntPhase.None);
+        if (restoreSelection.HasValue && buttons.ContainsKey(restoreSelection.Value)) SelectNode(restoreSelection.Value);
+        if (canLead && progress.HuntPhase != BlackFlowSpireHuntPhase.None)
+        {
+            DefaultFocus = null;
+            BlackFlowSpireHuntUi.Show(root, screen, state);
+        }
+        else if (canLead && BlackFlowSpirePassageRules.IsPending(map, progress))
+        {
+            DefaultFocus = null;
+            field.Call("set_interaction_enabled", false);
+            BlackFlowSpirePassageUi.Show(root, screen, state);
+        }
+        else if (canLead && BlackFlowSpireFloorExitRules.IsPending(map, progress))
+        {
+            DefaultFocus = null;
+            field.Call("set_interaction_enabled", false);
+            root.AddChild(new BlackFlowSpireFloorExitUi(state, screen) { Name = "BlackFlowSpireFloorExit" });
+        }
+        BlackFlowSpirePartsUi.Attach(root, state, screen, inspection, ClearSelection, PreviewMovement);
+        if (BlackFlowSpireTeam.IsOnline && !inspection) root.AddChild(new BlackFlowSpireTeamMapStatus(state));
+        BlackFlowSpireLocalization.RefreshWithLocale(root, () =>
+        {
+            if (!GodotObject.IsInstanceValid(root) || !root.IsInsideTree() || BlackFlowSpireRuntime.IsTraveling) return;
+            Show(screen, state, inspection, selectedNodeId);
+            ActiveScreenContext.Instance.Update();
+        });
+        root.Call("refresh_layout");
+    }
+
+    private static Control Glyph(string key, float size, NMapScreen screen, RunState state, bool details = false)
+    {
+        var root = new Control { Size = Vector2.One * size, MouseFilter = Control.MouseFilterEnum.Ignore };
+        if (key == BlackFlowSpireNodeVisuals.BATTLE_BOSS)
+        {
+            // Keep native Spine/static boss rendering, but disable every native input target.
+            // Movement is handled exclusively by the enclosing Forest button.
+            var boss = NBossMapPoint.Create(state.Map.BossMapPoint, screen, state.Act.BossEncounter, state);
+            root.AddChild(boss);
+            boss.SetAnchorsPreset(Control.LayoutPreset.TopLeft);
+            boss.Size = new Vector2(374, 306);
+            boss.PivotOffset = Vector2.Zero;
+            boss.Scale = Vector2.One * (size / 370);
+            boss.Position = (root.Size - boss.Size * boss.Scale) / 2;
+            root.Ready += () =>
+            {
+                boss.Disable();
+                boss.State = MapPointState.Traveled;
+                boss.MouseFilter = Control.MouseFilterEnum.Ignore;
+                boss.FocusMode = Control.FocusModeEnum.None;
+                foreach (var control in boss.FindChildren("*", "Control", true, false).OfType<Control>())
+                {
+                    control.MouseFilter = Control.MouseFilterEnum.Ignore;
+                    control.FocusMode = Control.FocusModeEnum.None;
+                }
+            };
+            return root;
+        }
+        var icon = BlackFlowSpireMapAssets.NodeImage(key, size, details);
+        root.AddChild(icon);
+        return root;
+    }
+}

@@ -5,12 +5,12 @@ namespace BlackFlowSpire.Map.Stages.Definitions;
 
 #region 关卡组
 
-public sealed class CorpseSlugsStage : ForestPairedStageDefinition
+public sealed class CorpseSlugsStage : BlackFlowSpirePairedStageDefinition
 {
     public override string Id => "CORPSE_SLUGS";
     public override string Region => "UNDERDOCKS";
-    public override ForestStageVersionDefinition Normal { get; } = new CorpseSlugsNormal();
-    public override ForestStageVersionDefinition Emergency { get; } = new CorpseSlugsEmergency();
+    public override BlackFlowSpireStageVersionDefinition Normal { get; } = new CorpseSlugsNormal();
+    public override BlackFlowSpireStageVersionDefinition Emergency { get; } = new CorpseSlugsEmergency();
 }
 
 #endregion
@@ -18,14 +18,14 @@ public sealed class CorpseSlugsStage : ForestPairedStageDefinition
 #region 普通作战
 
 // 迟来送葬 / Normal. Edit this version independently of the other version.
-public sealed class CorpseSlugsNormal : ForestStageVersionDefinition
+public sealed class CorpseSlugsNormal : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "CORPSE_SLUGS.NORMAL";
     public override string SourceEncounterId => "ENCOUNTER.CORPSE_SLUGS_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.CORPSE_SLUGS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.CORPSE_SLUGS.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
@@ -33,8 +33,8 @@ public sealed class CorpseSlugsNormal : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         new("MONSTER.CORPSE_SLUG", native[0].Slot),
         new("MONSTER.CORPSE_SLUG", native[1].Slot)
@@ -47,20 +47,20 @@ public sealed class CorpseSlugsNormal : ForestStageVersionDefinition
 
 // 迟来送葬 / Emergency. Edit this version independently of the other version.
 // 增加一只始终攻击的噬尸蛞蝓
-public sealed class CorpseSlugsEmergency : ForestStageVersionDefinition
+public sealed class CorpseSlugsEmergency : BlackFlowSpireStageVersionDefinition
 {
     public override string Id => "CORPSE_SLUGS.EMERGENCY";
     public override string SourceEncounterId => "ENCOUNTER.CORPSE_SLUGS_WEAK";
     public override string TitleKey => "BLACK_FLOW_SPIRE.MAP.STAGE.CORPSE_SLUGS.title";
     public override string DescriptionKey => "BLACK_FLOW_SPIRE.MAP.STAGE.CORPSE_SLUGS.description";
     public override int Revision => 2;
-    public override ForestBalanceProfile Balance => new()
+    public override BlackFlowSpireBalanceProfile Balance => new()
     {
         HealthMultiplier = 1.2m,
         AttackDamageMultiplier = 1.2m
     };
 
-    public override IReadOnlyList<ForestMonsterRule> MonsterRules =>
+    public override IReadOnlyList<BlackFlowSpireMonsterRule> MonsterRules =>
     [
         new()
         {
@@ -73,8 +73,8 @@ public sealed class CorpseSlugsEmergency : ForestStageVersionDefinition
 
     // Native slots keep scene positioning and matching native monster setup flags.
     // Add/remove/change entries here to customize this version only.
-    public override IReadOnlyList<ForestEnemySlot> BuildFormation(
-        IReadOnlyList<ForestEnemySlot> native, ulong seed) =>
+    public override IReadOnlyList<BlackFlowSpireEnemySlot> BuildFormation(
+        IReadOnlyList<BlackFlowSpireEnemySlot> native, ulong seed) =>
     [
         ..native,
         new("MONSTER.CORPSE_SLUG", null)
