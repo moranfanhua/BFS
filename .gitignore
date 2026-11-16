@@ -10,4 +10,5 @@ dll/
 dllsrc/
 *.md
 !README.md
+!/AGENTS.md
 *.ps1
