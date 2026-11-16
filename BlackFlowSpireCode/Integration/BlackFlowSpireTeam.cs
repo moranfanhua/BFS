@@ -24,7 +24,7 @@ using STS2RitsuLib.RunData;
 
 namespace BlackFlowSpire.Integration;
 
-internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle }
+internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle, Rest }
 
 // Steps distinguish revisits to the same node. Act distinguishes floor changes.
 internal sealed record BlackFlowSpireTeamPosition(int Act, int Node, int Steps);
@@ -264,6 +264,7 @@ internal static class BlackFlowSpireTeam
                 case BlackFlowSpireTeamAction.FloorExit: await BlackFlowSpireRuntime.ResolveFloorExitCore(command.Argument != 0); break;
                 case BlackFlowSpireTeamAction.Hunt: await BlackFlowSpireRuntime.ConfirmHuntCore(); break;
                 case BlackFlowSpireTeamAction.HuntBattle: await BlackFlowSpireRuntime.StartHuntCore(); break;
+                case BlackFlowSpireTeamAction.Rest: await BlackFlowSpireRuntime.ResolveRestCore(command.Argument); break;
                 case BlackFlowSpireTeamAction.ShopOffer:
                     purchasedOffer = await PurchaseOffer(state, context.Player, (BlackFlowSpireShopOfferKind)command.Argument);
                     break;

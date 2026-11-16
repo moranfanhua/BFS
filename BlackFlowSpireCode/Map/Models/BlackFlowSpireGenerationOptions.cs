@@ -23,6 +23,7 @@ public sealed record BlackFlowSpireGenerationOptions
     public int ResidentStrongholdChancePercent { get; init; } = 30;
     public int VantagePointChancePercent { get; init; } = 30;
     public int ShortcutChancePercent { get; init; } = 15;
+    public int RestChancePercent { get; init; } = 100;
     // Independent inputs for future Blackflow progression/difficulty systems.
     public int SecrecyLevel { get; init; }
     public bool GameOfLifeSplitUnlocked { get; init; }
@@ -55,6 +56,8 @@ public sealed record BlackFlowSpireGenerationOptions
             throw new ArgumentOutOfRangeException(nameof(VantagePointChancePercent));
         if (ShortcutChancePercent is < 0 or > 100)
             throw new ArgumentOutOfRangeException(nameof(ShortcutChancePercent));
+        if (RestChancePercent is < 0 or > 100)
+            throw new ArgumentOutOfRangeException(nameof(RestChancePercent));
         if (SecrecyLevel < 0)
             throw new ArgumentOutOfRangeException(nameof(SecrecyLevel));
         ValidateWeights(EmptyWeight, CombatWeight, EventWeight);

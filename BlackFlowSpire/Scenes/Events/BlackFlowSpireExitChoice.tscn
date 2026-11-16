@@ -68,6 +68,21 @@ mouse_filter = 2
 
 [node name="Artwork" parent="Canvas" instance=ExtResource("r2")]
 
+[node name="Leave" type="Button" parent="Canvas"]
+visible = false
+offset_right = 1422.222222
+offset_bottom = 800.0
+mouse_default_cursor_shape = 2
+
+[node name="Icon" type="TextureRect" parent="Canvas/Leave"]
+offset_left = 659.611111
+offset_top = 685.0
+offset_right = 762.611111
+offset_bottom = 789.0
+texture = ExtResource("r11")
+expand_mode = 1
+mouse_filter = 2
+
 [node name="Shadow" type="TextureRect" parent="Canvas"]
 offset_left = 0
 offset_top = 555

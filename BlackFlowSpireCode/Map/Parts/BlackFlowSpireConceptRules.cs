@@ -13,6 +13,7 @@ public static class BlackFlowSpireConceptRules
         {
             BlackFlowSpireNodeContent.Reward => BlackFlowSpireNodeVisuals.WISH,
             BlackFlowSpireNodeContent.Light => BlackFlowSpireNodeVisuals.LIGHT,
+            BlackFlowSpireNodeContent.Rest => BlackFlowSpireNodeVisuals.REST,
             _ => null
         };
         return Activate(inventory, definition => definition.Trigger switch

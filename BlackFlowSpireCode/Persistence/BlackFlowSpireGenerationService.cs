@@ -275,6 +275,35 @@ public static class BlackFlowSpireGenerationService
         });
     }
 
+    internal static bool TryChooseRest(RunState state, BlackFlowSpireMap map, BlackFlowSpireExplorationProgress progress,
+        BlackFlowSpireRestChoice choice)
+    {
+        if (!BlackFlowSpireRestRules.IsPending(map, progress) || progress.RestChoice.HasValue
+            || !BlackFlowSpireRestRules.Options(map, map.PositionNodeId).Contains(choice)) return false;
+
+        // Store the reward and its result scene in the same run-data update.
+        _slot!.Modify(state, data =>
+        {
+            switch (choice)
+            {
+                case BlackFlowSpireRestChoice.MaximumLife:
+                    data.MaxTargetLife = checked(data.MaxTargetLife + 3);
+                    break;
+                case BlackFlowSpireRestChoice.Hope:
+                    if (!data.TryChangeHope(3)) throw new InvalidOperationException("The rest reward exceeds the Hope balance range.");
+                    break;
+                case BlackFlowSpireRestChoice.ActionPoints:
+                    progress.ActionPointsRemaining = checked(progress.ActionPointsRemaining + 2);
+                    break;
+                case BlackFlowSpireRestChoice.PartsCapacity:
+                    data.Engine.Capacity = checked(data.Engine.Capacity + 1);
+                    break;
+            }
+            progress.RestChoice = choice;
+        });
+        return true;
+    }
+
     internal static BlackFlowSpirePartMovementReward? TakeMovementReward(RunState state, BlackFlowSpireMap map, BlackFlowSpireExplorationProgress progress)
     {
         if (progress.PendingPartReward is not { } reward) return null;

@@ -63,6 +63,7 @@ public sealed class BlackFlowSpireActMap : ActMap
         BlackFlowSpireNodeContent.Boss => MapPointType.Boss,
         BlackFlowSpireNodeContent.Final => MapPointType.Unassigned,
         BlackFlowSpireNodeContent.Evacuate => MapPointType.Unassigned,
+        BlackFlowSpireNodeContent.Rest => MapPointType.Unassigned,
         _ => throw new InvalidDataException("Unknown node content.")
     };
 
@@ -81,6 +82,7 @@ public sealed class BlackFlowSpireActMap : ActMap
         BlackFlowSpireNodeContent.Boss => RoomType.Boss,
         BlackFlowSpireNodeContent.Final => null,
         BlackFlowSpireNodeContent.Evacuate => null,
+        BlackFlowSpireNodeContent.Rest => null,
         _ => throw new InvalidDataException("Unknown node content.")
     };
 }

@@ -82,7 +82,7 @@ public static class BlackFlowSpireProcessedPartRules
         BlackFlowSpireFog.RevealNearby(map, inventory);
         BlackFlowSpireVantageRules.OnArrival(map, progress, target.Id, inventory);
         var requiresRoom = BlackFlowSpireTravelRules.RequiresRoom(target, map);
-        var pending = requiresRoom || BlackFlowSpireFloorExitRules.IsChoice(map, target);
+        var pending = BlackFlowSpireTravelRules.RequiresSettlement(map, target, requiresRoom);
         target.Completed = !pending;
         progress.PendingNodeId = pending ? target.Id : null;
         var conceptEffects = BlackFlowSpireConceptRules.OnProcessedArrival(inventory, target);

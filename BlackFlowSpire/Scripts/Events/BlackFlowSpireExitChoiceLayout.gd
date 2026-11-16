@@ -6,6 +6,10 @@ var _busy := false
 var _selected := -1
 var _complete_text := false
 var _choice_layout: Dictionary
+var _choice_count := 2
+var _rest_event := false
+var _result := false
+var _result_elapsed := 0.0
 var _expansion: Array[float] = [0.0, 0.0]
 var _choice_tweens: Array[Tween] = [null, null]
 
@@ -21,19 +25,54 @@ func _layout() -> void:
 	$Canvas.position = (size - DESIGN * factor) / 2.0
 
 func bind_event(background: String, title: String, description: String, accept_title: String, accept_description: String, leave_title: String, leave_description: String, final: bool) -> void:
-	$Canvas/Artwork.bind_background(background)
-	$Canvas/Story/Title.text = title
-	$Canvas/Story/Description.text = description
+	bind_story(background, title, description)
 	$Canvas/Choices/Option0/Title.text = accept_title
 	$Canvas/Choices/Option0/Description.text = accept_description
 	$Canvas/Choices/Option1/Title.text = leave_title
 	$Canvas/Choices/Option1/Description.text = leave_description
 	$Canvas/Choices/Option0/Function.texture = load("res://BlackFlowSpire/Images/Events/Exit/%s.png" % ("zone_end" if final else "scrap_drop"))
 
+func bind_story(background: String, title: String, description: String) -> void:
+	$Canvas/Artwork.bind_background(background)
+	$Canvas/Story/Title.text = title
+	$Canvas/Story/Description.text = description
+
+func configure_rest_choices(count: int) -> void:
+	_rest_event = true
+	_choice_count = count
+	for i in range($Canvas/Choices.get_child_count(), count):
+		var option := $Canvas/Choices/Option0.duplicate() as Button
+		option.name = "Option%s" % i
+		$Canvas/Choices.add_child(option)
+		_expansion.append(0.0)
+		_choice_tweens.append(null)
+	_update_intro()
+
+func bind_choice(index: int, title: String, description: String, icon: String) -> void:
+	var option := get_node("Canvas/Choices/Option%s" % index)
+	option.get_node("Title").text = title
+	option.get_node("Description").text = description
+	option.get_node("Function").texture = load("res://BlackFlowSpire/Images/Events/Exit/%s.png" % icon)
+
+func show_rest_result() -> void:
+	_result = true
+	_result_elapsed = 0.0
+	$Canvas/Choices.hide()
+	$Canvas/Leave.show()
+	_update_intro()
+
+func finish_result_text() -> bool:
+	var description := $Canvas/Story/Description as RichTextLabel
+	if description.visible_characters < 0 or description.visible_characters >= description.get_total_character_count():
+		return false
+	_result_elapsed = description.get_total_character_count() * 0.04
+	description.visible_characters = -1
+	return true
+
 func select_choice(index: int) -> void:
 	if index == _selected: return
 	_selected = index
-	for i in 2:
+	for i in _choice_count:
 		var option := get_node("Canvas/Choices/Option%s" % i)
 		option.get_node("Confirm").visible = i == index
 		if _choice_tweens[i]: _choice_tweens[i].kill()
@@ -56,7 +95,12 @@ func _set_rect(control: Control, rect: Rect2) -> void:
 func _layout_choices() -> void:
 	if _choice_layout.is_empty(): return
 	var top := 0.0
-	for i in 2:
+	if _rest_event:
+		var height := _choice_count * float(_choice_layout.folded.size[1]) + (_choice_count - 1) * 20.0
+		for expansion in _expansion:
+			height += expansion * (float(_choice_layout.expanded.size[1]) - float(_choice_layout.folded.size[1]))
+		top = (DESIGN.y / 2.0 - $Canvas/Choices.position.y) / $Canvas/Choices.scale.y - height / 2.0
+	for i in _choice_count:
 		var option := get_node("Canvas/Choices/Option%s" % i) as Button
 		var amount := _expansion[i]
 		var folded: Array = _choice_layout.folded.size
@@ -98,6 +142,7 @@ func finish_entry() -> void:
 
 func _process(delta: float) -> void:
 	_elapsed += delta
+	if _result: _result_elapsed += delta
 	_update_intro()
 
 func _update_intro() -> void:
@@ -108,17 +153,27 @@ func _update_intro() -> void:
 	$Canvas/Choices.position.x = DESIGN.x - $Canvas/Choices.size.x * $Canvas/Choices.scale.x + 650.0 * (1.0 - intro)
 	$Canvas/Story.modulate.a = intro
 	$Canvas/Story.position.x = 168.0 * (1.0 - intro)
-	$Canvas/Story/Description.visible_characters = -1 if _complete_text else maxi(0, floori((_elapsed - 1.0) / 0.04))
-	_layout_choices()
+	if _result:
+		$Canvas/Story/Description.visible_characters = floori(_result_elapsed / 0.04)
+	else:
+		$Canvas/Story/Description.visible_characters = -1 if _complete_text else maxi(0, floori((_elapsed - 1.0) / 0.04))
+		_layout_choices()
 	_update_buttons()
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		finish_entry()
+		var description := $Canvas/Story/Description as RichTextLabel
+		if not _rest_event:
+			finish_entry()
+		elif _elapsed < 2.0 or (description.visible_characters >= 0 and description.visible_characters < description.get_total_character_count()):
+			_complete_text = true
+		else:
+			select_choice(-1)
 		accept_event()
 
 func _update_buttons() -> void:
-	for i in 2:
+	$Canvas/Leave.disabled = _busy or _elapsed < 2.0
+	for i in _choice_count:
 		var option := get_node("Canvas/Choices/Option%s" % i) as Button
-		option.disabled = _busy or _elapsed < 2.0
+		option.disabled = _busy or _result or _elapsed < 2.0
 		option.get_node("Confirm").disabled = option.disabled

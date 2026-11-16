@@ -52,6 +52,7 @@ func seek_entry(at: float) -> void:
 			var channel := "rgba".find(attribute.right(1))
 			if image.material is ShaderMaterial:
 				var tint: Variant = image.material.get_shader_parameter("control_color")
+				if tint == null: tint = Color.WHITE
 				tint[channel] = float(value)
 				image.material.set_shader_parameter("control_color", tint)
 			else:

@@ -66,9 +66,9 @@ public static class BlackFlowSpireNodeVisuals
         new(BATTLE_SAVAGE, "icon_battle_savage", "red", HasEnemyIntel: true, HintImage: "bg_hint_battle_savage"),
         new(BATTLE_SAVAGE_BUOY, "icon_savage_buoy_focus_view_node", "purple", HasEnemyIntel: true,
             AlwaysVisible: true, FocusIcon: "icon_savage_buoy_focus_view_node", HintImage: "bg_hint_battle_savage_buoy"),
+        new(REST, "icon_rest", "cyan"),
         // Reserved nodes: title and artwork only; type/description are deliberately blank.
         new(PORTAL, "icon_portal", "yellow", HintImage: "bg_hint_portal"),
-        new(REST, "icon_rest", "cyan"),
         new(EMPLOY, "icon_employ", "yellow")
     ]);
 

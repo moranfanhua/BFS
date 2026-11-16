@@ -66,5 +66,20 @@
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave": "离开黑池",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave_description": "现在不宜探索它的奥秘",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.PATH.accept_description": "获得1件珍贵加工品，保留剩余行动力并进入下一区域",
-  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept_description": "获得1件加工品，将剩余行动力等量转化为希望，并进入下一区域"
+  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept_description": "获得1件加工品，将剩余行动力等量转化为希望，并进入下一区域",
+  "BLACK_FLOW_SPIRE.UI.REST.title": "金色凝滞",
+  "BLACK_FLOW_SPIRE.UI.REST.description": "在树海的某处，你见到了泉水中溅起而不再落下的水珠和停滞不动的小动物们。此处时间不再流动，连追踪而来的猎犬气息都仿佛凝结了。一架无人机悬浮在凝固的金色泉水之上，闪烁着温暖的光。它是何人留在此处的？",
+  "BLACK_FLOW_SPIRE.UI.REST.leave": "返回地图",
+  "BLACK_FLOW_SPIRE.UI.REST.1.title": "坐下休息",
+  "BLACK_FLOW_SPIRE.UI.REST.1.description": "获得[color=#20b4a1]3[/color]目标生命值上限",
+  "BLACK_FLOW_SPIRE.UI.REST.1.result": "你在金色泉水旁坐了下来，泉水仿佛流过了你的内心，也驱散了你的疲惫。",
+  "BLACK_FLOW_SPIRE.UI.REST.3.title": "向泉水许愿",
+  "BLACK_FLOW_SPIRE.UI.REST.3.description": "获得[color=#20b4a1]3[/color]希望",
+  "BLACK_FLOW_SPIRE.UI.REST.3.result": "你将双手伸入泉水中，那种似液体又似固体的触感让你感到温暖甚至沉迷其中，于是你闭上眼，专心感受着从指缝间漏下的金色泉水，许下一个愿望。",
+  "BLACK_FLOW_SPIRE.UI.REST.5.title": "抚摸静止的小动物",
+  "BLACK_FLOW_SPIRE.UI.REST.5.description": "获得[color=#20b4a1]2[/color]行动力",
+  "BLACK_FLOW_SPIRE.UI.REST.5.result": "这些小动物就像玩偶一样一动不动，你把它们的头挨个摸了一遍，毛茸茸的触感让你心情无比愉悦，浑身充满了干劲。",
+  "BLACK_FLOW_SPIRE.UI.REST.6.title": "整理行囊",
+  "BLACK_FLOW_SPIRE.UI.REST.6.description": "零件箱容量[color=#20b4a1]+1[/color]",
+  "BLACK_FLOW_SPIRE.UI.REST.6.result": "你把从树海中收集到的东西仔仔细细整理了一遍，为行囊腾出了更多空间。"
 }

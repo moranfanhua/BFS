@@ -294,6 +294,12 @@ public static class BlackFlowSpireMapUi
             field.Call("set_interaction_enabled", false);
             root.AddChild(new BlackFlowSpireFloorExitUi(state, screen) { Name = "BlackFlowSpireFloorExit" });
         }
+        else if (canLead && BlackFlowSpireRestRules.IsPending(map, progress))
+        {
+            DefaultFocus = null;
+            field.Call("set_interaction_enabled", false);
+            root.AddChild(new BlackFlowSpireRestUi(state, screen) { Name = "BlackFlowSpireRest" });
+        }
         BlackFlowSpirePartsUi.Attach(root, state, screen, inspection, ClearSelection, PreviewMovement);
         if (BlackFlowSpireTeam.IsOnline && !inspection) root.AddChild(new BlackFlowSpireTeamMapStatus(state));
         BlackFlowSpireLocalization.RefreshWithLocale(root, () =>

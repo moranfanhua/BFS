@@ -66,5 +66,20 @@
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept": "Convince your companions",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.accept_description": "Obtain 1 Processed Part, convert each remaining Action Point into 1 Hope, and enter the next area.",
   "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave": "Leave the black pool",
-  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave_description": "Now is not the time to explore its secrets."
+  "BLACK_FLOW_SPIRE.UI.FLOOR_EXIT.FINAL.leave_description": "Now is not the time to explore its secrets.",
+  "BLACK_FLOW_SPIRE.UI.REST.title": "Golden Stillness",
+  "BLACK_FLOW_SPIRE.UI.REST.description": "Somewhere in the forest, droplets hang above a spring and small animals stand motionless. Time has stopped here. Even the scent of the pursuing hounds seems suspended. A drone hovers above the frozen golden spring, giving off a warm light. Who left it here?",
+  "BLACK_FLOW_SPIRE.UI.REST.leave": "Return to the map",
+  "BLACK_FLOW_SPIRE.UI.REST.1.title": "Sit down and rest",
+  "BLACK_FLOW_SPIRE.UI.REST.1.description": "Gain [color=#20b4a1]3[/color] maximum Objective HP.",
+  "BLACK_FLOW_SPIRE.UI.REST.1.result": "You sit beside the golden spring. It feels as though the water flows through you, washing away your weariness.",
+  "BLACK_FLOW_SPIRE.UI.REST.3.title": "Make a wish at the spring",
+  "BLACK_FLOW_SPIRE.UI.REST.3.description": "Gain [color=#20b4a1]3[/color] Hope.",
+  "BLACK_FLOW_SPIRE.UI.REST.3.result": "You dip your hands into the spring. The warm water feels almost solid. You close your eyes, feel it slip between your fingers, and make a wish.",
+  "BLACK_FLOW_SPIRE.UI.REST.5.title": "Pet the motionless animals",
+  "BLACK_FLOW_SPIRE.UI.REST.5.description": "Gain [color=#20b4a1]2[/color] Action Points.",
+  "BLACK_FLOW_SPIRE.UI.REST.5.result": "The small animals are as still as toys. You pet them one by one, and the touch of their soft fur leaves you cheerful and full of energy.",
+  "BLACK_FLOW_SPIRE.UI.REST.6.title": "Repack your belongings",
+  "BLACK_FLOW_SPIRE.UI.REST.6.description": "Parts Box capacity [color=#20b4a1]+1[/color].",
+  "BLACK_FLOW_SPIRE.UI.REST.6.result": "You sort through everything you have collected in the forest and make a little more room in your pack."
 }
