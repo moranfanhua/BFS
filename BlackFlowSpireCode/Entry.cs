@@ -26,6 +26,7 @@ public static class Entry
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, Assembly.GetExecutingAssembly());
         ForestGenerationService.Register();
         ForestTeam.Register();
+        ForestNaturalCardGain.Register();
         RitsuLibFramework.RegisterHealHookListener(new ForestCollectibleHealing());
         ForestMusicDirector.RegisterAssets();
         new Harmony(ModId).PatchAll(Assembly.GetExecutingAssembly());

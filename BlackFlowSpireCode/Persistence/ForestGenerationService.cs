@@ -5,7 +5,6 @@ using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Map.Generation;
 using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Parts;
-using BlackFlowSpire.Map.Stages;
 using BlackFlowSpire.Integration;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Runs;
@@ -17,14 +16,15 @@ namespace BlackFlowSpire.Persistence;
 
 public sealed class ForestRunData
 {
-    public int SchemaVersion { get; set; } = 1;
+    internal const int CurrentSchemaVersion = 2;
+    public int SchemaVersion { get; set; } = CurrentSchemaVersion;
     public bool Enabled { get; set; }
     public ulong? TeamOwnerId { get; set; }
     public int TargetLife { get; set; } = ForestCombatHealth.InitialTargetLife;
     public int MaxTargetLife { get; set; } = ForestCombatHealth.InitialTargetLife;
     public int TargetShield { get; set; }
-    public int Hope { get; set; }
-    public int? MaxHope { get; set; }
+    public int Hope { get; set; } = ForestHope.Initial;
+    public int MaxHope { get; set; } = ForestHope.Initial;
     public int CommandExperience { get; set; }
     public ForestDamageMultipliers DamageMultipliers { get; set; } = new();
     public Dictionary<ulong, decimal> PlayerLifeMultipliers { get; set; } = [];
@@ -35,7 +35,7 @@ public sealed class ForestRunData
 
     internal bool TryChangeHope(int delta)
     {
-        if (!ForestHope.FromSaved(Hope, MaxHope).TryChange(delta, out var result)) return false;
+        if (!new ForestHope(Hope, MaxHope).TryChange(delta, out var result)) return false;
         SetHope(result);
         return true;
     }
@@ -60,12 +60,7 @@ public static class ForestGenerationService
     public static bool IsEnabled(RunState? state) => state != null && _slot != null
         && _slot.TryGet(state, out var data) && data.Enabled;
 
-    public static void Enable(RunState state) => _slot!.Modify(state, data =>
-    {
-        if (data.Enabled) return;
-        data.Enabled = true;
-        data.SetHope(new(ForestHope.Initial, ForestHope.Initial));
-    });
+    public static void Enable(RunState state) => _slot!.Modify(state, data => data.Enabled = true);
     internal static ulong? GetTeamOwnerId(RunState state) => _slot!.Get(state).TeamOwnerId;
 
     public static int GetHope(RunState state) => GetHopeStatus(state).Balance;
@@ -73,7 +68,7 @@ public static class ForestGenerationService
     internal static ForestHope GetHopeStatus(RunState state)
     {
         var data = _slot!.Get(state);
-        return ForestHope.FromSaved(data.Hope, data.MaxHope);
+        return new(data.Hope, data.MaxHope);
     }
 
     internal static int GetCommandExperience(RunState state) => _slot!.Get(state).CommandExperience;
@@ -94,16 +89,16 @@ public static class ForestGenerationService
         if (amount == 0 || ForestTeam.IsGuest) return;
         _slot!.Modify(state, data =>
         {
-            var hope = ForestHope.FromSaved(data.Hope, data.MaxHope);
-            data.SetHope(hope with { Balance = (int)Math.Min((long)hope.Balance + amount, hope.Maximum) });
+            data.Hope = (int)Math.Min((long)data.Hope + amount, data.MaxHope);
         });
         ForestTeam.Publish(state);
     }
 
-    internal static void RestoreCommandProgress(RunState state, int hope, int? maxHope, int experience) =>
+    internal static void RestoreCommandProgress(RunState state, int hope, int maxHope, int experience) =>
         _slot!.Modify(state, data =>
         {
-            data.SetHope(ForestHope.FromSaved(hope, maxHope));
+            data.Hope = Math.Max(0, hope);
+            data.MaxHope = Math.Max(data.Hope, maxHope);
             data.CommandExperience = Math.Clamp(experience, 0, ForestCommandLevel.MaximumExperience);
         });
 
@@ -115,7 +110,7 @@ public static class ForestGenerationService
             var previous = Math.Clamp(data.CommandExperience, 0, ForestCommandLevel.MaximumExperience);
             var next = previous + Math.Min(amount, ForestCommandLevel.MaximumExperience - previous);
             if (previous == next) return;
-            var hope = ForestHope.FromSaved(data.Hope, data.MaxHope);
+            var hope = new ForestHope(data.Hope, data.MaxHope);
             var earned = ForestCommandLevel.FromExperience(next).HopeEarned
                 - ForestCommandLevel.FromExperience(previous).HopeEarned;
             // An extreme balance from the console can exhaust the stored range.
@@ -162,8 +157,8 @@ public static class ForestGenerationService
     internal static Dictionary<ulong, decimal> CopyPlayerLifeMultipliers(RunState state) =>
         new(_slot!.Get(state).PlayerLifeMultipliers);
 
-    internal static void RestorePlayerLifeMultipliers(RunState state, Dictionary<ulong, decimal>? multipliers) =>
-        _slot!.Modify(state, data => data.PlayerLifeMultipliers = multipliers ?? []);
+    internal static void RestorePlayerLifeMultipliers(RunState state, Dictionary<ulong, decimal> multipliers) =>
+        _slot!.Modify(state, data => data.PlayerLifeMultipliers = multipliers);
 
     internal static (int Current, int Maximum, int Shield) GetTargetLife(RunState state)
     {
@@ -250,7 +245,7 @@ public static class ForestGenerationService
     {
         if (enabled) _slot!.Lobby.Set(lobby, new ForestRunData
         {
-            Enabled = true, TeamOwnerId = lobby.NetService.NetId, Hope = ForestHope.Initial, MaxHope = ForestHope.Initial
+            Enabled = true, TeamOwnerId = lobby.NetService.NetId
         });
         else _slot!.Lobby.Remove(lobby);
     }
@@ -323,16 +318,14 @@ public static class ForestGenerationService
         var slot = _slot ?? throw new InvalidOperationException("BlackFlowSpire has not initialized its run-data slot.");
         if (slot.TryGet(runState, out var saved))
         {
-            if (saved.SchemaVersion != 1)
+            if (saved.SchemaVersion != ForestRunData.CurrentSchemaVersion)
                 throw new InvalidDataException("Unsupported BlackFlowSpire run-data version.");
             if (saved.Maps.TryGetValue(runState.CurrentActIndex, out var existing))
             {
                 ForestMapValidator.Validate(existing);
-                saved.Progress.TryGetValue(runState.CurrentActIndex, out var progress);
-                var populated = ForestEncounterService.Populate(runState, existing, progress);
                 var revealed = ForestFog.RevealNearby(existing, saved.Engine).Count > 0;
                 revealed |= ForestCollectibleRules.RevealMap(existing, saved.Engine);
-                if (revealed || populated)
+                if (revealed)
                     slot.Modify(runState, data => data.Maps[runState.CurrentActIndex] = existing);
                 return existing;
             }
@@ -347,14 +340,9 @@ public static class ForestGenerationService
             options = options with { InitialActionPoints = checked(options.InitialActionPoints + 1) };
         }
         var map = ForestMapGenerator.Generate(seed, runState.CurrentActIndex, options);
+        ForestEncounterService.Populate(runState, map);
         ForestNaturalRules.NodesRevealed(engine, map.Nodes.Count(node => node.Revealed && node.Kind != ForestNodeKind.Empty));
         ForestCollectibleRules.RevealMap(map, engine);
-        // Opt in only newly generated maps; existing maps keep their frozen
-        // encounters, while still receiving stage text when a matching key exists.
-        if (ForestStageCatalog.ForRegion(runState.Act.Id.Entry).Count > 0
-            && ForestStageCatalog.FindBossByEncounter(runState.Act.BossEncounter.Id.ToString()) is { IsBoss: true })
-            map.StageCatalogVersion = 1;
-        ForestEncounterService.Populate(runState, map, null);
         slot.Modify(runState, data => data.Maps.Add(runState.CurrentActIndex, map));
         return map;
     }

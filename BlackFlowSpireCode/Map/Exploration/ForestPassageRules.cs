@@ -22,7 +22,7 @@ public static class ForestPassageRules
         progress.PendingNodeId = null;
         if (usePassage)
         {
-            map.CurrentNodeId = destination.Id;
+            map.PositionNodeId = destination.Id;
             // Record a positional transition for native floor history, without paying AP.
             progress.StepsTaken++;
             destination.Completed = true;

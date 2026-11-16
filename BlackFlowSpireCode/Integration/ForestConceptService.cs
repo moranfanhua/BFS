@@ -7,7 +7,6 @@ using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Persistence;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
-using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 
@@ -104,8 +103,6 @@ public static class ForestConceptService
         try
         {
             var engine = ForestGenerationService.GetEngine(state);
-            var player = (replicated ? ForestTeam.Owner(state) : LocalContext.GetMe(state))
-                ?? throw new InvalidOperationException("No player owns the concept reward.");
             var map = ForestGenerationService.GetOrGenerate(state);
             while (engine.PendingConceptRewards.Count > 0)
             {
@@ -113,15 +110,6 @@ public static class ForestConceptService
                 foreach (var id in reward.CollectibleIds)
                     if (ForestCollectibleCatalog.Find(id) is { } item && ForestCollectibleRules.CanAcquire(item))
                         ForestGenerationService.GrantCollectible(state, map, item);
-                // Checkpoints written before collectibles were introduced retain native relic rewards.
-                while (reward.RelicIds.Count > 0)
-                {
-                    var id = reward.RelicIds[0];
-                    ForestGenerationService.ModifyEngine(state, _ => reward.RelicIds.RemoveAt(0));
-                    var relic = ModelDb.GetById<RelicModel>(ModelId.Deserialize(id)).ToMutable();
-                    await RelicCmd.Obtain(relic, player);
-                    if (!replicated) RunManager.Instance.RewardSynchronizer.SyncLocalObtainedRelic(relic);
-                }
                 while (reward.ProcessedParts.Count > 0)
                 {
                     var kind = reward.ProcessedParts[0];

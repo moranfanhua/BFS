@@ -66,7 +66,6 @@ public sealed class ForestConceptBattle
 public sealed class ForestConceptReward
 {
     public List<string> CollectibleIds { get; set; } = [];
-    public List<string> RelicIds { get; set; } = [];
     public List<ForestProcessedPartKind> ProcessedParts { get; set; } = [];
     public int Shield { get; set; }
 }

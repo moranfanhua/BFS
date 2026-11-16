@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
@@ -66,17 +67,17 @@ internal static class ForestCombatArrivalRewardPatch
         var engine = ForestGenerationService.GetEngine(state);
         if (ForestTeam.IsOnline || engine.Collectibles.PendingGold > 0
             || engine.PendingConceptRewards.Any(reward => reward.Shield > 0 || reward.CollectibleIds.Count > 0))
-            __result = SettleBeforeCombat(__result, state);
+            __result = HarmonyAsyncTaskBridge.After(__result, () => SettleBeforeCombat(state));
     }
 
-    private static async Task SettleBeforeCombat(Task original, RunState state)
+    private static Task SettleBeforeCombat(RunState state)
     {
-        await original;
         // Native player and RNG synchronization is complete. Settle shared rewards
         // and apply any movement shield before combat starts.
         var progress = ForestGenerationService.GetProgress(state);
         var engine = ForestGenerationService.GetEngine(state);
-        if (progress.PendingPartReward != null || engine.PendingConceptRewards.Count > 0 || engine.Collectibles.PendingGold > 0)
-            await ForestPartService.SettleMovementRewards(state, ForestGenerationService.GetOrGenerate(state), progress);
+        return progress.PendingPartReward != null || engine.PendingConceptRewards.Count > 0 || engine.Collectibles.PendingGold > 0
+            ? ForestPartService.SettleMovementRewards(state, ForestGenerationService.GetOrGenerate(state), progress)
+            : Task.CompletedTask;
     }
 }

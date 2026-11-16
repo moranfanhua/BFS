@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using BlackFlowSpire.Map.Stages;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
@@ -15,13 +14,15 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.MonsterMoves.MonsterMoveStateMachine;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.ValueProps;
+using STS2RitsuLib.Utils;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
 internal static class ForestMonsterRules
 {
     private sealed record Binding(ForestMonsterRule Rule, bool Initial);
-    private static readonly ConditionalWeakTable<MonsterModel, Binding> Bindings = new();
+    private static readonly AttachedState<MonsterModel, Binding> Bindings = new();
     private static readonly AccessTools.FieldRef<MonsterModel, Creature?> MonsterCreature =
         AccessTools.FieldRefAccess<MonsterModel, Creature?>("_creature");
     private static readonly AccessTools.FieldRef<MonsterModel, MonsterMoveStateMachine?> StateMachine =
@@ -39,8 +40,7 @@ internal static class ForestMonsterRules
         var rule = setup.Stage!.MonsterRules.FirstOrDefault(item => item.MonsterId == monster.Id.ToString()
             && (!item.InitialOnly || index >= 0) && (!item.FormationIndex.HasValue || item.FormationIndex == index));
         if (rule == null) return;
-        Bindings.Remove(monster);
-        Bindings.Add(monster, new(rule, index >= 0));
+        Bindings.Set(monster, new(rule, index >= 0));
         ForestStageNativePropertyPatch.EnsureOffsets(monster.GetType(), rule.NativePropertyOffsets.Keys);
     }
 
@@ -79,9 +79,8 @@ internal static class ForestMonsterRules
         StateMachine(monster) = new MonsterMoveStateMachine(machine.States.Values, Move(first));
     }
 
-    internal static async Task ApplyStartingPowers(Creature creature, Task original)
+    internal static async Task ApplyStartingPowers(Creature creature)
     {
-        await original;
         var rule = Find(creature);
         if (rule == null) return;
         foreach (var id in rule.RemovedStartingPowers)
@@ -119,7 +118,7 @@ internal static class ForestStageStartingPowersPatch
         if (ForestMonsterRules.Find(__instance) is { } rule
             && (rule.StartingPowers.Count != 0 || rule.RemovedStartingPowers.Count != 0
                 || rule.StartingBlock > 0m || rule.RoomEntryMoveId != null))
-            __result = ForestMonsterRules.ApplyStartingPowers(__instance, __result);
+            __result = HarmonyAsyncTaskBridge.After(__result, () => ForestMonsterRules.ApplyStartingPowers(__instance));
     }
 }
 

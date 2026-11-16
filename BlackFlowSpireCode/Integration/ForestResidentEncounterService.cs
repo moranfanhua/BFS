@@ -8,21 +8,12 @@ namespace BlackFlowSpire.Integration;
 
 internal static class ForestResidentEncounterService
 {
-    public static bool Populate(ForestMap map)
+    public static void Populate(ForestMap map)
     {
-        var changed = false;
-        foreach (var node in map.Nodes.Where(node => node.Content == ForestNodeContent.BattleSavage
-                     && node.CombatSetup == null))
-        {
+        foreach (var node in map.Nodes.Where(node => node.Content == ForestNodeContent.BattleSavage))
             node.CombatSetup = CreateHoppers(map, $"resident-combat/v1/stronghold/{node.Id}", ForestSpecialEncounter.Resident, 1);
-            changed = true;
-        }
-        foreach (var resident in map.RoamingResidents.Where(resident => resident.CombatSetup == null))
-        {
+        foreach (var resident in map.RoamingResidents)
             resident.CombatSetup = CreateHoppers(map, $"resident-combat/v1/roamer/{resident.Id}", ForestSpecialEncounter.Resident, 1);
-            changed = true;
-        }
-        return changed;
     }
 
     internal static ForestCombatSetup CreateHunt(ForestMap map) =>

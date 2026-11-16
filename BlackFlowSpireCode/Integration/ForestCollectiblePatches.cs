@@ -17,6 +17,7 @@ using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
 using STS2RitsuLib.Combat.Healing;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
@@ -37,12 +38,12 @@ internal static class ForestCollectibleKnockdownStunPatch
 
     private static void Postfix(IRunState runState, ICombatState? combatState, bool __state, ref Task __result)
     {
-        if (__state && runState is RunState run && combatState != null) __result = StunEnemy(__result, run, combatState);
+        if (__state && runState is RunState run && combatState != null)
+            __result = HarmonyAsyncTaskBridge.After(__result, () => StunEnemy(run, combatState));
     }
 
-    private static async Task StunEnemy(Task original, RunState run, ICombatState combat)
+    private static async Task StunEnemy(RunState run, ICombatState combat)
     {
-        await original;
         var target = run.Rng.CombatTargets.NextItem(combat.Enemies.Where(enemy => enemy.IsAlive
             && enemy.Monster is { MoveStateMachine.StateLog.Count: > 0, NextMove.CanTransitionAway: true }));
         if (target != null) await CreatureCmd.Stun(target);
@@ -61,13 +62,13 @@ internal static class ForestCollectibleTurnStartPatch
         var grantUnhurtBlock = collectibles.Has(120);
         var grantLowLifeBlock = collectibles.Has(124);
         if (healAllies || grantUnhurtBlock || grantLowLifeBlock)
-            __result = Apply(__result, combatState, healAllies, grantUnhurtBlock, grantLowLifeBlock);
+            __result = HarmonyAsyncTaskBridge.After(__result,
+                () => Apply(combatState, healAllies, grantUnhurtBlock, grantLowLifeBlock));
     }
 
-    private static async Task Apply(Task original, ICombatState combat, bool healAllies, bool grantUnhurtBlock,
+    private static async Task Apply(ICombatState combat, bool healAllies, bool grantUnhurtBlock,
         bool grantLowLifeBlock)
     {
-        await original;
         if (grantLowLifeBlock)
         {
             var injured = combat.Allies.Where(ally => ally.IsAlive && ally.CurrentHp * 10L < ally.MaxHp).ToArray();
@@ -128,13 +129,8 @@ internal static class ForestCollectibleFirstTurnEnergyPatch
         if (player.PlayerCombatState?.TurnNumber != 1 || combatState.CurrentSide != CombatSide.Player
             || combatState.RunState is not RunState run || !ForestGenerationService.IsEnabled(run)) return;
         var bonus = ForestCollectibleRules.FirstTurnEnergy(ForestCollectibleService.GetInventory(run));
-        if (bonus > 0) __result = GrantEnergy(__result, player, bonus);
-    }
-
-    private static async Task GrantEnergy(Task original, Player player, int bonus)
-    {
-        await original;
-        await PlayerCmd.GainEnergy(bonus, player);
+        if (bonus > 0)
+            __result = HarmonyAsyncTaskBridge.After(__result, () => PlayerCmd.GainEnergy(bonus, player));
     }
 }
 
@@ -146,15 +142,13 @@ internal static class ForestCollectibleKillHealingPatch
         if (dealer is { IsPlayer: true } && results.WasTargetKilled && results.Receiver.Side == CombatSide.Enemy
             && combatState.RunState is RunState run && ForestGenerationService.IsEnabled(run)
             && ForestCollectibleService.GetInventory(run).Has(118))
-            __result = HealKiller(__result, dealer, results.Receiver);
+            __result = HarmonyAsyncTaskBridge.After(__result, () => HealKiller(dealer, results.Receiver));
     }
 
-    private static async Task HealKiller(Task original, Creature dealer, Creature target)
-    {
-        await original;
-        if (target.IsDead && dealer.IsAlive && dealer.CurrentHp < dealer.MaxHp)
-            await CreatureCmd.Heal(dealer, dealer.MaxHp * 0.1m);
-    }
+    private static Task HealKiller(Creature dealer, Creature target) =>
+        target.IsDead && dealer.IsAlive && dealer.CurrentHp < dealer.MaxHp
+            ? CreatureCmd.Heal(dealer, dealer.MaxHp * 0.1m)
+            : Task.CompletedTask;
 }
 
 [HarmonyPatch(typeof(CombatManager), "AfterCreatureAdded", new[] { typeof(Creature), typeof(CombatState) })]
@@ -163,13 +157,9 @@ internal static class ForestCollectibleBufferPatch
     private static void Postfix(Creature creature, CombatState state, ref Task __result)
     {
         if (creature.Side == CombatSide.Player && state.RunState is RunState run && ForestGenerationService.IsEnabled(run)
-            && ForestCollectibleService.GetInventory(run).Has(62)) __result = Apply(__result, creature);
-    }
-
-    private static async Task Apply(Task original, Creature creature)
-    {
-        await original;
-        await PowerCmd.Apply<BufferPower>(new ThrowingPlayerChoiceContext(), creature, 2, null, null);
+            && ForestCollectibleService.GetInventory(run).Has(62))
+            __result = HarmonyAsyncTaskBridge.After(__result,
+                () => PowerCmd.Apply<BufferPower>(new ThrowingPlayerChoiceContext(), creature, 2, null, null));
     }
 }
 

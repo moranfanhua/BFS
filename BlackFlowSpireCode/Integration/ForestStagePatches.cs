@@ -14,6 +14,7 @@ using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
@@ -112,14 +113,9 @@ internal static class ForestStageAttackDamagePatch
 [HarmonyPatch(typeof(ToughEgg), "Hatch")]
 internal static class ForestStageHatchHealthPatch
 {
-    private static void Postfix(ToughEgg __instance, ref Task __result) => __result = ScaleAfterHatch(__result, __instance);
-
-    private static async Task ScaleAfterHatch(Task original, ToughEgg egg)
-    {
-        await original;
-        // Hatch explicitly rolls and replaces HP, after the egg was created.
-        ForestEncounterFactory.ScaleCreatedEnemy(egg.Creature);
-    }
+    // Hatch explicitly rolls and replaces HP, after the egg was created.
+    private static void Postfix(ToughEgg __instance, ref Task __result) =>
+        __result = HarmonyAsyncTaskBridge.After(__result, () => ForestEncounterFactory.ScaleCreatedEnemy(__instance.Creature));
 }
 
 [HarmonyPatch(typeof(CombatRoom), nameof(CombatRoom.ToSerializable))]

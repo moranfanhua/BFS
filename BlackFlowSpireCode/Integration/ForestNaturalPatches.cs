@@ -5,57 +5,56 @@ using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Hooks;
-using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
+using STS2RitsuLib;
+using STS2RitsuLib.Lifecycle;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
 [HarmonyPatch(typeof(Hook), nameof(Hook.BeforeCombatStart))]
 internal static class ForestConceptCombatStartPatch
 {
-    private static void Postfix(IRunState runState, ICombatState? combatState, ref Task __result) => __result = AfterStart(__result, runState, combatState);
-
-    private static async Task AfterStart(Task original, IRunState runState, ICombatState? combatState)
+    private static void Postfix(IRunState runState, ICombatState? combatState, ref Task __result)
     {
-        await original;
-        if (runState is RunState state && ForestGenerationService.IsEnabled(state))
-        {
-            if (combatState is CombatState combat)
-                ForestSpeedRuntime.BeginCombat(combat, ForestConceptService.CombatAttackSpeed(state));
-        }
+        if (runState is RunState state && combatState is CombatState combat)
+            __result = HarmonyAsyncTaskBridge.After(__result, () =>
+            {
+                if (ForestGenerationService.IsEnabled(state))
+                    ForestSpeedRuntime.BeginCombat(combat, ForestConceptService.CombatAttackSpeed(state));
+            });
     }
 }
 
 [HarmonyPatch(typeof(Hook), nameof(Hook.AfterCombatVictory))]
 internal static class ForestConceptCombatEndPatch
 {
-    private static void Postfix(IRunState runState, CombatRoom room, ref Task __result) =>
-        __result = AfterVictory(__result, runState, room);
-
-    private static async Task AfterVictory(Task original, IRunState runState, CombatRoom room)
+    private static void Postfix(IRunState runState, CombatRoom room, ref Task __result)
     {
-        await original;
-        if (runState is RunState state && ForestGenerationService.IsEnabled(state))
-        {
-            ForestCombatHealthRuntime.RecordSpecialVictory(state, room);
-            await ForestConceptService.EndCombat(state);
-            ForestTeam.Publish(state);
-        }
+        if (runState is RunState state)
+            __result = HarmonyAsyncTaskBridge.After(__result, () => SettleVictory(state, room));
+    }
+
+    private static async Task SettleVictory(RunState state, CombatRoom room)
+    {
+        if (!ForestGenerationService.IsEnabled(state)) return;
+        ForestCombatHealthRuntime.RecordSpecialVictory(state, room);
+        await ForestConceptService.EndCombat(state);
+        ForestTeam.Publish(state);
     }
 }
 
-[HarmonyPatch(typeof(Hook), nameof(Hook.AfterCardChangedPiles))]
-internal static class ForestNaturalCardGainPatch
+internal static class ForestNaturalCardGain
 {
-    private static void Postfix(IRunState runState, CardModel card, PileType oldPile, ref Task __result) =>
-        __result = AfterChange(__result, runState, card, oldPile);
+    internal static void Register() =>
+        RitsuLibFramework.SubscribeLifecycle<CardMovedBetweenPilesEvent>(OnCardMoved, replayCurrentState: false);
 
-    private static async Task AfterChange(Task original, IRunState runState, CardModel card, PileType oldPile)
+    private static void OnCardMoved(CardMovedBetweenPilesEvent evt)
     {
-        await original;
-        if (ForestTeam.IsGuest || oldPile == PileType.Deck || card.Pile?.Type != PileType.Deck || runState is not RunState state
-            || !ForestGenerationService.IsEnabled(state) || card.Owner != LocalContext.GetMe(state)) return;
+        if (ForestTeam.IsGuest || evt.PreviousPile == PileType.Deck || evt.Card.Pile?.Type != PileType.Deck
+            || evt.RunState is not RunState state || !ForestGenerationService.IsEnabled(state)
+            || evt.Card.Owner != LocalContext.GetMe(state)) return;
         ForestGenerationService.ModifyEngine(state, ForestNaturalRules.CardObtained);
     }
 }

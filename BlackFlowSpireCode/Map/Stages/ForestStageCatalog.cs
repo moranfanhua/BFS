@@ -10,16 +10,12 @@ public static class ForestStageCatalog
     public static IEnumerable<ForestBattleVariant> Variants(ForestStageDefinition definition) => definition.IsBoss
         ? new[] { ForestBattleVariant.Boss } : new[] { ForestBattleVariant.Normal, ForestBattleVariant.Emergency };
 
-    // Sources may be shared. A legacy save without a family ID must not receive
-    // arbitrary text when several definitions match its native encounter.
-    public static ForestStageDefinition? FindByEncounter(string encounterId, ForestBattleVariant? variant = null)
+    public static ForestStageDefinition? FindBossByEncounter(string encounterId)
     {
-        var matches = Stages.Value.Values.Where(stage => Variants(stage).Any(mode =>
-            (!variant.HasValue || mode == variant.Value) && stage.GetVersion(mode).SourceEncounterId == encounterId)).Take(2).ToArray();
+        var matches = Stages.Value.Values.Where(stage =>
+            stage.IsBoss && stage.GetVersion(ForestBattleVariant.Boss).SourceEncounterId == encounterId).Take(2).ToArray();
         return matches.Length == 1 ? matches[0] : null;
     }
-
-    public static ForestStageDefinition? FindBossByEncounter(string encounterId) => FindByEncounter(encounterId, ForestBattleVariant.Boss);
 
     public static IReadOnlyList<ForestStageDefinition> ForRegion(string region) => Stages.Value.Values
         .Where(stage => !stage.IsBoss && string.Equals(stage.Region, region, StringComparison.OrdinalIgnoreCase))

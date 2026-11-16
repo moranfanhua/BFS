@@ -106,6 +106,7 @@ internal partial class ForestMusicDirector(NRunMusicController owner, RunState s
         {
             Volume = 0,
             Scope = AudioLifecycleScope.Run,
+            AllowFadeOutOnStop = false,
             UseVanillaRouting = false,
             DebugName = "BlackFlowSpire music: " + next
         });
@@ -181,7 +182,6 @@ internal partial class ForestMusicDirector(NRunMusicController owner, RunState s
 
     private static void Release(ref AudioMusicHandle? handle)
     {
-        handle?.TryStop(false);
         handle?.Dispose();
         handle = null;
     }

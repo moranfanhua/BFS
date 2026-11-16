@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using BlackFlowSpire.Combat;
 using BlackFlowSpire.Map.Collectibles;
@@ -21,6 +20,8 @@ using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves.Runs;
 using MegaCrit.Sts2.Core.TestSupport;
 using MegaCrit.Sts2.Core.ValueProps;
+using STS2RitsuLib.Utils;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
@@ -45,8 +46,7 @@ internal static class ForestCombatHealthRuntime
     }
 
     private static readonly ConditionalWeakTable<CombatState, Battle> Battles = new();
-    private sealed record SavedSettlement(Settlement Value);
-    private static readonly ConditionalWeakTable<CombatRoom, SavedSettlement> RestoredResults = new();
+    private static readonly AttachedState<CombatRoom, Settlement?> RestoredResults = new();
     private sealed record TrackedLife(CombatState Combat, ForestPlayerCombatLife Life);
     private static readonly ConditionalWeakTable<Creature, TrackedLife> CreatureLives = new();
 
@@ -86,9 +86,8 @@ internal static class ForestCombatHealthRuntime
         }
     }
 
-    internal static async Task ApplySummonLife(Task original, Creature creature, CombatState combat)
+    internal static void ApplySummonLife(Creature creature, CombatState combat)
     {
-        await original;
         if (!Battles.TryGetValue(combat, out var battle) || battle.LifeRestored || battle.AllyLife == 1m
             || CreatureLives.TryGetValue(creature, out _)) return;
 
@@ -244,9 +243,9 @@ internal static class ForestCombatHealthRuntime
     }
 
     internal static Settlement? GetSettlement(CombatRoom room) => Battles.TryGetValue(room.CombatState, out var battle)
-        ? battle.Result : RestoredResults.TryGetValue(room, out var restored) ? restored.Value : null;
+        ? battle.Result : RestoredResults.GetValueOrDefault(room);
 
-    internal static void RestoreSettlement(CombatRoom room, Settlement value) => RestoredResults.Add(room, new(value));
+    internal static void RestoreSettlement(CombatRoom room, Settlement value) => RestoredResults.Add(room, value);
 
     private static int ResidentExperience(RunState run)
     {
@@ -278,37 +277,31 @@ internal static class ForestSummonLifePatch
     private static void Postfix(Creature creature, CombatState state, ref Task __result)
     {
         if (creature.Side == CombatSide.Player && !creature.IsPlayer && creature.Monster is not Osty)
-            __result = ForestCombatHealthRuntime.ApplySummonLife(__result, creature, state);
+            __result = HarmonyAsyncTaskBridge.After(__result, () => ForestCombatHealthRuntime.ApplySummonLife(creature, state));
     }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(OstyCmd), nameof(OstyCmd.Summon), MethodType.Async)]
 internal static class ForestOstySummonLifePatch
 {
-    private static MethodBase TargetMethod() => AccessTools.Method(typeof(OstyCmd), nameof(OstyCmd.Summon))
-        .GetCustomAttribute<AsyncStateMachineAttribute>()!.StateMachineType
-        .GetMethod("MoveNext", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)!;
-
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> source)
     {
-        var instructions = source.ToList();
+        var rewriter = HarmonyIlRewriter.From(source);
         var setMaximum = AccessTools.Method(typeof(CreatureCmd), nameof(CreatureCmd.SetMaxHp));
         var heal = AccessTools.Method(typeof(CreatureCmd), nameof(CreatureCmd.Heal));
-        var maximumCalls = instructions.Where(instruction => instruction.Calls(setMaximum)).ToArray();
-        var healCalls = instructions.Where(instruction => instruction.Calls(heal)).ToArray();
-        if (maximumCalls.Length != 1 || healCalls.Length != 1)
+        if (rewriter.FindAll(HarmonyIl.IsCall(setMaximum)).Count != 1 || rewriter.FindAll(HarmonyIl.IsCall(heal)).Count != 1)
         {
             Entry.Logger.Warn("[Forest] Could not locate Osty's initial summon and revival health setup.");
-            return instructions;
+            return rewriter.Instructions();
         }
 
         // Initial summon and revival set an absolute base. Growth while alive
         // uses native GainMaxHp and goes through the ordinary maximum HP patch.
-        maximumCalls[0].opcode = OpCodes.Call;
-        maximumCalls[0].operand = AccessTools.Method(typeof(ForestCombatHealthRuntime), nameof(ForestCombatHealthRuntime.SetOstySummonMaximum));
-        healCalls[0].opcode = OpCodes.Call;
-        healCalls[0].operand = AccessTools.Method(typeof(ForestCombatHealthRuntime), nameof(ForestCombatHealthRuntime.HealOstyOnSummon));
-        return instructions;
+        var maximumRewrite = rewriter.ReplaceCall("Osty summon maximum", setMaximum,
+            AccessTools.Method(typeof(ForestCombatHealthRuntime), nameof(ForestCombatHealthRuntime.SetOstySummonMaximum)));
+        var healRewrite = rewriter.ReplaceCall("Osty summon healing", heal,
+            AccessTools.Method(typeof(ForestCombatHealthRuntime), nameof(ForestCombatHealthRuntime.HealOstyOnSummon)));
+        return rewriter.InstructionsChecked([maximumRewrite, healRewrite]);
     }
 }
 

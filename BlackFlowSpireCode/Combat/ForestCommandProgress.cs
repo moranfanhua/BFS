@@ -6,12 +6,6 @@ internal readonly record struct ForestHope(int Balance, int Maximum)
 {
     public const int Initial = 6;
 
-    public static ForestHope FromSaved(int balance, int? maximum)
-    {
-        balance = Math.Max(0, balance);
-        return new(balance, Math.Max(balance, maximum ?? Initial));
-    }
-
     public bool TryChange(int delta, out ForestHope result)
     {
         var balance = (long)Balance + delta;

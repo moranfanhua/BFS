@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Stages;
@@ -9,6 +8,7 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Random;
 using MegaCrit.Sts2.Core.Runs;
+using STS2RitsuLib.Utils;
 
 namespace BlackFlowSpire.Integration;
 
@@ -20,7 +20,7 @@ internal static class ForestEncounterFactory
         AccessTools.FieldRefAccess<EncounterModel, Rng?>("_rng");
     private static readonly AccessTools.FieldRef<EncounterModel, IReadOnlyList<(MonsterModel, string?)>?> Formation =
         AccessTools.FieldRefAccess<EncounterModel, IReadOnlyList<(MonsterModel, string?)>?>("_monstersWithSlots");
-    private static readonly ConditionalWeakTable<EncounterModel, ForestCombatSetup> Context = new();
+    private static readonly AttachedState<EncounterModel, ForestCombatSetup> Context = new();
 
     public static ForestCombatSetup CreateSetup(IRunState state, ForestStageSnapshot stage, ulong seed)
     {
@@ -64,10 +64,7 @@ internal static class ForestEncounterFactory
             if (snapshot.UseGenericEnemyLayout) ForestStageGenericLayoutPatch.EnsurePatched(encounter.GetType());
         }
         if (setup.Stage != null || setup.Special != ForestSpecialEncounter.None)
-        {
-            Context.Remove(encounter);
-            Context.Add(encounter, Copy(setup));
-        }
+            Context.Set(encounter, Copy(setup));
         EncounterRng(encounter) = new Rng(setup.Seed);
         if (!encounter.HaveMonstersBeenGenerated && state != null)
             encounter.GenerateMonstersWithSlots(state);
@@ -77,14 +74,8 @@ internal static class ForestEncounterFactory
             var actual = encounter.MonstersWithSlots.Select(item => new ForestEnemySlot(item.Item1.Id.ToString(), item.Item2)).ToArray();
             if (!actual.SequenceEqual(setup.Enemies))
                 throw new InvalidDataException("The native encounter no longer matches the saved enemy formation.");
-            if (setup.Stage is { } stage && ForestStageCatalog.Find(stage.StageId) is { } family
-                && family.IsBoss == (stage.Variant == ForestBattleVariant.Boss))
-            {
-                var version = family.GetVersion(stage.Variant);
-                if (version.Id == stage.VersionId && version.Revision == stage.Revision
-                    && version.SourceEncounterId == stage.SourceEncounterId)
-                    version.ValidateFormation(actual);
-            }
+            if (setup.Stage is { } stage)
+                ForestStageCatalog.Get(stage.StageId).GetVersion(stage.Variant).ValidateFormation(actual);
         }
     }
 

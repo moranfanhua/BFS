@@ -1,9 +1,8 @@
 using System.Reflection;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
@@ -42,28 +41,26 @@ internal static class ForestSpeedStartTurnPatch
     }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(CombatManager), "StartTurn", MethodType.Async)]
 internal static class ForestSpeedIntentPatch
 {
     internal static bool Available { get; private set; }
-
-    private static MethodBase TargetMethod() => AccessTools.Method(typeof(CombatManager), "StartTurn")
-        .GetCustomAttribute<AsyncStateMachineAttribute>()!.StateMachineType.GetMethod("MoveNext", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)!;
 
     private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> source)
     {
         var original = AccessTools.Method(typeof(Creature), nameof(Creature.PrepareForNextTurn));
         var replacement = AccessTools.Method(typeof(ForestSpeedRuntime), nameof(ForestSpeedRuntime.PrepareEnemyIntentForPlayerTurn));
-        var instructions = source.ToList();
-        var matches = instructions.Where(instruction => instruction.Calls(original)).ToArray();
-        Available = matches.Length == 1;
-        if (!Available)
+        var rewriter = HarmonyIlRewriter.From(source);
+        var matches = rewriter.FindAll(HarmonyIl.IsCall(original));
+        if (matches.Count != 1)
         {
-            Entry.Logger.Warn($"[Forest] Expected one enemy-intent preparation call, found {matches.Length}. Using native turn order.");
-            return instructions;
+            Available = false;
+            Entry.Logger.Warn($"[Forest] Expected one enemy-intent preparation call, found {matches.Count}. Using native turn order.");
+            return rewriter.Instructions();
         }
-        matches[0].opcode = OpCodes.Call;
-        matches[0].operand = replacement;
+        var rewrite = rewriter.ReplaceCall("Prepare enemy intent for player turn", original, replacement);
+        var instructions = rewriter.InstructionsChecked(rewrite);
+        Available = true;
         return instructions;
     }
 }
@@ -86,12 +83,7 @@ internal static class ForestSpeedSpawnIntentPatch
 {
     private static void Postfix(Creature creature, CombatState state, ref Task __result)
     {
-        if (ForestSpeedRuntime.IsEnabled(state)) __result = AfterSpawn(__result, creature, state);
-    }
-
-    private static async Task AfterSpawn(Task original, Creature creature, CombatState state)
-    {
-        await original;
-        ForestSpeedRuntime.RememberSpawnedEnemyIntent(state, creature);
+        if (ForestSpeedRuntime.IsEnabled(state))
+            __result = HarmonyAsyncTaskBridge.After(__result, () => ForestSpeedRuntime.RememberSpawnedEnemyIntent(state, creature));
     }
 }

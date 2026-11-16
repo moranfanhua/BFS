@@ -3,6 +3,7 @@ using BlackFlowSpire.Ui;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Runs;
+using STS2RitsuLib.Utils.HarmonyIl;
 
 namespace BlackFlowSpire.Integration;
 
@@ -48,12 +49,11 @@ internal static class ForestZoneEntryLoadPatch
     private static void Postfix(RunState runState, int __state, ref Task __result)
     {
         if (ForestGenerationService.IsEnabled(runState))
-            __result = ShowAfterLoad(runState, __state, __result);
+            __result = HarmonyAsyncTaskBridge.After(__result, () => ShowAfterLoad(runState, __state));
     }
 
-    private static async Task ShowAfterLoad(RunState state, int savedActIndex, Task load)
+    private static void ShowAfterLoad(RunState state, int savedActIndex)
     {
-        await load;
         // A checkpointed exit can advance during restore. Its EnterAct hook
         // owns the destination intro, so avoid replaying the departed floor.
         if (!ForestRuntime.IsTraveling && ReferenceEquals(ForestRuntime.State, state)

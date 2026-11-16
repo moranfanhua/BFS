@@ -81,7 +81,7 @@ public static class ForestFog
         var current = map.GetNode(map.PositionNodeId);
         if (targetNodeId != current.Id && !current.Neighbors.Contains(targetNodeId))
             throw new ArgumentException("Target must be the current node or a directly connected neighbor.", nameof(targetNodeId));
-        map.CurrentNodeId = targetNodeId;
+        map.PositionNodeId = targetNodeId;
         return RevealNearby(map, inventory);
     }
 }

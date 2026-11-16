@@ -12,7 +12,6 @@ internal sealed class StableRandom
 
     public StableRandom(string seed, int actIndex, string stream)
     {
-        // Preserve the version-1 seed domain across the project rename.
         var material = FormattableString.Invariant($"BFS/map/v1\0{seed}\0{actIndex}\0{stream}");
         _state = BinaryPrimitives.ReadUInt64LittleEndian(SHA256.HashData(Encoding.UTF8.GetBytes(material)));
     }

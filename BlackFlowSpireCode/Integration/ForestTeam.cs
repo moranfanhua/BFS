@@ -33,12 +33,9 @@ internal sealed record ForestHopePayment(ulong PlayerId, uint ChoiceId, bool Acc
 internal sealed record ForestTeamSnapshot(ForestTeamPosition Position, long Revision, ForestEngineInventory Engine,
     int ActionPoints, ForestHuntPhase Hunt, Dictionary<int, ForestShopPartStock> ShopParts,
     Dictionary<int, List<ForestShopOfferStock>> ShopOffers, Dictionary<int, ForestSecretShopStock> SecretShops,
-    int TargetLife = ForestCombatHealth.InitialTargetLife,
-    int MaxTargetLife = ForestCombatHealth.InitialTargetLife,
-    int TargetShield = 0,
-    ForestDamageMultipliers? DamageMultipliers = null,
-    Dictionary<ulong, decimal>? PlayerLifeMultipliers = null,
-    int Hope = 0, int? MaxHope = null, int CommandExperience = 0);
+    int TargetLife, int MaxTargetLife, int TargetShield,
+    ForestDamageMultipliers DamageMultipliers, Dictionary<ulong, decimal> PlayerLifeMultipliers,
+    int Hope, int MaxHope, int CommandExperience);
 internal sealed record ForestTeamCommand(ForestTeamAction Action, int Argument, ForestTeamSnapshot Snapshot);
 
 internal static class ForestTeam
@@ -355,7 +352,7 @@ internal static class ForestTeam
         ForestCollectibleRules.RevealMap(map, snapshot.Engine, countInformation: false);
         ForestGenerationService.SetTargetLife(state, snapshot.TargetLife, snapshot.MaxTargetLife, snapshot.TargetShield);
         ForestGenerationService.RestoreCommandProgress(state, snapshot.Hope, snapshot.MaxHope, snapshot.CommandExperience);
-        ForestGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers ?? new());
+        ForestGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers);
         ForestGenerationService.RestorePlayerLifeMultipliers(state, snapshot.PlayerLifeMultipliers);
         progress.ActionPointsRemaining = snapshot.ActionPoints;
         progress.HuntPhase = snapshot.Hunt;

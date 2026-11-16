@@ -60,7 +60,7 @@ public static class ForestProcessedPartRules
         var distance = Math.Abs(source.X - target.X) + Math.Abs(source.Y - target.Y);
         // The jump never visits, completes or consumes intervening nodes.
         ForestNodeLifecycle.Leave(map.GetNode(map.PositionNodeId));
-        map.CurrentNodeId = target.Id;
+        map.PositionNodeId = target.Id;
         progress.StepsTaken++;
         progress.ActionPointsRemaining += definition.ActionPointGain - Cost(part, definition, inventory.Collectibles.Has(203));
         inventory.ConsumeLoadedPart();

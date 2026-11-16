@@ -133,7 +133,7 @@ public static class ForestMapGenerator
         var map = new ForestMap
         {
             Seed = seed, ActIndex = actIndex, Options = settings,
-            StartNodeId = startId, BossNodeId = bossId, CurrentNodeId = startId, Nodes = nodes.Values.ToList()
+            StartNodeId = startId, BossNodeId = bossId, PositionNodeId = startId, Nodes = nodes.Values.ToList()
         };
         ForestFloorExitRules.Populate(map);
         ForestPassageAssignments.Populate(map);

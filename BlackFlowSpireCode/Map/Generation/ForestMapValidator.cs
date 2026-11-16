@@ -11,8 +11,6 @@ public static class ForestMapValidator
         ArgumentNullException.ThrowIfNull(map);
         if (map.SchemaVersion != 1 || map.GeneratorVersion != 1)
             throw new InvalidDataException("Unsupported forest map version.");
-        if (map.StageCatalogVersion is not (null or 1))
-            throw new InvalidDataException("Unsupported forest stage catalog version.");
         ArgumentException.ThrowIfNullOrWhiteSpace(map.Seed);
         if (map.ActIndex < 0) throw new InvalidDataException("Invalid act index.");
         map.Options.Validate();

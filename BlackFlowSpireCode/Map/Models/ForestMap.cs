@@ -87,22 +87,16 @@ public sealed class ForestMap
 {
     public int SchemaVersion { get; set; } = 1;
     public int GeneratorVersion { get; set; } = 1;
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? StageCatalogVersion { get; set; }
     public string Seed { get; set; } = "";
     public int ActIndex { get; set; }
     public ForestGenerationOptions Options { get; set; } = new();
     public int StartNodeId { get; set; }
     // Native ActMap calls its terminal point BossMapPoint even on a noncombat exit floor.
     public int BossNodeId { get; set; }
-    // Missing in older snapshots: treat the center starting node as the current position.
-    public int? CurrentNodeId { get; set; }
+    public required int PositionNodeId { get; set; }
     public List<ForestNode> Nodes { get; set; } = [];
     public List<ForestRoamingResident> RoamingResidents { get; set; } = [];
     public int ResidentMovementCount { get; set; }
-
-    [JsonIgnore]
-    public int PositionNodeId => CurrentNodeId ?? StartNodeId;
 
     public ForestNode GetNode(int id) => Nodes.First(n => n.Id == id);
 
