@@ -20,6 +20,7 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
     private bool[] _originalVisibility = [];
     private Control _view = null!;
     private TextureRect _floorTitle = null!;
+    private Control _hopeBar = null!;
     private Label _targetLife = null!;
     private Label _maxTargetLife = null!;
     private HBoxContainer _shield = null!;
@@ -64,6 +65,7 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
         var collectibles = _view.GetNode<Button>("Canvas/Collectibles");
         collectibles.Pressed += () => ForestCollectibleScreen.Open(_state);
         _floorTitle = _view.GetNode<TextureRect>("Canvas/FloorTitle");
+        _hopeBar = _view.GetNode<Control>("Canvas/Hope");
         _targetLife = _view.GetNode<Label>("Canvas/LifeValue/Current");
         _maxTargetLife = _view.GetNode<Label>("Canvas/LifeValue/Maximum");
         _shield = _view.GetNode<HBoxContainer>("Canvas/LifeValue/Shield");
@@ -131,7 +133,7 @@ internal partial class ForestNativeHud(NGlobalUi globalUi, RunState state) : Con
             _shieldCount.Text = shield.ToString();
             _shield.Visible = shield > 0;
         }
-        if (_shown?.Hope != hope) _view.Call("set_hope", hope.Balance, hope.Maximum, _shown.HasValue);
+        if (_shown?.Hope != hope) _hopeBar.Call("set_hope", hope.Balance, hope.Maximum, _shown.HasValue);
         if (_shown?.Experience != experience)
         {
             var command = ForestCommandLevel.FromExperience(experience);

@@ -13,11 +13,7 @@
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-exp-57911596.png" id="exp_fill"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-level-up-bd9f5637.png" id="level_arrow"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/zone-1.png" id="zone"]
-[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-background.png" id="hope_background"]
-[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-capacity.png" id="hope_capacity"]
-[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-fill.png" id="hope_fill"]
-[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-icon.png" id="hope_icon"]
-[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Ui/TopBar/hope-marker.png" id="hope_marker"]
+[ext_resource type="PackedScene" path="res://BlackFlowSpire/Scenes/Ui/ForestHopeBar.tscn" id="hope"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/hud/img-gold-back-0756fdb9.png" id="gold_background"]
 [ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Shop/currency-icon.png" id="gold_icon"]
 
@@ -249,88 +245,13 @@ texture = ExtResource("zone")
 expand_mode = 1
 stretch_mode = 3
 
-[node name="Hope" type="TextureRect" parent="Canvas"]
+[node name="Hope" parent="Canvas" instance=ExtResource("hope")]
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -412.5
 offset_top = 21.5
 offset_right = -195.5
 offset_bottom = 48.5
-mouse_filter = 2
-texture = ExtResource("hope_background")
-expand_mode = 1
-
-[node name="Capacity" type="TextureRect" parent="Canvas/Hope"]
-offset_left = 54.5
-offset_right = 114.5
-offset_bottom = 27.0
-mouse_filter = 2
-texture = ExtResource("hope_capacity")
-expand_mode = 1
-
-[node name="Fill" type="TextureRect" parent="Canvas/Hope"]
-offset_left = 54.5
-offset_right = 114.5
-offset_bottom = 27.0
-mouse_filter = 2
-texture = ExtResource("hope_fill")
-expand_mode = 1
-self_modulate = Color(1, 0.847, 0, 1)
-
-[node name="Icon" type="TextureRect" parent="Canvas/Hope"]
-offset_left = 12.0
-offset_top = -13.5
-offset_right = 44.0
-offset_bottom = 21.5
-mouse_filter = 2
-texture = ExtResource("hope_icon")
-expand_mode = 1
-
-[node name="Balance" type="Label" parent="Canvas/Hope"]
-offset_left = 128.5
-offset_top = -2.0
-offset_right = 143.5
-offset_bottom = 29.0
-mouse_filter = 2
-theme_override_fonts/font = ExtResource("bender")
-theme_override_font_sizes/font_size = 26
-theme_override_colors/font_color = Color(1, 0.827, 0, 1)
-text = "6"
-vertical_alignment = 1
-
-[node name="Marker" type="TextureRect" parent="Canvas/Hope/Balance"]
-offset_left = -12.0
-offset_top = 8.5
-offset_bottom = 22.5
-mouse_filter = 2
-texture = ExtResource("hope_marker")
-expand_mode = 1
-flip_h = true
-flip_v = true
-self_modulate = Color(1, 0.827, 0, 1)
-
-[node name="Maximum" type="Label" parent="Canvas/Hope"]
-offset_left = 154.5
-offset_top = -2.0
-offset_right = 169.5
-offset_bottom = 29.0
-mouse_filter = 2
-theme_override_fonts/font = ExtResource("bender")
-theme_override_font_sizes/font_size = 26
-theme_override_colors/font_color = Color(0.596, 0.596, 0.596, 1)
-text = "6"
-vertical_alignment = 1
-
-[node name="Marker" type="TextureRect" parent="Canvas/Hope/Maximum"]
-offset_left = -12.0
-offset_top = 8.5
-offset_bottom = 22.5
-mouse_filter = 2
-texture = ExtResource("hope_marker")
-expand_mode = 1
-flip_h = true
-flip_v = true
-self_modulate = Color(0.596, 0.596, 0.596, 1)
 
 [node name="GoldBackground" type="NinePatchRect" parent="Canvas"]
 anchor_left = 1.0

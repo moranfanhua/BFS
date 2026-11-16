@@ -6,6 +6,7 @@ using BlackFlowSpire.Ui;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Ascension;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Ftue;
@@ -18,7 +19,7 @@ using MegaCrit.Sts2.Core.Runs;
 namespace BlackFlowSpire.Integration;
 
 [HarmonyPatch(typeof(RewardsSet), nameof(RewardsSet.WithRewardsFromRoom))]
-internal static class ForestBattleGoldPatch
+internal static class ForestBattleRewardsPatch
 {
     private static readonly int[] NormalIngots = [1, 2, 2, 2, 2];
     private static readonly int[] EmergencyIngots = [2, 2, 3, 3, 5];
@@ -29,6 +30,15 @@ internal static class ForestBattleGoldPatch
     {
         var player = __instance.Player;
         if (room is not CombatRoom combat || player.RunState is not RunState run || !ForestGenerationService.IsEnabled(run)) return;
+        combat.ExtraRewards.TryGetValue(player, out var extras);
+        var rewards = __instance.Rewards;
+        var endOfRoomRewards = rewards.Count - (extras?.Count ?? 0);
+        AdjustGold(rewards, __state, endOfRoomRewards, combat, run, player);
+        ReplaceCardReward(rewards, __state, rewards.Count - (extras?.Count ?? 0), player, combat.RoomType);
+    }
+
+    private static void AdjustGold(List<Reward> rewards, int start, int end, CombatRoom combat, RunState run, Player player)
+    {
         var floor = run.CurrentActIndex;
         var special = ForestEncounterFactory.SpecialKind(combat.Encounter);
         int ingots;
@@ -58,10 +68,7 @@ internal static class ForestBattleGoldPatch
         if (combat.RoomType == RoomType.Monster && special == ForestSpecialEncounter.None)
             gold = (int)Math.Round(gold * combat.GoldProportion);
 
-        combat.ExtraRewards.TryGetValue(player, out var extras);
-        var rewards = __instance.Rewards;
-        var endOfRoomRewards = rewards.Count - (extras?.Count ?? 0);
-        for (var index = __state; index < endOfRoomRewards; index++)
+        for (var index = start; index < end; index++)
         {
             if (rewards[index] is not GoldReward existing || existing.ToSerializable().WasGoldStolenBack) continue;
             if (gold == 0) rewards.RemoveAt(index);
@@ -70,8 +77,22 @@ internal static class ForestBattleGoldPatch
         }
 
         // The native final boss normally has no base loot. The forest boss still drops ingots.
-        if (gold > 0 && combat.RoomType == RoomType.Boss && floor == run.Acts.Count - 1 && endOfRoomRewards == __state)
-            rewards.Insert(__state, new GoldReward(gold, gold, player));
+        if (gold > 0 && combat.RoomType == RoomType.Boss && floor == run.Acts.Count - 1 && end == start)
+            rewards.Insert(start, new GoldReward(gold, gold, player));
+    }
+
+    private static void ReplaceCardReward(List<Reward> rewards, int start, int end, Player player, RoomType roomType)
+    {
+        if (ForestBattleCardPackReward.Draw(player, roomType) is not { } pack) return;
+        for (var index = start; index < end; index++)
+        {
+            if (rewards[index] is not CardReward cardReward) continue;
+            // The unpopulated native reward subscribed to relic changes in its constructor.
+            if (!cardReward.IsPopulated) cardReward.OnSkipped();
+            rewards[index] = pack;
+            return;
+        }
+        rewards.Insert(end, pack);
     }
 
     private static int BossIngots(int floor) => ForestCommandLevel.BattleExperience(floor, ForestBattleVariant.Boss) / 6;

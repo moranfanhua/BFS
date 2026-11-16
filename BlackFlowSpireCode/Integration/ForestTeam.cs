@@ -29,6 +29,7 @@ internal enum ForestTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, Hunt
 // Steps distinguish revisits to the same node. Act distinguishes floor changes.
 internal sealed record ForestTeamPosition(int Act, int Node, int Steps);
 internal sealed record ForestTeamReady(ForestTeamPosition Position, bool Ready);
+internal sealed record ForestHopePayment(ulong PlayerId, uint ChoiceId, bool Accepted);
 internal sealed record ForestTeamSnapshot(ForestTeamPosition Position, long Revision, ForestEngineInventory Engine,
     int ActionPoints, ForestHuntPhase Hunt, Dictionary<int, ForestShopPartStock> ShopParts,
     Dictionary<int, List<ForestShopOfferStock>> ShopOffers, Dictionary<int, ForestSecretShopStock> SecretShops,
@@ -50,6 +51,7 @@ internal static class ForestTeam
         public bool AttachedToLobby { get; set; }
         public ForestTeamSnapshot? DeferredSnapshot { get; set; }
         public TaskCompletionSource<ForestShopOfferEntry?>? OfferCompletion { get; set; }
+        public Dictionary<(ulong PlayerId, uint ChoiceId), TaskCompletionSource<bool>> HopePayments { get; } = [];
     }
 
     private static readonly ConditionalWeakTable<RunState, Session> Sessions = new();
@@ -60,12 +62,16 @@ internal static class ForestTeam
     private static readonly RitsuLibSidecarSyncMessageDescriptor<ForestTeamSnapshot> SnapshotMessage = new(
         Entry.ModId, "forest-team-state/v1", Encode, Decode<ForestTeamSnapshot>, OnSnapshot,
         DispatchLocalOnBroadcast: false, ShouldBuffer: false);
+    private static readonly RitsuLibSidecarSyncMessageDescriptor<ForestHopePayment> HopePaymentMessage = new(
+        Entry.ModId, "forest-hope-payment/v1", Encode, Decode<ForestHopePayment>, OnHopePayment,
+        LocationTargeted: true, DispatchLocalOnBroadcast: false, ShouldBuffer: false);
 
     internal static void Register()
     {
         RitsuLibManagedNetActions.Register(Command);
         RitsuLibSidecarSyncMessages.Register(ReadyMessage);
         RitsuLibSidecarSyncMessages.Register(SnapshotMessage);
+        RitsuLibSidecarSyncMessages.Register(HopePaymentMessage);
         RitsuLibFramework.SubscribeLifecycle<RunSavedDataPreparingEvent>(e =>
         {
             if (e.IsMultiplayer && ForestGenerationService.IsEnabled(e.RunState))
@@ -102,7 +108,53 @@ internal static class ForestTeam
     {
         if (!Sessions.TryGetValue(state, out var session)) return;
         session.OfferCompletion?.TrySetResult(null);
+        foreach (var payment in session.HopePayments.Values) payment.TrySetResult(false);
         Sessions.Remove(state);
+    }
+
+    internal static async Task<bool> TryPayHope(RunState state, Player player, uint choiceId, int cost)
+    {
+        if (cost == 0) return true;
+        if (!IsOnline) return ForestGenerationService.TryChangeHope(state, -cost);
+        if (IsHost)
+        {
+            // Reward choices can complete concurrently. Only the host debits the shared balance.
+            var accepted = ForestGenerationService.TryChangeHope(state, -cost, replicated: true);
+            if (!RitsuLibSidecarSyncMessages.Broadcast(Net, HopePaymentMessage, new ForestHopePayment(player.NetId, choiceId, accepted)))
+            {
+                if (accepted) ForestGenerationService.RefundHope(state, cost);
+                Entry.Logger.Warn("[Forest] Could not synchronize the card pack's Hope payment.");
+                return false;
+            }
+            if (accepted) Publish(state);
+            return accepted;
+        }
+
+        var payments = Sessions.GetOrCreateValue(state).HopePayments;
+        var key = (player.NetId, choiceId);
+        var payment = GetHopePayment(payments, key);
+        try { return await payment.Task; }
+        finally { payments.Remove(key); }
+    }
+
+    private static Task OnHopePayment(RitsuLibSidecarSyncMessageContext<ForestHopePayment> context)
+    {
+        if (Net is NetClientGameService { IsConnected: true } client && context.SenderNetId == client.HostNetId
+            && ReferenceEquals(context.NetService, Net) && ForestRuntime.State is { } state)
+        {
+            var payment = context.Message;
+            var payments = Sessions.GetOrCreateValue(state).HopePayments;
+            GetHopePayment(payments, (payment.PlayerId, payment.ChoiceId)).TrySetResult(payment.Accepted);
+        }
+        return Task.CompletedTask;
+    }
+
+    private static TaskCompletionSource<bool> GetHopePayment(
+        Dictionary<(ulong PlayerId, uint ChoiceId), TaskCompletionSource<bool>> payments, (ulong PlayerId, uint ChoiceId) key)
+    {
+        if (!payments.TryGetValue(key, out var payment))
+            payments.Add(key, payment = new(TaskCreationOptions.RunContinuationsAsynchronously));
+        return payment;
     }
 
     internal static Player? Owner(RunState state)

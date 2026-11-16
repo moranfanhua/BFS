@@ -201,7 +201,7 @@ internal sealed partial class ForestBattleSettlementScreen(NRewardsScreen screen
         var (underlay, tint) = reward switch
         {
             GoldReward => ("gold-underlay", Green),
-            CardReward => ("draft-underlay", Teal),
+            CardReward or ForestBattleCardPackReward => ("draft-underlay", Teal),
             RelicReward => ("relic-underlay", new Color("ffc879")),
             PotionReward => ("potion-underlay", new Color("8adfed")),
             _ => ("draft-underlay", Teal)
@@ -225,9 +225,10 @@ internal sealed partial class ForestBattleSettlementScreen(NRewardsScreen screen
         }
         else
         {
-            if (reward is CardReward) AddImage(frame, "draft", 52, 52, 180, 180, true);
+            var isCardReward = reward is CardReward or ForestBattleCardPackReward;
+            if (isCardReward) AddImage(frame, "draft", 52, 52, 180, 180, true);
             else AddNativeIcon(frame, native, reward);
-            if (reward is CardReward || linked)
+            if (isCardReward || linked)
                 Label(frame, Text(linked ? "choose_one" : "draft_detail"), 24, 298, 236, 46, 18,
                     new("b3bbbb"), HorizontalAlignment.Center);
         }

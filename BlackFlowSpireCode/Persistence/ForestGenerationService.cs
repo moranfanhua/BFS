@@ -89,6 +89,17 @@ public static class ForestGenerationService
         return changed;
     }
 
+    internal static void RefundHope(RunState state, int amount)
+    {
+        if (amount == 0 || ForestTeam.IsGuest) return;
+        _slot!.Modify(state, data =>
+        {
+            var hope = ForestHope.FromSaved(data.Hope, data.MaxHope);
+            data.SetHope(hope with { Balance = (int)Math.Min((long)hope.Balance + amount, hope.Maximum) });
+        });
+        ForestTeam.Publish(state);
+    }
+
     internal static void RestoreCommandProgress(RunState state, int hope, int? maxHope, int experience) =>
         _slot!.Modify(state, data =>
         {
