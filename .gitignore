@@ -5,10 +5,11 @@ artifacts/
 .godot/
 tools/
 tests/
-docs/
+/docs/*
 dll/
 dllsrc/
 *.md
-!README.md
+!/README.md
 !/AGENTS.md
+!/docs/ASSETS.md
 *.ps1

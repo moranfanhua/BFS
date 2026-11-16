@@ -15,7 +15,7 @@ BlackFlowSpire（黑流尖塔）是《杀戮尖塔 2》的 Mod，将《明日方
 | `dllsrc/sts2/`、`dllsrc/`、`dll/` | `dllsrc/sts2/` 是《杀戮尖塔 2》的反编译源码；`dllsrc/` 也保存框架参考源码，`dll/` 存放本地编译依赖。 |
 | `tests/BlackFlowSpire.Tests/`、`tools/` | 本地测试，以及资源核对、地图生成与预览、音频和打包工具。 |
 | `build.ps1`、`install-local.ps1` | 本地构建和安装入口。Mod 包输出到 `artifacts/mods/BlackFlowSpire/`。 |
-| `README.md`、`UI-EDITING.md`、`docs/` | 项目总览、Godot 界面编辑说明和本地开发资料。 |
+| `README.md`、`docs/ASSETS.md`、`docs/local/` | 安装和构建说明、素材索引、本地开发与解包记录。 |
 
 ## 项目约定
 
