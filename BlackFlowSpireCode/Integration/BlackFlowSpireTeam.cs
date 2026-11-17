@@ -24,7 +24,7 @@ using STS2RitsuLib.RunData;
 
 namespace BlackFlowSpire.Integration;
 
-internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle, Rest }
+internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle, Rest, Sacrifice, SacrificeItem }
 
 // Steps distinguish revisits to the same node. Act distinguishes floor changes.
 internal sealed record BlackFlowSpireTeamPosition(int Act, int Node, int Steps);
@@ -35,7 +35,7 @@ internal sealed record BlackFlowSpireTeamSnapshot(BlackFlowSpireTeamPosition Pos
     Dictionary<int, List<BlackFlowSpireShopOfferStock>> ShopOffers, Dictionary<int, BlackFlowSpireSecretShopStock> SecretShops,
     int TargetLife, int MaxTargetLife, int TargetShield,
     BlackFlowSpireDamageMultipliers DamageMultipliers, Dictionary<ulong, decimal> PlayerLifeMultipliers,
-    int Hope, int MaxHope, int CommandExperience);
+    int Hope, int MaxHope, int CommandExperience, BlackFlowSpireSacrificeProgress? Sacrifice);
 internal sealed record BlackFlowSpireTeamCommand(BlackFlowSpireTeamAction Action, int Argument, BlackFlowSpireTeamSnapshot Snapshot);
 
 internal static class BlackFlowSpireTeam
@@ -265,6 +265,8 @@ internal static class BlackFlowSpireTeam
                 case BlackFlowSpireTeamAction.Hunt: await BlackFlowSpireRuntime.ConfirmHuntCore(); break;
                 case BlackFlowSpireTeamAction.HuntBattle: await BlackFlowSpireRuntime.StartHuntCore(); break;
                 case BlackFlowSpireTeamAction.Rest: await BlackFlowSpireRuntime.ResolveRestCore(command.Argument); break;
+                case BlackFlowSpireTeamAction.Sacrifice: await BlackFlowSpireRuntime.ResolveSacrificeCore(command.Argument, exchange: false); break;
+                case BlackFlowSpireTeamAction.SacrificeItem: await BlackFlowSpireRuntime.ResolveSacrificeCore(command.Argument, exchange: true); break;
                 case BlackFlowSpireTeamAction.ShopOffer:
                     purchasedOffer = await PurchaseOffer(state, context.Player, (BlackFlowSpireShopOfferKind)command.Argument);
                     break;
@@ -301,7 +303,7 @@ internal static class BlackFlowSpireTeam
             BlackFlowSpireGenerationService.GetEngine(state), progress.ActionPointsRemaining, progress.HuntPhase,
             progress.ShopParts, progress.ShopOffers, progress.SecretShops, life, maxLife, shield,
             BlackFlowSpireGenerationService.GetDamageMultipliers(state), BlackFlowSpireGenerationService.CopyPlayerLifeMultipliers(state),
-            hope.Balance, hope.Maximum, BlackFlowSpireGenerationService.GetCommandExperience(state));
+            hope.Balance, hope.Maximum, BlackFlowSpireGenerationService.GetCommandExperience(state), progress.Sacrifice);
     }
 
     internal static void Publish(RunState state)
@@ -360,6 +362,7 @@ internal static class BlackFlowSpireTeam
         progress.ShopParts = snapshot.ShopParts;
         progress.ShopOffers = snapshot.ShopOffers;
         progress.SecretShops = snapshot.SecretShops;
+        if (BlackFlowSpireSacrificeRules.IsPending(map, progress)) progress.Sacrifice = snapshot.Sacrifice;
         BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
         var session = Sessions.GetOrCreateValue(state);
         session.Revision = Math.Max(session.Revision, snapshot.Revision);

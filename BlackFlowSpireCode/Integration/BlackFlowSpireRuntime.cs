@@ -64,7 +64,7 @@ public static partial class BlackFlowSpireRuntime
         var completedNow = false;
         if (!inspection && !CombatManager.Instance.IsInProgress && progress.PendingNodeId.HasValue
             && !BlackFlowSpirePassageRules.IsPending(map, progress) && !BlackFlowSpireFloorExitRules.IsPending(map, progress)
-            && !BlackFlowSpireRestRules.IsPending(map, progress))
+            && !BlackFlowSpireRestRules.IsPending(map, progress) && !BlackFlowSpireSacrificeRules.IsPending(map, progress))
         {
             BlackFlowSpireTravelRules.CompleteEncounter(map, progress);
             ((BlackFlowSpireActMap)state.Map).RefreshPointTypes();
@@ -112,6 +112,9 @@ public static partial class BlackFlowSpireRuntime
         if (IsActive && animateOut && !IsTraveling && CanContinueRun
             && BlackFlowSpireRestRules.IsPending(BlackFlowSpireGenerationService.GetOrGenerate(State!),
                 BlackFlowSpireGenerationService.GetProgress(State!))) return;
+        if (IsActive && animateOut && !IsTraveling && CanContinueRun
+            && BlackFlowSpireSacrificeRules.IsPending(BlackFlowSpireGenerationService.GetOrGenerate(State!),
+                BlackFlowSpireGenerationService.GetProgress(State!))) return;
         if (IsActive && !IsTraveling && !BlackFlowSpireMapUi.IsInspection(screen)) BlackFlowSpireTeam.ReportReady(State!, false);
         SetMapFlag(screen, "IsOpen", false);
         screen.Hide();
@@ -119,6 +122,7 @@ public static partial class BlackFlowSpireRuntime
         BlackFlowSpireHuntUi.DismissNotice(screen);
         BlackFlowSpirePassageUi.DismissNotice(screen);
         BlackFlowSpireRestUi.Dismiss(screen);
+        BlackFlowSpireSacrificeUi.Dismiss(screen);
         BlackFlowSpireMovementModeScreen.Dismiss(screen);
         BlackFlowSpirePartsUi.DismissBox();
         if (RunManager.Instance.IsSingleplayerOrFakeMultiplayer) CombatManager.Instance.Unpause();

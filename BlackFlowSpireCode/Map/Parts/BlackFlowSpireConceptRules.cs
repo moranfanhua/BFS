@@ -14,6 +14,7 @@ public static class BlackFlowSpireConceptRules
             BlackFlowSpireNodeContent.Reward => BlackFlowSpireNodeVisuals.WISH,
             BlackFlowSpireNodeContent.Light => BlackFlowSpireNodeVisuals.LIGHT,
             BlackFlowSpireNodeContent.Rest => BlackFlowSpireNodeVisuals.REST,
+            BlackFlowSpireNodeContent.Sacrifice => BlackFlowSpireNodeVisuals.SACRIFICE,
             _ => null
         };
         return Activate(inventory, definition => definition.Trigger switch

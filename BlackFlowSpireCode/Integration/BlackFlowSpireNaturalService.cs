@@ -10,10 +10,8 @@ namespace BlackFlowSpire.Integration;
 
 public static class BlackFlowSpireNaturalService
 {
-    // Seed cultivation is handled by BlackFlowSpireSecretShop. Dedicated events and
-    // exchanges can attach their own outcomes when those systems are implemented.
+    // Seed cultivation and exchanges have their own event flows.
     public static Func<RunState, BlackFlowSpireNaturalPart, Task<bool>>? CageControllerEventHandler { get; set; }
-    public static Func<RunState, BlackFlowSpireNaturalPart, Task<bool>>? ThinBurialGrassExchangeHandler { get; set; }
     public static Func<RunState, Task<bool>>? TraderRefreshHandler { get; set; }
 
     public static async Task<BlackFlowSpireNaturalPart> Grant(BlackFlowSpireNaturalPartKind kind)

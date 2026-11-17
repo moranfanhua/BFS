@@ -1,0 +1,481 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="font"]
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Numbers.tres" id="numbers"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/start_dust_sheet.png" id="dust"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/bg_content.png" id="bg_content"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/bg_exchange_title.png" id="bg_exchange_title"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/bg_grain.png" id="bg_grain"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/bg_sell_price.png" id="bg_sell_price"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/btn_back.png" id="btn_back"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/btn_confirm_sacrifice.png" id="btn_confirm_sacrifice"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/btn_select_sacrifice.png" id="btn_select_sacrifice"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/expedition_bg.png" id="expedition_bg"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/expedition_char_bottom_hint.png" id="expedition_char_bottom_hint"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/icon_exchange.png" id="icon_exchange"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/icon_exchange_deco.png" id="icon_exchange_deco"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/icon_select_relic.png" id="icon_select_relic"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/icon_select_scrap.png" id="icon_select_scrap"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_arrow_empty.png" id="img_arrow_empty"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_exchange_bottom.png" id="img_exchange_bottom"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_exchange_left.png" id="img_exchange_left"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_exchange_middle.png" id="img_exchange_middle"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_exchange_title.png" id="img_exchange_title"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_sacrifice_img.png" id="img_sacrifice_img"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_sacrifice_mask.png" id="img_sacrifice_mask"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_scroll_bar.png" id="img_scroll_bar"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_scroll_bar_bg.png" id="img_scroll_bar_bg"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_select_current.png" id="img_select_current"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_select_target.png" id="img_select_target"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_sell_price.png" id="img_sell_price"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_title_relic.png" id="img_title_relic"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/img_title_scrap.png" id="img_title_scrap"]
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[sub_resource type="CanvasItemMaterial" id="dust_canvas"]
+particles_animation = true
+particles_anim_h_frames = 2
+particles_anim_v_frames = 2
+
+[sub_resource type="Gradient" id="dust_fade"]
+offsets = PackedFloat32Array(0, 0.246, 0.412, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="dust_ramp"]
+gradient = SubResource("dust_fade")
+
+[sub_resource type="Curve" id="dust_scale"]
+_data = [Vector2(0, 0.5112), 0.0, 1.39665, 0, 0, Vector2(0.35, 1), 0.0, 0.0, 0, 0, Vector2(0.992, 0.5919), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="dust_size"]
+curve = SubResource("dust_scale")
+
+[sub_resource type="ParticleProcessMaterial" id="dust_process"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(765, 430, 0)
+direction = Vector3(-0.76, -0.65, 0)
+spread = 45.0
+initial_velocity_max = 41.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.15625
+scale_max = 0.78125
+scale_curve = SubResource("dust_size")
+color_ramp = SubResource("dust_ramp")
+anim_offset_max = 1.0
+
+[sub_resource type="StyleBoxFlat" id="focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.92, 0.76, 0.85)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_left = 14
+corner_radius_bottom_right = 14
+
+[sub_resource type="StyleBoxTexture" id="rail"]
+texture = ExtResource("img_scroll_bar_bg")
+texture_margin_left = 2
+texture_margin_right = 2
+texture_margin_top = 6
+texture_margin_bottom = 6
+
+[sub_resource type="StyleBoxTexture" id="grabber"]
+texture = ExtResource("img_scroll_bar")
+texture_margin_left = 2
+texture_margin_right = 2
+texture_margin_top = 6
+texture_margin_bottom = 6
+
+[sub_resource type="Theme" id="theme"]
+default_font = ExtResource("font")
+default_font_size = 18
+Button/styles/normal = SubResource("empty")
+Button/styles/hover = SubResource("empty")
+Button/styles/pressed = SubResource("empty")
+Button/styles/disabled = SubResource("empty")
+Button/styles/focus = SubResource("focus")
+VScrollBar/styles/scroll = SubResource("rail")
+VScrollBar/styles/scroll_focus = SubResource("rail")
+VScrollBar/styles/grabber = SubResource("grabber")
+VScrollBar/styles/grabber_highlight = SubResource("grabber")
+VScrollBar/styles/grabber_pressed = SubResource("grabber")
+
+[node name="SacrificePicker" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+clip_contents = true
+theme = SubResource("theme")
+
+[node name="Matte" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Canvas" type="Control" parent="."]
+offset_left = 0
+offset_top = 0
+offset_right = 1422.2220
+offset_bottom = 800.0000
+mouse_filter = 2
+clip_contents = true
+
+[node name="Backdrop" type="TextureRect" parent="Canvas"]
+offset_left = 0
+offset_top = 0
+offset_right = 1422.2220
+offset_bottom = 800.0000
+texture = ExtResource("expedition_bg")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="Illustration" type="TextureRect" parent="Canvas"]
+offset_left = 142.222
+offset_top = 7
+offset_right = 1422.2220
+offset_bottom = 873.0000
+texture = ExtResource("img_sacrifice_img")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="Grain" type="TextureRect" parent="Canvas"]
+offset_left = 0
+offset_top = 0
+offset_right = 1422.2220
+offset_bottom = 800.0000
+texture = ExtResource("bg_grain")
+mouse_filter = 2
+expand_mode = 1
+texture_repeat = 2
+stretch_mode = 1
+
+[node name="Dust" type="GPUParticles2D" parent="Canvas"]
+position = Vector2(705.1, 419)
+material = SubResource("dust_canvas")
+amount = 60
+texture = ExtResource("dust")
+lifetime = 4.0
+preprocess = 4.0
+lifetime_randomness = 0.75
+visibility_rect = Rect2(-770, -435, 1540, 870)
+process_material = SubResource("dust_process")
+
+[node name="BottomMask" type="TextureRect" parent="Canvas"]
+offset_left = 0
+offset_top = 600.6
+offset_right = 1422.2220
+offset_bottom = 939.4000
+texture = ExtResource("img_sacrifice_mask")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="TitleBase" type="TextureRect" parent="Canvas"]
+offset_left = 283.8
+offset_top = 74.7
+offset_right = 438.8000
+offset_bottom = 312.7000
+texture = ExtResource("bg_exchange_title")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="TitleArt" type="TextureRect" parent="Canvas"]
+offset_left = 269.8
+offset_top = 155.7
+offset_right = 452.8000
+offset_bottom = 226.7000
+texture = ExtResource("img_exchange_title")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="Branches" type="TextureRect" parent="Canvas"]
+offset_left = 189.4
+offset_top = 236
+offset_right = 521.4000
+offset_bottom = 706.0000
+texture = ExtResource("img_exchange_middle")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="LeftShade" type="TextureRect" parent="Canvas"]
+offset_left = -58.2
+offset_top = 66.7
+offset_right = 319.8000
+offset_bottom = 564.7000
+texture = ExtResource("img_exchange_left")
+mouse_filter = 2
+expand_mode = 1
+modulate = Color(1, 1, 1, 0.502)
+
+[node name="OfferedSlot" type="TextureRect" parent="Canvas"]
+offset_left = 41.2
+offset_top = 150.5
+offset_right = 379.2000
+offset_bottom = 523.5000
+texture = ExtResource("img_select_current")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="UnknownSlot" type="TextureRect" parent="Canvas"]
+offset_left = 335.4
+offset_top = 150.5
+offset_right = 673.4000
+offset_bottom = 523.5000
+texture = ExtResource("img_select_target")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="ExchangeArrow" type="TextureRect" parent="Canvas"]
+offset_left = 311.6
+offset_top = 293.2
+offset_right = 407.6000
+offset_bottom = 389.2000
+texture = ExtResource("icon_exchange")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="ExchangeBottom" type="TextureRect" parent="Canvas"]
+offset_left = 194.4
+offset_top = 448.9
+offset_right = 516.4000
+offset_bottom = 530.9000
+texture = ExtResource("img_exchange_bottom")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="GoldDeco1" type="TextureRect" parent="Canvas"]
+offset_left = 542.4
+offset_top = 445.2
+offset_right = 572.4000
+offset_bottom = 465.2000
+texture = ExtResource("icon_exchange_deco")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="GoldDeco2" type="TextureRect" parent="Canvas"]
+offset_left = 150.9
+offset_top = 216
+offset_right = 180.9000
+offset_bottom = 236.0000
+texture = ExtResource("icon_exchange_deco")
+mouse_filter = 2
+expand_mode = 1
+flip_h = true
+flip_v = true
+
+[node name="EmptyRelic" type="TextureRect" parent="Canvas"]
+offset_left = 119.4
+offset_top = 244.5
+offset_right = 309.4000
+offset_bottom = 435.5000
+texture = ExtResource("icon_select_relic")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="EmptyPart" type="TextureRect" parent="Canvas"]
+offset_left = 119.4
+offset_top = 244.5
+offset_right = 309.4000
+offset_bottom = 435.5000
+texture = ExtResource("icon_select_scrap")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="SelectedIcon" type="Control" parent="Canvas"]
+offset_left = 134.4
+offset_top = 260
+offset_right = 294.4
+offset_bottom = 420
+mouse_filter = 2
+
+[node name="AppraisalPlate" type="NinePatchRect" parent="Canvas"]
+offset_left = 153.7
+offset_top = 417.3
+offset_right = 279.3000
+offset_bottom = 454.7000
+texture = ExtResource("bg_sell_price")
+mouse_filter = 2
+patch_margin_left = 20
+patch_margin_right = 20
+patch_margin_top = 14
+patch_margin_bottom = 14
+
+[node name="AppraisalIcon" type="TextureRect" parent="Canvas"]
+offset_left = 182.9
+offset_top = 422.9
+offset_right = 212.6000
+offset_bottom = 449.1000
+texture = ExtResource("img_sell_price")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="Appraisal" type="Label" parent="Canvas"]
+offset_left = 211.9
+offset_top = 412.4
+offset_right = 263.5
+offset_bottom = 455
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("numbers")
+theme_override_font_sizes/font_size = 25
+vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="DetailPlate" type="TextureRect" parent="Canvas"]
+offset_left = 82.7
+offset_top = 512.9
+offset_right = 660.7000
+offset_bottom = 688.9000
+texture = ExtResource("bg_content")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="ChosenPlate" type="TextureRect" parent="Canvas"]
+offset_left = 144.4
+offset_top = 539.8
+offset_right = 235.4000
+offset_bottom = 570.8000
+texture = ExtResource("img_arrow_empty")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="RelicHeader" type="TextureRect" parent="Canvas"]
+offset_left = 942.7
+offset_top = 155.8
+offset_right = 1253.7000
+offset_bottom = 192.8000
+texture = ExtResource("img_title_relic")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="PartHeader" type="TextureRect" parent="Canvas"]
+offset_left = 935.5
+offset_top = 157.5
+offset_right = 1246.5000
+offset_bottom = 194.5000
+texture = ExtResource("img_title_scrap")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="ListHintPlate" type="NinePatchRect" parent="Canvas"]
+offset_left = 1001.1
+offset_top = 603.7
+offset_right = 1189.8000
+offset_bottom = 642.7000
+texture = ExtResource("expedition_char_bottom_hint")
+mouse_filter = 2
+patch_margin_left = 20
+patch_margin_right = 20
+patch_margin_top = 14
+patch_margin_bottom = 14
+
+[node name="Chosen" type="Label" parent="Canvas"]
+offset_left = 146.8
+offset_top = 534
+offset_right = 224.8000
+offset_bottom = 577.0000
+mouse_filter = 2
+vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="ItemName" type="Label" parent="Canvas"]
+offset_left = 240.5
+offset_top = 534.3
+offset_right = 590.5000
+offset_bottom = 576.3000
+mouse_filter = 2
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 23
+text_overrun_behavior = 3
+
+[node name="ListHint" type="Label" parent="Canvas"]
+offset_left = 1002.2
+offset_top = 608.2
+offset_right = 1188.6000
+offset_bottom = 638.2000
+mouse_filter = 2
+vertical_alignment = 1
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.15, 0.15, 0.15, 1)
+
+[node name="ItemDescription" type="RichTextLabel" parent="Canvas"]
+offset_left = 141.2
+offset_top = 588.9
+offset_right = 621.2000
+offset_bottom = 693.3000
+mouse_filter = 2
+bbcode_enabled = true
+theme_override_colors/default_color = Color(0.83, 0.83, 0.83, 0.85)
+
+[node name="Scroll" type="ScrollContainer" parent="Canvas"]
+offset_left = 823.2
+offset_top = 204
+offset_right = 1398.2000
+offset_bottom = 610.0000
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Padding" type="MarginContainer" parent="Canvas/Scroll"]
+offset_left = 0
+offset_top = 0
+offset_right = 0.0000
+offset_bottom = 0.0000
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 30
+
+[node name="Items" type="GridContainer" parent="Canvas/Scroll/Padding"]
+offset_left = 0
+offset_top = 0
+offset_right = 0.0000
+offset_bottom = 0.0000
+columns = 5
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+
+[node name="Back" type="Button" parent="Canvas"]
+offset_left = 796.2
+offset_top = 633
+offset_right = 987.2000
+offset_bottom = 720.0000
+mouse_default_cursor_shape = 2
+
+[node name="Artwork" type="TextureRect" parent="Canvas/Back"]
+offset_left = -14
+offset_top = -1
+offset_right = 205.0000
+offset_bottom = 98.0000
+texture = ExtResource("btn_back")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="Confirm" type="Button" parent="Canvas"]
+offset_left = 994.2
+offset_top = 633
+offset_right = 1422.2000
+offset_bottom = 720.0000
+mouse_default_cursor_shape = 2
+disabled = true
+
+[node name="Artwork" type="TextureRect" parent="Canvas/Confirm"]
+offset_left = 0.5
+offset_top = 2
+offset_right = 427.5000
+offset_bottom = 95.0000
+texture = ExtResource("btn_confirm_sacrifice")
+mouse_filter = 2
+expand_mode = 1
+
+[node name="DisabledArtwork" type="TextureRect" parent="Canvas/Confirm"]
+offset_left = 0.5
+offset_top = 2
+offset_right = 427.5000
+offset_bottom = 95.0000
+texture = ExtResource("btn_select_sacrifice")
+mouse_filter = 2
+expand_mode = 1
+

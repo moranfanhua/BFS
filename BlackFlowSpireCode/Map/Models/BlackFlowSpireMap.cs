@@ -8,7 +8,7 @@ namespace BlackFlowSpire.Map.Models;
 public enum BlackFlowSpireNodeKind { Empty, Combat, Event, Boss, Exit }
 
 [JsonConverter(typeof(JsonStringEnumConverter<BlackFlowSpireNodeContent>))]
-public enum BlackFlowSpireNodeContent { Empty, NormalCombat, EliteCombat, Event, Reward, Shop, Boss, Door, BattleSavage, Light, Final, Evacuate, Rest }
+public enum BlackFlowSpireNodeContent { Empty, NormalCombat, EliteCombat, Event, Reward, Shop, Boss, Door, BattleSavage, Light, Final, Evacuate, Rest, Sacrifice }
 
 // Edges are saved as IDs rather than object references, including when the graph has cycles.
 public sealed class BlackFlowSpireNode

@@ -11,6 +11,8 @@ public sealed class BlackFlowSpireExplorationProgress
     public int? PendingNodeId { get; set; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public BlackFlowSpireRestChoice? RestChoice { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BlackFlowSpireSacrificeProgress? Sacrifice { get; set; }
     public BlackFlowSpireHuntPhase HuntPhase { get; set; }
     public Dictionary<int, int> HistoryIndexes { get; set; } = [];
     public Dictionary<int, BlackFlowSpireShopPartStock> ShopParts { get; set; } = [];
@@ -52,7 +54,7 @@ public static class BlackFlowSpireTravelRules
     public static bool RequiresRoom(BlackFlowSpireNode node, BlackFlowSpireMap map) =>
         BlackFlowSpireResidentRules.Occupant(map, node.Id) != null
         || node.Kind != BlackFlowSpireNodeKind.Empty && node.Content is not (BlackFlowSpireNodeContent.Light
-            or BlackFlowSpireNodeContent.Final or BlackFlowSpireNodeContent.Evacuate or BlackFlowSpireNodeContent.Rest)
+            or BlackFlowSpireNodeContent.Final or BlackFlowSpireNodeContent.Evacuate or BlackFlowSpireNodeContent.Rest or BlackFlowSpireNodeContent.Sacrifice)
             && (!node.Completed || node.Repeatable);
 
     public static bool CanCross(BlackFlowSpireNode node, BlackFlowSpireMap map) =>
@@ -153,7 +155,8 @@ public static class BlackFlowSpireTravelRules
     }
 
     internal static bool RequiresSettlement(BlackFlowSpireMap map, BlackFlowSpireNode node, bool requiresRoom) =>
-        requiresRoom || BlackFlowSpireFloorExitRules.IsChoice(map, node) || BlackFlowSpireRestRules.IsChoice(map, node);
+        requiresRoom || BlackFlowSpireFloorExitRules.IsChoice(map, node) || BlackFlowSpireRestRules.IsChoice(map, node)
+        || BlackFlowSpireSacrificeRules.IsChoice(map, node);
 
     public static bool CompleteEncounter(BlackFlowSpireMap map, BlackFlowSpireExplorationProgress progress)
     {

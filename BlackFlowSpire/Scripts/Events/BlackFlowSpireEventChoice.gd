@@ -69,11 +69,19 @@ func configure_choices(count: int) -> void:
 func get_choice(index: int) -> Button:
 	return _choices.get_child(index) as Button if index >= 0 and index < _choices.get_child_count() else null
 
-func bind_choice(index: int, title: String, description: String, icon: Texture2D) -> void:
+func bind_choice(index: int, title: String, description: String, icon: Texture2D, enabled: bool = true) -> void:
 	var option := get_choice(index)
+	option.set_meta("available", enabled)
 	option.get_node("Title").text = title
 	option.get_node("Description").text = description
 	option.get_node("Function").texture = icon
+	option.get_node("Title").modulate.a = 1.0 if enabled else 0.35
+	option.get_node("Description").modulate.a = 1.0 if enabled else 0.35
+	option.get_node("Function").modulate.a = 0.30 if enabled else 0.12
+	_update_buttons()
+
+func reset_selection() -> void:
+	_select_choice(-1)
 
 func show_result(leave_tooltip: String) -> void:
 	_leave.tooltip_text = leave_tooltip
@@ -202,5 +210,5 @@ func _update_buttons() -> void:
 	_leave.disabled = _busy or _elapsed < INTRO_BLOCK_TIME
 	for i in _choices.get_child_count():
 		var option := get_choice(i)
-		option.disabled = _busy or _result or _elapsed < INTRO_BLOCK_TIME
+		option.disabled = _busy or _result or _elapsed < INTRO_BLOCK_TIME or not option.get_meta("available", true)
 		option.get_node("Confirm").disabled = option.disabled

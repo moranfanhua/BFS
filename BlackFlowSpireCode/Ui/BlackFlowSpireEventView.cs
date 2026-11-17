@@ -2,7 +2,7 @@ using Godot;
 
 namespace BlackFlowSpire.Ui;
 
-internal readonly record struct BlackFlowSpireEventOption(string Title, string Description, Texture2D Icon);
+internal readonly record struct BlackFlowSpireEventOption(string Title, string Description, Texture2D Icon, bool Enabled = true);
 
 internal sealed class BlackFlowSpireEventView
 {
@@ -19,6 +19,7 @@ internal sealed class BlackFlowSpireEventView
 
     public Button? GetChoice(int index) => _view.Call("get_choice", index).As<Button>();
     public Button LeaveButton => _view.GetNode<Button>("Canvas/Leave");
+    public bool Visible { get => _view.Visible; set => _view.Visible = value; }
 
     public void SetStory(Texture2D background, string title, string description) =>
         _view.Call("bind_story", background, title, description);
@@ -29,10 +30,11 @@ internal sealed class BlackFlowSpireEventView
         for (var index = 0; index < options.Count; index++)
         {
             var option = options[index];
-            _view.Call("bind_choice", index, option.Title, option.Description, option.Icon);
+            _view.Call("bind_choice", index, option.Title, option.Description, option.Icon, option.Enabled);
         }
     }
 
+    public void ResetSelection() => _view.Call("reset_selection");
     public void ShowResult(string leaveTooltip) => _view.Call("show_result", leaveTooltip);
     public void SetBusy(bool busy) => _view.Call("set_busy", busy);
 

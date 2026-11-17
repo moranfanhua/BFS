@@ -220,23 +220,48 @@ public static class BlackFlowSpireGenerationService
     }
 
     internal static void GrantCollectible(RunState state, BlackFlowSpireMap map, BlackFlowSpireCollectible item)
+        => _slot!.Modify(state, data => GrantCollectible(data, map, item));
+
+    private static void GrantCollectible(BlackFlowSpireRunData data, BlackFlowSpireMap map, BlackFlowSpireCollectible item)
     {
+        var collectibles = data.Engine.Collectibles;
+        if (collectibles.Has(item.Number)) return;
+        var reward = BlackFlowSpireCollectibleRules.OnAcquired(item, data.Engine, map);
+        var maxLife = checked(data.MaxTargetLife + reward.MaxLife);
+        var shield = checked(data.TargetShield + reward.Shield);
+        if (!data.TryChangeHope(reward.Hope))
+            throw new InvalidOperationException("The collectible's Hope reward exceeds the balance range.");
+        collectibles.OwnedIds.Add(item.Id);
+        data.MaxTargetLife = maxLife;
+        data.TargetLife = (int)Math.Min(maxLife, (long)data.TargetLife + reward.Life);
+        data.TargetShield = shield;
+        collectibles.PendingGold += reward.Originium * BlackFlowSpirePartService.GoldPerOriginium;
+        BlackFlowSpireCollectibleRules.RevealMap(map, data.Engine);
+    }
+
+    internal static bool TryResolveSacrifice(RunState state, BlackFlowSpireMap map, BlackFlowSpireExplorationProgress progress,
+        int argument, bool exchange)
+    {
+        var changed = false;
         _slot!.Modify(state, data =>
         {
-            var collectibles = data.Engine.Collectibles;
-            if (collectibles.Has(item.Number)) return;
-            var reward = BlackFlowSpireCollectibleRules.OnAcquired(item, data.Engine, map);
-            var maxLife = checked(data.MaxTargetLife + reward.MaxLife);
-            var shield = checked(data.TargetShield + reward.Shield);
-            if (!data.TryChangeHope(reward.Hope))
-                throw new InvalidOperationException("The collectible's Hope reward exceeds the balance range.");
-            collectibles.OwnedIds.Add(item.Id);
-            data.MaxTargetLife = maxLife;
-            data.TargetLife = (int)Math.Min(maxLife, (long)data.TargetLife + reward.Life);
-            data.TargetShield = shield;
-            collectibles.PendingGold += reward.Originium * BlackFlowSpirePartService.GoldPerOriginium;
-            BlackFlowSpireCollectibleRules.RevealMap(map, data.Engine);
+            changed = exchange
+                ? BlackFlowSpireSacrificeRules.TryExchange(map, progress, data.Engine, argument)
+                : BlackFlowSpireSacrificeRules.TryResolve(map, progress, data.Engine, (BlackFlowSpireSacrificeAction)argument, reward =>
+                {
+                    if (reward.CollectibleId is { } id && BlackFlowSpireCollectibleCatalog.Find(id) is { } collectible)
+                        GrantCollectible(data, map, collectible);
+                    else if (reward.Natural is { } natural) data.Engine.AddNatural(natural);
+                    else if (reward.Processed is { } processed) data.Engine.Add(processed);
+                    else if (reward.Concept is { } concept) data.Engine.AddConcept(concept);
+                    else return false;
+                    return true;
+                });
+            if (!changed) return;
+            data.Maps[state.CurrentActIndex] = map;
+            data.Progress[state.CurrentActIndex] = progress;
         });
+        return changed;
     }
 
     internal static bool IsTeamLobbyEnabled(StartRunLobby lobby) => _slot!.Lobby.TryGet(lobby, out var data) && data.Enabled;

@@ -1,0 +1,105 @@
+[gd_scene format=3]
+
+[ext_resource type="Shader" path="res://BlackFlowSpire/Shaders/Ui/BlackFlowSpire_settlement_blur.gdshader" id="blur"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/judge_img_dialog_bg.png" id="panel"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/judge_img_cancel.png" id="cancel"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/judge_img_confirm_bg.png" id="confirm_panel"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/judge_img_confirm.png" id="confirm"]
+
+[sub_resource type="ShaderMaterial" id="material"]
+shader = ExtResource("blur")
+
+[node name="SacrificeJudge" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+
+[node name="ScreenCopy" type="BackBufferCopy" parent="."]
+copy_mode = 2
+
+[node name="Scrim" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+material = SubResource("material")
+mouse_filter = 2
+
+[node name="Panel" type="TextureRect" parent="."]
+offset_top = 236.0
+offset_right = 1422.2222
+offset_bottom = 562.0
+texture = ExtResource("panel")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Prompt" type="Label" parent="."]
+offset_left = 50.0
+offset_top = 318.2
+offset_right = 1372.2222
+offset_bottom = 398.2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="Back" type="Button" parent="."]
+offset_top = 491.5
+offset_right = 711.1111
+offset_bottom = 562.5
+mouse_default_cursor_shape = 2
+
+[node name="Fill" type="ColorRect" parent="Back"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.255, 0.255, 0.259, 1)
+mouse_filter = 2
+show_behind_parent = true
+
+[node name="Icon" type="TextureRect" parent="Back"]
+offset_left = 317.2
+offset_top = 3.2
+offset_right = 377.2
+offset_bottom = 63.2
+texture = ExtResource("cancel")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="Back"]
+offset_left = 376.0
+offset_right = 676.0
+offset_bottom = 71.0
+theme_override_font_sizes/font_size = 22
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="Confirm" type="Button" parent="."]
+offset_left = 711.1111
+offset_top = 491.5
+offset_right = 1422.2222
+offset_bottom = 562.5
+mouse_default_cursor_shape = 2
+
+[node name="Fill" type="TextureRect" parent="Confirm"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("confirm_panel")
+expand_mode = 1
+mouse_filter = 2
+show_behind_parent = true
+
+[node name="Icon" type="TextureRect" parent="Confirm"]
+offset_left = 311.3
+offset_top = -10.0
+offset_right = 402.3
+offset_bottom = 81.0
+texture = ExtResource("confirm")
+expand_mode = 1
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="Confirm"]
+offset_left = 389.0
+offset_right = 689.0
+offset_bottom = 71.0
+theme_override_font_sizes/font_size = 22
+vertical_alignment = 1
+mouse_filter = 2
