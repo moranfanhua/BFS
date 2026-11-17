@@ -94,6 +94,8 @@ public sealed class BlackFlowSpireMap
     // Native ActMap calls its terminal point BossMapPoint even on a noncombat exit floor.
     public int BossNodeId { get; set; }
     public required int PositionNodeId { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IgnoreMovementRange { get; set; }
     public List<BlackFlowSpireNode> Nodes { get; set; } = [];
     public List<BlackFlowSpireRoamingResident> RoamingResidents { get; set; } = [];
     public int ResidentMovementCount { get; set; }

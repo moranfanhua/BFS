@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using BlackFlowSpire.Combat;
 using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Exploration;
@@ -35,7 +36,13 @@ internal sealed record BlackFlowSpireTeamSnapshot(BlackFlowSpireTeamPosition Pos
     Dictionary<int, List<BlackFlowSpireShopOfferStock>> ShopOffers, Dictionary<int, BlackFlowSpireSecretShopStock> SecretShops,
     int TargetLife, int MaxTargetLife, int TargetShield,
     BlackFlowSpireDamageMultipliers DamageMultipliers, Dictionary<ulong, decimal> PlayerLifeMultipliers,
-    int Hope, int MaxHope, int CommandExperience, BlackFlowSpireSacrificeProgress? Sacrifice);
+    int Hope, int MaxHope, int CommandExperience, BlackFlowSpireSacrificeProgress? Sacrifice)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool MapFullyRevealed { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IgnoreMovementRange { get; init; }
+}
 internal sealed record BlackFlowSpireTeamCommand(BlackFlowSpireTeamAction Action, int Argument, BlackFlowSpireTeamSnapshot Snapshot);
 
 internal static class BlackFlowSpireTeam
@@ -296,14 +303,19 @@ internal static class BlackFlowSpireTeam
 
     private static BlackFlowSpireTeamSnapshot Capture(RunState state)
     {
+        var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var (life, maxLife, shield) = BlackFlowSpireGenerationService.GetTargetLife(state);
         var hope = BlackFlowSpireGenerationService.GetHopeStatus(state);
-        return new(Position(state), ++Sessions.GetOrCreateValue(state).Revision,
+        return new(new(state.CurrentActIndex, map.PositionNodeId, progress.StepsTaken), ++Sessions.GetOrCreateValue(state).Revision,
             BlackFlowSpireGenerationService.GetEngine(state), progress.ActionPointsRemaining, progress.HuntPhase,
             progress.ShopParts, progress.ShopOffers, progress.SecretShops, life, maxLife, shield,
             BlackFlowSpireGenerationService.GetDamageMultipliers(state), BlackFlowSpireGenerationService.CopyPlayerLifeMultipliers(state),
-            hope.Balance, hope.Maximum, BlackFlowSpireGenerationService.GetCommandExperience(state), progress.Sacrifice);
+            hope.Balance, hope.Maximum, BlackFlowSpireGenerationService.GetCommandExperience(state), progress.Sacrifice)
+        {
+            MapFullyRevealed = map.Nodes.All(node => node.Revealed),
+            IgnoreMovementRange = map.IgnoreMovementRange
+        };
     }
 
     internal static void Publish(RunState state)
@@ -353,6 +365,8 @@ internal static class BlackFlowSpireTeam
         BlackFlowSpireGenerationService.SetSharedEngine(state, snapshot.Engine);
         // The host inventory already includes the appraisal from these discoveries.
         BlackFlowSpireCollectibleRules.RevealMap(map, snapshot.Engine, countInformation: false);
+        if (snapshot.MapFullyRevealed) BlackFlowSpireFog.RevealAll(map);
+        map.IgnoreMovementRange = snapshot.IgnoreMovementRange;
         BlackFlowSpireGenerationService.SetTargetLife(state, snapshot.TargetLife, snapshot.MaxTargetLife, snapshot.TargetShield);
         BlackFlowSpireGenerationService.RestoreCommandProgress(state, snapshot.Hope, snapshot.MaxHope, snapshot.CommandExperience);
         BlackFlowSpireGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers);

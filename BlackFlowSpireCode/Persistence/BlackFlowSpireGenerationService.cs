@@ -400,13 +400,4 @@ public static class BlackFlowSpireGenerationService
         slot.Modify(runState, data => data.Maps.Add(runState.CurrentActIndex, map));
         return map;
     }
-
-    public static IReadOnlyList<int> UpdatePosition(RunState runState, int targetNodeId)
-    {
-        var map = GetOrGenerate(runState);
-        var newlyRevealed = BlackFlowSpireFog.MoveToAdjacent(map, targetNodeId);
-        // Mark the RitsuLib slot dirty even if this move only changes position.
-        _slot!.Modify(runState, data => data.Maps[runState.CurrentActIndex] = map);
-        return newlyRevealed;
-    }
 }

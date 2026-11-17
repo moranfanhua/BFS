@@ -13,12 +13,6 @@ namespace BlackFlowSpire.Ui;
 
 internal static class BlackFlowSpireHuntUi
 {
-    public static bool Preview()
-    {
-        if (NModalContainer.Instance is not { OpenModal: null } container) return false;
-        container.Add(new BlackFlowSpireHuntNotice(null, null) { Name = "BlackFlowSpireHuntPreview" }, false);
-        return true;
-    }
     public static void Show(Control parent, NMapScreen screen, RunState state) =>
         parent.AddChild(new BlackFlowSpireHuntLayer(state, screen) { Name = "BlackFlowSpireHuntLayer" });
 
@@ -83,16 +77,14 @@ internal partial class BlackFlowSpireHuntLayer(RunState state, NMapScreen screen
     }
 }
 
-internal partial class BlackFlowSpireHuntNotice(RunState? state, NMapScreen? screen) : Control, IScreenContext
+internal partial class BlackFlowSpireHuntNotice(RunState state, NMapScreen screen) : Control, IScreenContext
 {
     private Button? _confirm;
     private bool _focused;
-    private bool _confirmed;
-    private Control? _view;
     public Control? DefaultFocusedControl => _confirm is { Disabled: false } ? _confirm : null;
     internal bool BelongsTo(NMapScreen map) => ReferenceEquals(screen, map);
-    private bool HasValidRunContext => state == null || BlackFlowSpireRuntime.CanContinueRun
-        && ReferenceEquals(BlackFlowSpireRuntime.State, state) && screen != null
+    private bool HasValidRunContext => BlackFlowSpireRuntime.CanContinueRun
+        && ReferenceEquals(BlackFlowSpireRuntime.State, state)
         && GodotObject.IsInstanceValid(screen) && screen.IsOpen;
 
     public override void _Ready()
@@ -100,15 +92,13 @@ internal partial class BlackFlowSpireHuntNotice(RunState? state, NMapScreen? scr
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Stop;
         var view = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/Hunt/BlackFlowSpireHuntNotice.tscn").Instantiate<Control>();
-        _view = view;
         AddChild(view);
         BlackFlowSpireHuntUi.Bind(view);
         _confirm = view.GetNode<Control>("%Artwork").GetNode<Button>("%ConfirmHunt");
         _confirm.Pressed += Confirm;
         BlackFlowSpireLocalization.RefreshWithLocale(this, () =>
         {
-            if (_view != null && GodotObject.IsInstanceValid(_view)) BlackFlowSpireHuntUi.Bind(_view);
-            if (state == null && _confirmed && _confirm != null) _confirm.Text = BlackFlowSpireText.Get("UI.CLOSE");
+            if (GodotObject.IsInstanceValid(view)) BlackFlowSpireHuntUi.Bind(view);
         });
         Entry.Logger.Info("[BlackFlowSpire] Hunt notice opened; playing the imported entry curves.");
     }
@@ -131,24 +121,6 @@ internal partial class BlackFlowSpireHuntNotice(RunState? state, NMapScreen? scr
     private void Confirm()
     {
         if (!HasValidRunContext) return;
-        if (_confirmed) return;
-        if (state == null)
-        {
-            _confirmed = true;
-            foreach (var child in GetChildren()) { RemoveChild(child); child.QueueFree(); }
-            var details = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/Hunt/BlackFlowSpireHuntDetails.tscn").Instantiate<Control>();
-            _view = details;
-            AddChild(details);
-            BlackFlowSpireHuntUi.Bind(details);
-            var close = new Button { Text = BlackFlowSpireText.Get("UI.CLOSE"), Position = new(35, 35), Size = new(150, 55) };
-            BlackFlowSpireTheme.Format(close, new Color("9f4b4b"), 22);
-            AddChild(close);
-            close.Pressed += () => NModalContainer.Instance!.Clear();
-            _confirm = close;
-            _focused = false;
-            Entry.Logger.Info("[BlackFlowSpire] Read-only hunt preview advanced to details; run data unchanged.");
-            return;
-        }
         if (!BlackFlowSpireTeam.CanTravel(state)) return;
         TaskHelper.RunSafely(BlackFlowSpireRuntime.ConfirmHunt());
     }

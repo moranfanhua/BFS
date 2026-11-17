@@ -113,7 +113,7 @@ public static class BlackFlowSpireProcessedPartRules
             if (node.Id == source.Id) continue;
             var dx = Math.Abs(source.X - node.X);
             var dy = Math.Abs(source.Y - node.Y);
-            var inRange = definition.Range switch
+            var inRange = map.IgnoreMovementRange || (definition.Range switch
             {
                 BlackFlowSpirePartRange.Straight => (dx == 0 || dy == 0) && dx + dy <= definition.Distance,
                 BlackFlowSpirePartRange.AdjacentEight => Math.Max(dx, dy) <= 1,
@@ -122,7 +122,7 @@ public static class BlackFlowSpireProcessedPartRules
                 BlackFlowSpirePartRange.Anywhere => true,
                 BlackFlowSpirePartRange.SameRowOrColumn => dx == 0 || dy == 0,
                 _ => false
-            };
+            });
             if (!inRange || definition.RequiresObservedTarget && BlackFlowSpireNodePresentation.Get(node, map: map).IsMasked) continue;
             var combat = node.Kind is BlackFlowSpireNodeKind.Combat or BlackFlowSpireNodeKind.Boss
                 || BlackFlowSpireResidentRules.Occupant(map, node.Id) != null;

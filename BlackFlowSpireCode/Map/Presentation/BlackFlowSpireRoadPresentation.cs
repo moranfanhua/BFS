@@ -10,7 +10,8 @@ public static class BlackFlowSpireRoadPresentation
     public static bool IsPassable(BlackFlowSpireMap map, BlackFlowSpireExplorationProgress progress,
         BlackFlowSpireNode from, BlackFlowSpireNode to, IReadOnlyDictionary<int, BlackFlowSpireTravelRoute> routes, bool isTraveling)
     {
-        if (isTraveling || progress.PendingNodeId.HasValue || progress.HuntPhase != BlackFlowSpireHuntPhase.None) return false;
+        if (isTraveling || map.IgnoreMovementRange || progress.PendingNodeId.HasValue
+            || progress.HuntPhase != BlackFlowSpireHuntPhase.None) return false;
         bool CanCrossFrom(BlackFlowSpireNode source, BlackFlowSpireNode destination)
         {
             if (!BlackFlowSpireResidentRules.CanEnter(map, destination)) return false;

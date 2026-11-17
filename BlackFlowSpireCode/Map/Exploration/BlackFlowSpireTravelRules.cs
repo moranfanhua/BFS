@@ -72,6 +72,9 @@ public static class BlackFlowSpireTravelRules
     {
         if (isOverloaded) return new Dictionary<int, BlackFlowSpireTravelRoute>();
         if (part != null) return BlackFlowSpireProcessedPartRules.FindRoutes(map, part, freeLastUse);
+        if (map.IgnoreMovementRange)
+            return map.Nodes.Where(node => node.Id != map.PositionNodeId).ToDictionary(node => node.Id,
+                node => new BlackFlowSpireTravelRoute([map.PositionNodeId, node.Id], map.Options.MoveCost));
         var nodes = map.Nodes.ToDictionary(node => node.Id);
         var paths = new Dictionary<int, BlackFlowSpireTravelRoute>
         {
@@ -128,7 +131,12 @@ public static class BlackFlowSpireTravelRules
         foreach (var id in route.NodeIds.Skip(1))
         {
             var departed = map.GetNode(map.PositionNodeId);
-            BlackFlowSpireFog.MoveToAdjacent(map, id, inventory);
+            if (map.IgnoreMovementRange)
+            {
+                map.PositionNodeId = id;
+                BlackFlowSpireFog.RevealNearby(map, inventory);
+            }
+            else BlackFlowSpireFog.MoveToAdjacent(map, id, inventory);
             if (inventory != null) BlackFlowSpireNaturalRules.DistanceMoved(inventory, 1);
             BlackFlowSpireNodeLifecycle.Leave(departed);
             progress.ActionPointsRemaining -= map.Options.MoveCost;
