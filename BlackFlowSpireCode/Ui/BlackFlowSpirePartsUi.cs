@@ -4,7 +4,6 @@ using BlackFlowSpire.Map.Presentation;
 using BlackFlowSpire.Persistence;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
-using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
@@ -81,8 +80,7 @@ internal static class BlackFlowSpirePartsUi
         else widget.Call("bind_movement", "", 0, 0);
         var canOpen = !inspection && !BlackFlowSpireTeam.IsGuest;
         widget.GetNode<Control>("Change").Visible = canOpen;
-        var debugInfo = NRun.Instance?.GlobalUi.DebugInfo;
-        root.Call("bind_movement_layout", widget, debugInfo == null ? default(Variant) : (Variant)debugInfo);
+        root.Call("bind_movement_layout", widget);
         if (!canOpen) return;
         var open = new Button { MouseDefaultCursorShape = Control.CursorShape.PointingHand };
         BlackFlowSpireMapAssets.ClearButtonStyle(open);

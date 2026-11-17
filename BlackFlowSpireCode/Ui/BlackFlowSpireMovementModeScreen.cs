@@ -59,7 +59,6 @@ internal partial class BlackFlowSpireMovementModeScreen(RunState state, NMapScre
         _viewport.SizeChanged += FitViewport;
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
-        widget.Hide();
 
         _view = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Map/BlackFlowSpireMovementMode.tscn").Instantiate<Control>();
         AddChild(_view);
@@ -184,7 +183,6 @@ internal partial class BlackFlowSpireMovementModeScreen(RunState state, NMapScre
         if (!HasMap) return;
         if (_previewing && ReferenceEquals(BlackFlowSpireRuntime.State, state)) preview(Inventory.LoadedPart);
         _previewing = false;
-        widget.Show();
     }
 
     public override void _Process(double delta)

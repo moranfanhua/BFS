@@ -10,6 +10,7 @@ internal sealed class BlackFlowSpireNodeDetailsPanel
     private readonly Func<string, float, Control> _glyph;
     private readonly Control _icon;
     private readonly Label _title;
+    private readonly int _titleFontSize;
     private readonly Label _type;
     private readonly Label _status;
     private readonly Label _description;
@@ -42,6 +43,7 @@ internal sealed class BlackFlowSpireNodeDetailsPanel
         _icon = Root.GetNode<Control>("%NodeIcon");
         _icon.GetNode<Control>("EditorPreview").Hide();
         _title = Root.GetNode<Label>("%NodeTitle");
+        _titleFontSize = _title.GetThemeFontSize("font_size");
         _type = Root.GetNode<Label>("%NodeType");
         _status = Root.GetNode<Label>("%NodeStatus");
         _description = Root.GetNode<Label>("%NodeDescription");
@@ -83,6 +85,9 @@ internal sealed class BlackFlowSpireNodeDetailsPanel
         _icon.AddChild(glyph);
         _actionPoints.Text = info.RemainingActionPoints.ToString();
         _title.Text = info.View.Title;
+        var titleWidth = _title.GetThemeFont("font").GetStringSize(_title.Text, fontSize: _titleFontSize).X;
+        var fontScale = Math.Min(1f, _title.Size.X / Math.Max(1f, titleWidth));
+        _title.AddThemeFontSizeOverride("font_size", Math.Max(1, (int)Math.Floor(_titleFontSize * fontScale)));
         _title.Visible = !string.IsNullOrWhiteSpace(info.View.Title);
         _type.Text = info.View.Type;
         _type.Visible = !string.IsNullOrWhiteSpace(info.View.Type);

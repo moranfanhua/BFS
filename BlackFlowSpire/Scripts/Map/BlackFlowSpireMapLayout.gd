@@ -2,15 +2,14 @@ extends Control
 
 const PartsBarLayout = preload("res://BlackFlowSpire/Scripts/Ui/BlackFlowSpirePartsBar.gd")
 const TopBarLayout = preload("res://BlackFlowSpire/Scripts/Ui/BlackFlowSpireTopBar.gd")
-const HUD_GAP := 12.0
+# rl06_zone_action_view: top-right anchor, center Y at -141.533 and height 149.066.
+const ACTION_POINTS_TOP := 67.0
 
 @export var top_inset := 0.0
 @export var bottom_inset := 50.0
 @export var grid_spacing := Vector2(176.0,128.0)
 var _layout_queued := false
 var _movement: Control
-var _details: Control
-var _debug_labels: Array[Control] = []
 
 func _ready() -> void:
 	get_viewport().size_changed.connect(refresh_layout)
@@ -22,16 +21,8 @@ func refresh_layout() -> void:
 	_layout_queued = true
 	_fit_viewport.call_deferred()
 
-func bind_movement_layout(widget: Control, debug_info: Control) -> void:
+func bind_movement_layout(widget: Control) -> void:
 	_movement = widget
-	_details = get_node_or_null("BlackFlowSpireNodeDetails") as Control
-	if _details: _details.visibility_changed.connect(refresh_layout)
-	if debug_info:
-		for node in debug_info.find_children("*", "Label", true, false):
-			var label := node as Control
-			_debug_labels.append(label)
-			label.visibility_changed.connect(refresh_layout)
-			label.item_rect_changed.connect(refresh_layout)
 	refresh_layout()
 
 func _fit_viewport() -> void:
@@ -55,21 +46,5 @@ func _fit_viewport() -> void:
 
 func _layout_movement(factor: float) -> void:
 	if not is_instance_valid(_movement) or factor <= 0.0: return
-	var footprint := Rect2(Vector2.ZERO, _movement.size)
-	for child in _movement.get_children():
-		if child is Control and child.visible:
-			footprint = footprint.merge(Rect2(child.position, child.size * child.scale))
-	var gap := HUD_GAP * factor
-	var top := TopBarLayout.ROW_HEIGHT * factor + gap
-	var right := size.x - 24.0 * factor
-	if is_instance_valid(_details) and _details.visible:
-		right = minf(right, _details.position.x + _details.get_node("Background").position.x - gap)
-	var candidate := Rect2(Vector2(right - footprint.size.x * factor, top), footprint.size * factor)
-	var to_map := get_global_transform_with_canvas().affine_inverse()
-	for label in _debug_labels:
-		if not is_instance_valid(label) or not label.is_visible_in_tree(): continue
-		var bounds := to_map * (label.get_global_transform_with_canvas() * Rect2(Vector2.ZERO, label.size))
-		if candidate.grow(gap).intersects(bounds):
-			candidate.position.x = bounds.position.x - gap - candidate.size.x
 	_movement.scale = Vector2.ONE * factor
-	_movement.position = Vector2(maxf(0.0, candidate.position.x), top) - footprint.position * factor
+	_movement.position = Vector2(size.x - _movement.size.x * factor, ACTION_POINTS_TOP * factor)

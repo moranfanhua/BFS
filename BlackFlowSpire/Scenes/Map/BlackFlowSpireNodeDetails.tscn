@@ -138,11 +138,11 @@ theme_override_fonts/font = ExtResource("bf_font_Title")
 unique_name_in_owner = true
 offset_left = 953.0
 offset_top = 109.0
-offset_right = 1260.0
+offset_right = 1104.0
 offset_bottom = 158.0
 theme_override_font_sizes/font_size = 31
 mouse_filter = 2
-autowrap_mode = 3
+text_overrun_behavior = 3
 
 [node name="NodeStatus" type="Label" parent="Canvas"]
 unique_name_in_owner = true

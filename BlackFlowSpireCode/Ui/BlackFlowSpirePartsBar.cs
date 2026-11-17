@@ -89,7 +89,8 @@ internal partial class BlackFlowSpirePartsBar(NGlobalUi globalUi, RunState state
         var inspectingCollectible = modal is BlackFlowSpireCollectibleScreen { IsOwnedDetail: true };
         Visible = ReferenceEquals(BlackFlowSpireRuntime.State, state) && BlackFlowSpireRuntime.CanContinueRun
             && !BlackFlowSpireRuntime.IsTraveling && !CombatManager.Instance.IsInProgress
-            && (modal == null || inspectingCollectible) && !globalUi.SubmenuStack.Stack.SubmenusOpen
+            && (modal is null or BlackFlowSpireMovementModeScreen || inspectingCollectible)
+            && !globalUi.SubmenuStack.Stack.SubmenusOpen
             && (mapOpen || BlackFlowSpireBattleSettlementScreen.LootIsOpen
                 || (globalUi.Overlays.ScreenCount == 0 && !globalUi.CapstoneContainer.InUse));
         if (!Visible) _collectibles.Close(immediate: true);

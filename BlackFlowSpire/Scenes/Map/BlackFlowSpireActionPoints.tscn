@@ -23,18 +23,18 @@ Label/constants/shadow_offset_y = 2
 [node name="BlackFlowSpireActionPoints" type="Control"]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 224.0
-offset_bottom = 148.0
+offset_right = 204.491
+offset_bottom = 149.066
 mouse_filter = 2
 theme = SubResource("Theme_ActionPoints")
 script = ExtResource("4_script")
 
 [node name="ActionPointBackground" type="TextureRect" parent="."]
 layout_mode = 0
-offset_left = 57.0
-offset_top = 9.0
-offset_right = 177.0
-offset_bottom = 121.0
+offset_left = 11.935
+offset_top = 5.858
+offset_right = 131.935
+offset_bottom = 117.858
 mouse_filter = 2
 texture = ExtResource("1_ap")
 expand_mode = 1
@@ -42,10 +42,10 @@ stretch_mode = 5
 
 [node name="WalkGlow" type="TextureRect" parent="."]
 layout_mode = 0
-offset_left = 91.0
-offset_top = -1.0
-offset_right = 241.0
-offset_bottom = 141.0
+offset_left = 39.531
+offset_top = -21.447
+offset_right = 218.361
+offset_bottom = 147.913
 mouse_filter = 2
 texture = ExtResource("2_glow")
 expand_mode = 1
@@ -53,10 +53,10 @@ stretch_mode = 5
 
 [node name="PartGlow" type="TextureRect" parent="."]
 visible = false
-offset_left = 39.645
-offset_top = -47.96
-offset_right = 288.755
-offset_bottom = 187.96
+offset_left = 4.391
+offset_top = -54.727
+offset_right = 253.501
+offset_bottom = 181.193
 mouse_filter = 2
 texture = ExtResource("2_glow")
 modulate = Color(0.5852616, 0.6400149, 0.9056604, 1)
@@ -65,22 +65,25 @@ stretch_mode = 5
 
 [node name="ActionPointsCaption" type="Label" parent="."]
 layout_mode = 0
-offset_left = 107.0
-offset_top = 27.0
-offset_right = 188.0
-offset_bottom = 51.0
-theme_override_font_sizes/font_size = 12
+offset_left = 59.675
+offset_top = 15.858
+offset_right = 129.295
+offset_bottom = 41.588
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
 text = "BLACK_FLOW_SPIRE.UI.AP.caption"
+vertical_alignment = 1
 metadata/loc_key = "UI.AP.caption"
 
 [node name="ActionPointsValue" type="Label" parent="."]
 theme_override_fonts/font = ExtResource("bf_font_ActionPoints")
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 66.0
-offset_top = 38.0
-offset_right = 157.0
-offset_bottom = 111.0
+offset_left = 24.834
+offset_top = 35.276
+offset_right = 115.834
+offset_bottom = 108.276
+mouse_filter = 2
 theme_override_font_sizes/font_size = 40
 text = "13"
 horizontal_alignment = 1
@@ -88,10 +91,10 @@ vertical_alignment = 1
 
 [node name="WalkIcon" type="TextureRect" parent="."]
 layout_mode = 0
-offset_left = 130.0
-offset_top = 32.0
-offset_right = 202.0
-offset_bottom = 108.0
+offset_left = 95.246
+offset_top = 23.833
+offset_right = 167.246
+offset_bottom = 99.833
 mouse_filter = 2
 texture = ExtResource("3_walk")
 expand_mode = 1
@@ -99,10 +102,10 @@ stretch_mode = 5
 
 [node name="LoadedPart" type="Control" parent="."]
 visible = false
-offset_left = 102.0
-offset_top = 6.0
-offset_right = 262.0
-offset_bottom = 166.0
+offset_left = 66.746
+offset_top = -0.767
+offset_right = 226.746
+offset_bottom = 159.233
 scale = Vector2(0.8, 0.8)
 mouse_filter = 2
 
@@ -175,10 +178,10 @@ mouse_filter = 2
 
 [node name="Change" type="Control" parent="."]
 visible = false
-offset_left = 168.9
-offset_top = 76.69
-offset_right = 220.9
-offset_bottom = 128.69
+offset_left = 134.524
+offset_top = 69.923
+offset_right = 186.524
+offset_bottom = 121.923
 mouse_filter = 2
 
 [node name="Background" type="TextureRect" parent="Change"]

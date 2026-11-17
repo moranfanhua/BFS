@@ -18,6 +18,7 @@ internal partial class BlackFlowSpireNativeHud(NGlobalUi globalUi, RunState stat
     private RunState _state = state;
     private Control[] _items = [];
     private bool[] _originalVisibility = [];
+    private bool? _originalDebugVisibility;
     private Control _view = null!;
     private TextureRect _floorTitle = null!;
     private Control _hopeBar = null!;
@@ -107,10 +108,18 @@ internal partial class BlackFlowSpireNativeHud(NGlobalUi globalUi, RunState stat
             }
             else Restore();
 
+            var mapOpen = globalUi.MapScreen.IsOpen;
+            if (_suppressed && mapOpen)
+            {
+                _originalDebugVisibility ??= globalUi.DebugInfo.Visible;
+                globalUi.DebugInfo.Hide();
+            }
+            else RestoreDebugInfo();
+
             _view.Visible = _suppressed && BlackFlowSpireRuntime.CanContinueRun
                 && !CombatManager.Instance.IsInProgress && !globalUi.SubmenuStack.Stack.SubmenusOpen
-                && NModalContainer.Instance?.OpenModal == null
-                && (globalUi.MapScreen.IsOpen || BlackFlowSpireBattleSettlementScreen.LootIsOpen
+                && NModalContainer.Instance?.OpenModal is null or BlackFlowSpireMovementModeScreen
+                && (mapOpen || BlackFlowSpireBattleSettlementScreen.LootIsOpen
                     || (globalUi.Overlays.ScreenCount == 0 && !globalUi.CapstoneContainer.InUse));
             if (_view.Visible) RefreshValues();
         }
@@ -158,11 +167,20 @@ internal partial class BlackFlowSpireNativeHud(NGlobalUi globalUi, RunState stat
 
     private void Restore()
     {
+        RestoreDebugInfo();
         if (!_suppressed) return;
         _suppressed = false;
         for (var index = 0; index < _items.Length; index++)
             if (GodotObject.IsInstanceValid(_items[index]) && !_items[index].IsQueuedForDeletion())
                 _items[index].Visible = _originalVisibility[index];
+    }
+
+    private void RestoreDebugInfo()
+    {
+        if (_originalDebugVisibility is not { } visible) return;
+        _originalDebugVisibility = null;
+        if (GodotObject.IsInstanceValid(globalUi.DebugInfo) && !globalUi.DebugInfo.IsQueuedForDeletion())
+            globalUi.DebugInfo.Visible = visible;
     }
 
     public override void _ExitTree()
