@@ -224,17 +224,15 @@ internal static class BlackFlowSpireCombatHealthRuntime
     {
         if (!Battles.TryGetValue(room.CombatState, out var battle) || battle.Result.HasValue || battle.TargetDefeat)
             return;
-        var experience = BlackFlowSpireEncounterFactory.SpecialKind(room.Encounter) switch
-        {
-            BlackFlowSpireSpecialEncounter.Hunt => 0,
-            BlackFlowSpireSpecialEncounter.Resident => ResidentExperience(run),
-            _ => BlackFlowSpireCommandLevel.BattleExperience(run.CurrentActIndex, room.RoomType switch
+        var experience = BlackFlowSpireEncounterFactory.TryGetFixedSetup(room.Encounter, out var setup)
+            ? BlackFlowSpireBattleLoot.For(BlackFlowSpireGenerationService.GetOrGenerate(run), setup,
+                run.CurrentActIndex == run.Acts.Count - 1).Experience
+            : BlackFlowSpireBattleLoot.BattleExperience(run.CurrentActIndex, room.RoomType switch
             {
                 RoomType.Boss => BlackFlowSpireBattleVariant.Boss,
                 RoomType.Elite => BlackFlowSpireBattleVariant.Emergency,
                 _ => BlackFlowSpireBattleVariant.Normal
-            })
-        };
+            });
         var previousExperience = BlackFlowSpireGenerationService.GetCommandExperience(run);
         var previousHope = BlackFlowSpireGenerationService.GetHopeStatus(run).Maximum;
         BlackFlowSpireGenerationService.GrantCommandExperience(run, experience);
@@ -246,12 +244,6 @@ internal static class BlackFlowSpireCombatHealthRuntime
         ? battle.Result : RestoredResults.GetValueOrDefault(room);
 
     internal static void RestoreSettlement(CombatRoom room, Settlement value) => RestoredResults.Add(room, value);
-
-    private static int ResidentExperience(RunState run)
-    {
-        var map = BlackFlowSpireGenerationService.GetOrGenerate(run);
-        return map.GetNode(map.PositionNodeId).Content == BlackFlowSpireNodeContent.BattleSavage ? 25 : 15;
-    }
 
     internal static void RecordSpecialVictory(RunState run, CombatRoom room)
     {

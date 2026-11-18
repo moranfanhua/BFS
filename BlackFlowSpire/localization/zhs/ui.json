@@ -32,6 +32,10 @@
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.draft": "卡牌招募券",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.draft_detail": "选择一张卡牌加入牌组",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.choose_one": "同组只能领取一项",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.choose_reward": "选择",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.back_to_loot": "返回战利品",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.part_choice": "零件",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.collectible_choice": "藏品",
   "BLACK_FLOW_SPIRE.UI.CARD_PACK_RARITY.hope": "希望",
   "BLACK_FLOW_SPIRE.UI.CARD_PACK_RARITY.random": "随机稀有度",
   "BLACK_FLOW_SPIRE.UI.CARD_PACK_RARITY.back": "返回"

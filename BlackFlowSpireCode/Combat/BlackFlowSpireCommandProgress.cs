@@ -1,5 +1,3 @@
-using BlackFlowSpire.Map.Stages;
-
 namespace BlackFlowSpire.Combat;
 
 internal readonly record struct BlackFlowSpireHope(int Balance, int Maximum)
@@ -39,18 +37,4 @@ internal readonly record struct BlackFlowSpireCommandLevel(int Level, int Experi
         }
         return new(LevelUps.Length + 1, 0, 0, hope);
     }
-
-    private static readonly int[] NormalExperience = [10, 12, 13, 15, 20];
-    private static readonly int[] EmergencyExperience = [12, 18, 25, 30, 36];
-
-    // Floors II and IV have no original boss reward. Use floor(2.5 × normal XP),
-    // which matches the original rewards on floors III (13 → 32) and V (20 → 50).
-    public static int BattleExperience(int actIndex, BlackFlowSpireBattleVariant variant) => variant switch
-    {
-        BlackFlowSpireBattleVariant.Normal => NormalExperience[actIndex],
-        BlackFlowSpireBattleVariant.Emergency => EmergencyExperience[actIndex],
-        BlackFlowSpireBattleVariant.Boss when actIndex is 1 or 3 => NormalExperience[actIndex] * 5 / 2,
-        BlackFlowSpireBattleVariant.Boss => actIndex == NormalExperience.Length - 1 ? 50 : 32,
-        _ => throw new ArgumentOutOfRangeException(nameof(variant))
-    };
 }

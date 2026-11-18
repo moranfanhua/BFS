@@ -28,6 +28,8 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     private const string ViewName = "BlackFlowSpireBattleSettlement";
     private static readonly Color Green = new("32ff84");
     private static readonly Color Teal = new("26f4c6");
+    private static readonly Color PartTint = new("98d9b8");
+    private static readonly Color CollectibleTint = new("ffc879");
     private readonly List<RewardCard> _cards = [];
     private Control _canvas = null!;
     private Control _result = null!;
@@ -39,6 +41,9 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     private Label _leaveLabel = null!;
     private Control _confirm = null!;
     private Control _divider = null!;
+    private Control? _choice;
+    private NLinkedRewardSet? _choiceGroup;
+    private readonly List<Button> _choiceButtons = [];
     private Control _nativeList = null!;
     private Button _keepLoot = null!;
     private NProceedButton _nativeProceed = null!;
@@ -48,7 +53,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     private bool _cardsChanged = true;
     private int _leaveX;
 
-    private sealed record RewardCard(NRewardButton Native, Control Frame, Button Claim);
+    private sealed record RewardCard(Control Native, Control Frame, Button Claim);
 
     internal static BlackFlowSpireBattleSettlementScreen? Find(NRewardsScreen screen) =>
         screen.GetNodeOrNull<BlackFlowSpireBattleSettlementScreen>(ViewName) is { _ready: true } view ? view : null;
@@ -57,6 +62,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         && view._loot.Visible && view.Visible;
 
     internal Control DefaultFocus => !_loot.Visible ? _continue : _confirm.Visible ? _keepLoot
+        : _choice is not null ? _choiceButtons.FirstOrDefault(button => !button.Disabled) ?? _choice
         : _cards.FirstOrDefault(card => !card.Claim.Disabled)?.Claim ?? _leave;
 
     internal Control RewardList => _row;
@@ -193,16 +199,22 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         _scroll.AcceptEvent();
     }
 
-    private void AddCard(NRewardButton native, bool linked)
+    private static IEnumerable<NRewardButton> Candidates(NLinkedRewardSet linked) =>
+        linked.GetNode<Control>("%RewardContainer").GetChildren().OfType<NRewardButton>();
+
+    private void AddCard(Control native, bool linked)
     {
-        if (native.Reward is not { } reward) return;
+        var group = native as NLinkedRewardSet;
+        var button = group == null ? (NRewardButton)native : Candidates(group).FirstOrDefault();
+        if (button?.Reward is not { } reward) return;
         var frame = new Control { CustomMinimumSize = new(265, 579), MouseFilter = MouseFilterEnum.Pass };
         _row.AddChild(frame);
         var (underlay, tint) = reward switch
         {
             GoldReward => ("gold-underlay", Green),
             CardReward or BlackFlowSpireBattleCardPackReward => ("draft-underlay", Teal),
-            RelicReward or BlackFlowSpireCollectibleReward => ("relic-underlay", new Color("ffc879")),
+            RelicReward or BlackFlowSpireCollectibleReward => ("relic-underlay", CollectibleTint),
+            BlackFlowSpirePartReward => ("draft-underlay", PartTint),
             PotionReward => ("potion-underlay", new Color("8adfed")),
             _ => ("draft-underlay", Teal)
         };
@@ -215,7 +227,9 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         };
         titleGlow.Modulate = new(tint, 0.33f);
         Rect(frame, new(1, 1, 1, 0.23f), 37, 300, 210, 2);
-        Label(frame, RewardTitle(reward), 23, 248, 238, 48, 23, alignment: HorizontalAlignment.Center);
+        var title = group == null ? RewardTitle(reward)
+            : Text(reward is BlackFlowSpirePartReward ? "part_choice" : "collectible_choice");
+        Label(frame, title, 23, 248, 238, 48, 23, alignment: HorizontalAlignment.Center);
         if (reward is GoldReward gold)
         {
             AddImage(frame, "gold", 52, 52, 180, 180, true);
@@ -227,25 +241,103 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         {
             var isCardReward = reward is CardReward or BlackFlowSpireBattleCardPackReward;
             if (isCardReward) AddImage(frame, "draft", 52, 52, 180, 180, true);
-            else AddNativeIcon(frame, native, reward);
-            if (isCardReward || linked)
-                Label(frame, Text(linked ? "choose_one" : "draft_detail"), 24, 298, 236, 46, 18,
+            else if (group != null)
+            {
+                var index = 0;
+                foreach (var candidate in Candidates(group))
+                    if (RewardTexture(candidate) is { } texture)
+                        AddImage(frame, texture, 32 + index++ * 102, 86, 112, 112, true);
+            }
+            else AddNativeIcon(frame, button, reward);
+            if (isCardReward || linked || group != null)
+                Label(frame, Text(linked || group != null ? "choose_one" : "draft_detail"), 24, 298, 236, 46, 18,
                     new("b3bbbb"), HorizontalAlignment.Center);
         }
-        var claim = ActionButton(frame, Text("claim"), 41, 424, 202, 76, () => Claim(native), tint);
+        var claim = ActionButton(frame, Text(group == null ? "claim" : "choose_reward"), 41, 424, 202, 76,
+            () => { if (group == null) Claim(button); else OpenChoice(group); }, tint);
         claim.Disabled = _takingReward;
         claim.MouseForcePassScrollEvents = true;
-        var tips = reward.HoverTips;
-        void ShowTips()
+        if (group == null)
         {
-            if (!claim.Disabled && _loot.IsVisibleInTree() && ActiveScreenContext.Instance.IsCurrent(screen))
-                NHoverTipSet.CreateAndShow(claim, tips, HoverTipAlignment.Right);
+            var tips = reward.HoverTips;
+            void ShowTips()
+            {
+                if (!claim.Disabled && _loot.IsVisibleInTree() && ActiveScreenContext.Instance.IsCurrent(screen))
+                    NHoverTipSet.CreateAndShow(claim, tips, HoverTipAlignment.Right);
+            }
+            claim.MouseEntered += ShowTips;
+            claim.MouseExited += () => NHoverTipSet.Remove(claim);
+            claim.FocusEntered += ShowTips;
+            claim.FocusExited += () => NHoverTipSet.Remove(claim);
         }
-        claim.MouseEntered += ShowTips;
-        claim.MouseExited += () => NHoverTipSet.Remove(claim);
-        claim.FocusEntered += ShowTips;
-        claim.FocusExited += () => NHoverTipSet.Remove(claim);
         _cards.Add(new(native, frame, claim));
+    }
+
+    private static Texture2D? RewardTexture(NRewardButton native) =>
+        native.GetNodeOrNull<Control>("%Icon")?.GetChildren().OfType<TextureRect>().FirstOrDefault()?.Texture;
+
+    private void OpenChoice(NLinkedRewardSet group)
+    {
+        if (_choice != null || _takingReward || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
+        var candidates = Candidates(group).ToArray();
+        _choiceGroup = group;
+        _choice = new Control { Size = DesignSize, MouseFilter = MouseFilterEnum.Stop };
+        _loot.AddChild(_choice);
+        _scroll.Hide();
+        _divider.Hide();
+        _leave.Hide();
+        for (var index = 0; index < candidates.Length; index++)
+        {
+            var candidate = candidates[index];
+            if (candidate.Reward is not { } reward) continue;
+            var isPart = reward is BlackFlowSpirePartReward;
+            var tint = isPart ? PartTint : CollectibleTint;
+            var card = new Control
+            {
+                Position = new(DesignSize.X / 2 + (index - candidates.Length / 2f) * 265, 110),
+                Size = new(265, 528),
+                MouseFilter = MouseFilterEnum.Ignore
+            };
+            _choice.AddChild(card);
+            AddImage(card, "card-frame", -10, -2, 273, 596);
+            AddImage(card, isPart ? "draft-underlay" : "relic-underlay", -22, -38, 309, 653);
+            AddImage(card, "card-title", -3, 235, 272, 47).Modulate = new(tint, 0.33f);
+            if (RewardTexture(candidate) is { } texture)
+                AddImage(card, texture, 20, 42, 225, 225, true);
+            Label(card, reward.Description.GetFormattedText(), 23, 237, 219, 37, 23,
+                alignment: HorizontalAlignment.Center);
+            Rect(card, new(1, 1, 1, 0.23f), 28, 284, 210, 2);
+            var description = new RichTextLabel
+            {
+                Position = new(18, 298), Size = new(228, isPart ? 90 : 116),
+                BbcodeEnabled = true, MouseFilter = MouseFilterEnum.Pass,
+                Text = reward is BlackFlowSpirePartReward part ? part.EffectText
+                    : ((BlackFlowSpireCollectibleReward)reward).EffectText
+            };
+            description.AddThemeFontOverride("normal_font", BlackFlowSpireMapAssets.Font);
+            description.AddThemeFontSizeOverride("normal_font_size", 18);
+            card.AddChild(description);
+            _choiceButtons.Add(ActionButton(card, Text("claim"), 32, 405, 201, 76, () => Claim(candidate), tint));
+        }
+        _choiceButtons.Add(ActionButton(_choice, Text("back_to_loot"), 32, 696, 165, 58,
+            CloseChoice, Teal));
+        ActiveScreenContext.Instance.Update();
+        DefaultFocus.GrabFocus();
+    }
+
+    private void CloseChoice()
+    {
+        if (_choice is not { } choice) return;
+        var group = _choiceGroup;
+        _choice = null;
+        _choiceGroup = null;
+        _choiceButtons.Clear();
+        _loot.RemoveChild(choice);
+        choice.QueueFree();
+        _scroll.Visible = _divider.Visible = _cards.Count != 0;
+        _leave.Show();
+        ActiveScreenContext.Instance.Update();
+        (_cards.Find(card => card.Native == group)?.Claim ?? DefaultFocus).GrabFocus();
     }
 
     private static void AddNativeIcon(Control frame, NRewardButton native, Reward reward)
@@ -335,7 +427,8 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
 
     private void RequestProceed()
     {
-        if (_takingReward || !_nativeProceed.IsEnabled || _confirm.Visible || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
+        if (_takingReward || _choice != null || !_nativeProceed.IsEnabled || _confirm.Visible
+            || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
         if (screen.IsComplete) Proceed();
         else
         {
@@ -364,7 +457,11 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         if (!_ready || !IsVisibleInTree() || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
         if (input.IsActionPressed(MegaInput.cancel) && _loot.Visible)
         {
-            if (_confirm.Visible) CloseConfirmation();
+            if (_choice != null)
+            {
+                if (!_takingReward) CloseChoice();
+            }
+            else if (_confirm.Visible) CloseConfirmation();
             else CloseLoot();
         }
         else if (input.IsActionPressed(MegaInput.select) && GetViewport().GuiGetFocusOwner() is Button button
@@ -393,26 +490,27 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     {
         var live = _nativeList.GetChildren().OfType<Control>().SelectMany(control => control switch
         {
-            NRewardButton button => new[] { (Button: button, Linked: false) },
-            NLinkedRewardSet linked => linked.GetNode<Control>("%RewardContainer").GetChildren().OfType<NRewardButton>()
-                .Select(button => (Button: button, Linked: true)),
-            _ => Enumerable.Empty<(NRewardButton Button, bool Linked)>()
+            NRewardButton => new[] { (Native: control, Linked: false) },
+            NLinkedRewardSet linked when BlackFlowSpireBattleRewardChoicePatch.IsForestChoice(linked) =>
+                new[] { (Native: control, Linked: false) },
+            NLinkedRewardSet linked => Candidates(linked).Select(button => (Native: (Control)button, Linked: true)),
+            _ => Enumerable.Empty<(Control Native, bool Linked)>()
         }).ToArray();
         _cardsChanged = false;
         var restoreFocus = false;
         for (var index = _cards.Count - 1; index >= 0; index--)
         {
             var card = _cards[index];
-            if (live.Any(item => item.Button == card.Native)) continue;
+            if (live.Any(item => item.Native == card.Native)) continue;
             restoreFocus |= card.Claim.HasFocus();
             NHoverTipSet.Remove(card.Claim);
             _row.RemoveChild(card.Frame);
             card.Frame.QueueFree();
             _cards.RemoveAt(index);
         }
-        foreach (var (button, linked) in live)
-            if (GodotObject.IsInstanceValid(button) && button.IsNodeReady() && CardFor(button) == null) AddCard(button, linked);
-
+        foreach (var (native, linked) in live)
+            if (GodotObject.IsInstanceValid(native) && native.IsNodeReady() && _cards.All(card => card.Native != native))
+                AddCard(native, linked);
         var slots = Math.Clamp(_cards.Count, 1, 2);
         var leaveX = slots == 2 ? 581 : 317;
         if (_leaveX != leaveX)
@@ -422,16 +520,21 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
             _divider.Position = new(leaveX - 12, _divider.Position.Y);
             _leave.Position = new(leaveX, _leave.Position.Y);
         }
-        _scroll.Visible = _divider.Visible = _cards.Count != 0;
+        _scroll.Visible = _divider.Visible = _choice == null && _cards.Count != 0;
         RefreshButtons();
+        if (_choiceGroup != null && !live.Any(item => item.Native == _choiceGroup)) CloseChoice();
         if (restoreFocus && _loot.IsVisibleInTree() && ActiveScreenContext.Instance.IsCurrent(screen)) DefaultFocus.GrabFocus();
     }
 
     private void RefreshButtons()
     {
-        var takingReward = _cards.Any(card => !card.Native.IsEnabled);
+        var takingReward = _cards.Any(card => card.Native is NLinkedRewardSet group
+            ? Candidates(group).Any(button => !button.IsEnabled) : !((NRewardButton)card.Native).IsEnabled);
         if (_takingReward != takingReward)
+        {
             foreach (var card in _cards) card.Claim.Disabled = takingReward;
+            foreach (var candidate in _choiceButtons) candidate.Disabled = takingReward;
+        }
         _takingReward = takingReward;
         _leave.Disabled = takingReward || !_nativeProceed.IsEnabled;
         _leaveLabel.Modulate = _leave.Disabled ? new Color(1, 1, 1, 0.55f) : Colors.White;

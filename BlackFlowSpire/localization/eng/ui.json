@@ -32,6 +32,10 @@
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.draft": "Card Recruitment",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.draft_detail": "Choose a card for your deck",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.choose_one": "Choose one in this group",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.choose_reward": "Choose",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.back_to_loot": "Back to Loot",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.part_choice": "Engine Part",
+  "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.collectible_choice": "Collectible",
   "BLACK_FLOW_SPIRE.UI.CARD_PACK_RARITY.hope": "Hope",
   "BLACK_FLOW_SPIRE.UI.CARD_PACK_RARITY.random": "Random rarity",
   "BLACK_FLOW_SPIRE.UI.CARD_PACK_RARITY.back": "Back"

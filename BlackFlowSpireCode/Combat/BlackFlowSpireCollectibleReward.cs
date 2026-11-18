@@ -2,6 +2,7 @@ using System.Text.Json;
 using BlackFlowSpire.Integration;
 using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Generation;
+using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Ui;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -19,6 +20,7 @@ internal sealed class BlackFlowSpireCollectibleReward(Player player, BlackFlowSp
     private static ModRewardDefinition _definition = null!;
 
     private string CollectibleId => item.Id;
+    internal string EffectText => item.Description;
     public override RewardType ModRewardType => _definition.RewardType;
     public override int RewardsSetIndex => 3;
     public override LocString Description => BlackFlowSpireLocalization.CreateLocString(item.TextKey + ".name");
@@ -44,6 +46,13 @@ internal sealed class BlackFlowSpireCollectibleReward(Player player, BlackFlowSp
         return true;
     }
 
+    internal static HashSet<string> Excluded(BlackFlowSpireEngineInventory inventory, IEnumerable<Reward> rewards) =>
+        inventory.Collectibles.OwnedIds
+            .Concat(inventory.PendingConceptRewards.SelectMany(reward => reward.CollectibleIds))
+            .Concat(rewards.SelectMany(reward => reward is LinkedRewardSet linked ? linked.Rewards : [reward])
+                .OfType<BlackFlowSpireCollectibleReward>().Select(reward => reward.CollectibleId))
+            .ToHashSet(StringComparer.Ordinal);
+
     internal static void ReplaceRelics(RunState run, Player player, List<Reward> rewards, AbstractRoom? room)
     {
         if (!rewards.Any(reward => reward is RelicReward)) return;
@@ -56,15 +65,13 @@ internal sealed class BlackFlowSpireCollectibleReward(Player player, BlackFlowSp
         var map = BlackFlowSpireGenerationService.GetOrGenerate(run);
         var progress = BlackFlowSpireGenerationService.GetProgress(run);
         var inventory = BlackFlowSpireGenerationService.GetEngine(run);
-        var excluded = inventory.Collectibles.OwnedIds
-            .Concat(inventory.PendingConceptRewards.SelectMany(reward => reward.CollectibleIds))
-            .Concat(rewards.OfType<BlackFlowSpireCollectibleReward>().Select(reward => reward.CollectibleId))
-            .ToHashSet(StringComparer.Ordinal);
+        var excluded = Excluded(inventory, rewards);
         var random = new StableRandom(map.Seed, map.ActIndex, $"reward-collectibles/{progress.StepsTaken}/{player.NetId}");
         for (var index = 0; index < rewards.Count; index++)
         {
             if (rewards[index] is not RelicReward) continue;
-            if (BlackFlowSpireCollectibleRules.Draw(random, excluded, rare: false) is not { } collectible)
+            if (BlackFlowSpireCollectibleRules.Draw(random, excluded, rare: false, battleReward: room is CombatRoom)
+                is not { } collectible)
             {
                 rewards.RemoveAt(index--);
                 continue;

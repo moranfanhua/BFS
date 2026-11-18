@@ -27,6 +27,7 @@ public static class Entry
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, Assembly.GetExecutingAssembly());
         BlackFlowSpireGenerationService.Register();
         BlackFlowSpireCollectibleReward.Register();
+        BlackFlowSpirePartReward.Register();
         BlackFlowSpireTeam.Register();
         BlackFlowSpireNaturalCardGain.Register();
         RitsuLibFramework.RegisterHealHookListener(new BlackFlowSpireCollectibleHealing());

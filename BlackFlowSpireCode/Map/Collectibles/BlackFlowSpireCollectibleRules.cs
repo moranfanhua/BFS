@@ -17,6 +17,9 @@ public static class BlackFlowSpireCollectibleRules
         212, 213, 215, 216, 217, 244
     ];
 
+    // Original sources include cultivated starting support, two specific events, and a squad's starting inventory.
+    private static readonly HashSet<int> OutsideBattlePool = [32, 33, 34, 37, 208, 210, 217];
+
     private static readonly BlackFlowSpireProcessedPartKind[] OrdinaryProcessed =
     [
         BlackFlowSpireProcessedPartKind.ScrapWheel, BlackFlowSpireProcessedPartKind.ScrapProsthetic, BlackFlowSpireProcessedPartKind.StandardEngine,
@@ -40,9 +43,11 @@ public static class BlackFlowSpireCollectibleRules
         _ => false
     };
 
-    internal static BlackFlowSpireCollectible? Draw(StableRandom random, HashSet<string> excluded, bool rare)
+    internal static BlackFlowSpireCollectible? Draw(StableRandom random, HashSet<string> excluded, bool rare,
+        bool battleReward = false)
     {
         var candidates = BlackFlowSpireCollectibleCatalog.All.Where(item => item.Kind == "RELIC" && CanAcquire(item)
+            && (!battleReward || !OutsideBattlePool.Contains(item.Number))
             && (!rare || item.Rarity == "SUPER_RARE")
             && !BlackFlowSpireCollectibleCatalog.Family(item.Number).Any(member => excluded.Contains(member.Id))).ToArray();
         return candidates.Length == 0 ? null : candidates[random.Next(candidates.Length)];
