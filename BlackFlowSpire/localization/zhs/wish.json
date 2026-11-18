@@ -1,0 +1,13 @@
+{
+  "BLACK_FLOW_SPIRE.UI.WISH.title": "无人商店",
+  "BLACK_FLOW_SPIRE.UI.WISH.intro": "柜台后空无一人。盔甲脚边压着一张纸条，请来客帮忙把木桶运到店里，并许诺一件藏品作为报酬。",
+  "BLACK_FLOW_SPIRE.UI.WISH.refreshed": "撬开的桶里涌出一股黏稠的黑液。盔甲旁的报酬已经换了一批，搬完木桶就能领走其中一件。",
+  "BLACK_FLOW_SPIRE.UI.WISH.result": "你把木桶搬到柜台前。盔甲的护手松开了，你得到了「{item}」。",
+  "BLACK_FLOW_SPIRE.UI.WISH.empty": "木桶还在原处，柜台上已经没有可领取的藏品了。",
+  "BLACK_FLOW_SPIRE.UI.WISH.barrel.0": "搬一个大桶",
+  "BLACK_FLOW_SPIRE.UI.WISH.barrel.1": "搬两个小桶",
+  "BLACK_FLOW_SPIRE.UI.WISH.barrel.2": "推装着轮子的巨大木桶",
+  "BLACK_FLOW_SPIRE.UI.WISH.refresh": "先撬开木桶",
+  "BLACK_FLOW_SPIRE.UI.WISH.refresh.description": "消耗 4 源石锭，换一批更高级的藏品。",
+  "BLACK_FLOW_SPIRE.UI.WISH.leave": "离开商店"
+}

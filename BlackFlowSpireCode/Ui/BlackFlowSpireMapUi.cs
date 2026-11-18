@@ -306,6 +306,12 @@ public static class BlackFlowSpireMapUi
             field.Call("set_interaction_enabled", false);
             root.AddChild(new BlackFlowSpireSacrificeUi(state, screen) { Name = "BlackFlowSpireSacrifice" });
         }
+        else if (canLead && BlackFlowSpireWishRules.IsPending(map, progress))
+        {
+            DefaultFocus = null;
+            field.Call("set_interaction_enabled", false);
+            root.AddChild(new BlackFlowSpireWishUi(state, screen) { Name = "BlackFlowSpireWish" });
+        }
         BlackFlowSpirePartsUi.Attach(root, state, screen, inspection, ClearSelection, PreviewMovement);
         if (BlackFlowSpireTeam.IsOnline && !inspection) root.AddChild(new BlackFlowSpireTeamMapStatus(state));
         BlackFlowSpireLocalization.RefreshWithLocale(root, () =>

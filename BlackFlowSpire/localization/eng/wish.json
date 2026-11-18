@@ -1,0 +1,13 @@
+{
+  "BLACK_FLOW_SPIRE.UI.WISH.title": "Unattended Store",
+  "BLACK_FLOW_SPIRE.UI.WISH.intro": "Nobody stands behind the counter. A note at the foot of a suit of armor asks you to bring in some barrels in exchange for a collectible.",
+  "BLACK_FLOW_SPIRE.UI.WISH.refreshed": "Thick black fluid seeps from the opened barrel. The rewards by the armor have changed. Carry in the barrels to take one.",
+  "BLACK_FLOW_SPIRE.UI.WISH.result": "You set the barrels by the counter. The gauntlet opens and hands you {item}.",
+  "BLACK_FLOW_SPIRE.UI.WISH.empty": "The barrels are still here, but there are no collectibles left to claim.",
+  "BLACK_FLOW_SPIRE.UI.WISH.barrel.0": "Carry a large barrel",
+  "BLACK_FLOW_SPIRE.UI.WISH.barrel.1": "Carry two small barrels",
+  "BLACK_FLOW_SPIRE.UI.WISH.barrel.2": "Push the huge barrel on wheels",
+  "BLACK_FLOW_SPIRE.UI.WISH.refresh": "Pry open a barrel",
+  "BLACK_FLOW_SPIRE.UI.WISH.refresh.description": "Spend 4 Originium Ingots to see a selection of rarer collectibles.",
+  "BLACK_FLOW_SPIRE.UI.WISH.leave": "Leave the store"
+}

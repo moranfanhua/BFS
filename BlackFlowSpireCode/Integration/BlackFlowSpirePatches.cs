@@ -181,7 +181,8 @@ internal static class BlackFlowSpireRestorePositionPatch
                 preFinishedRoom = hunt;
             }
         }
-        else if (current.Completed || current.Content == BlackFlowSpireNodeContent.Door)
+        else if (current.Completed || current.Content == BlackFlowSpireNodeContent.Door
+            || BlackFlowSpireWishRules.IsPending(map, progress))
         {
             // Finished rooms and passage choices restore directly to the map. Reuse existing
             // history; a checkpoint made before room entry still needs its missing entry.
