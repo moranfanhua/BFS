@@ -8,6 +8,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Ascension;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Ftue;
 using MegaCrit.Sts2.Core.Nodes.Screens;
@@ -151,5 +152,25 @@ internal static class BlackFlowSpireBattleRelicTutorialPatch
         if (relicReward is NRewardButton button && NOverlayStack.Instance?.Peek() is NRewardsScreen screen
             && BlackFlowSpireBattleSettlementScreen.Find(screen)?.CardFor(button) is { } card)
             relicReward = card;
+    }
+}
+
+[HarmonyPatch(typeof(RewardsSet), nameof(RewardsSet.GenerateWithoutOffering))]
+internal static class BlackFlowSpireCollectibleRewardsPatch
+{
+    private static void Prefix(RewardsSet __instance, bool ____isGenerated)
+    {
+        if (!____isGenerated && __instance.Player.RunState is RunState run && BlackFlowSpireGenerationService.IsEnabled(run))
+            BlackFlowSpireCollectibleReward.ReplaceRelics(run, __instance.Player, __instance.Rewards, __instance.Room);
+    }
+}
+
+[HarmonyPatch(typeof(Hook), nameof(Hook.ModifyRewards))]
+internal static class BlackFlowSpireAddedCollectibleRewardsPatch
+{
+    private static void Postfix(IRunState runState, Player player, List<Reward> rewards, AbstractRoom? room)
+    {
+        if (runState is RunState run && BlackFlowSpireGenerationService.IsEnabled(run))
+            BlackFlowSpireCollectibleReward.ReplaceRelics(run, player, rewards, room);
     }
 }

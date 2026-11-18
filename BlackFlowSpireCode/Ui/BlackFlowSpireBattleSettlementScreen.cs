@@ -202,7 +202,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         {
             GoldReward => ("gold-underlay", Green),
             CardReward or BlackFlowSpireBattleCardPackReward => ("draft-underlay", Teal),
-            RelicReward => ("relic-underlay", new Color("ffc879")),
+            RelicReward or BlackFlowSpireCollectibleReward => ("relic-underlay", new Color("ffc879")),
             PotionReward => ("potion-underlay", new Color("8adfed")),
             _ => ("draft-underlay", Teal)
         };

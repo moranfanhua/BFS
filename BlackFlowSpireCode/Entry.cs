@@ -1,4 +1,5 @@
 using System.Reflection;
+using BlackFlowSpire.Combat;
 using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Audio;
 using BlackFlowSpire.Ui;
@@ -25,6 +26,7 @@ public static class Entry
         BlackFlowSpireLocalization.AttachLocaleManager();
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, Assembly.GetExecutingAssembly());
         BlackFlowSpireGenerationService.Register();
+        BlackFlowSpireCollectibleReward.Register();
         BlackFlowSpireTeam.Register();
         BlackFlowSpireNaturalCardGain.Register();
         RitsuLibFramework.RegisterHealHookListener(new BlackFlowSpireCollectibleHealing());
