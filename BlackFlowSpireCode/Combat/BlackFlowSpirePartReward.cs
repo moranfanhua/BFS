@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BlackFlowSpire.Integration;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Map.Presentation;
 using BlackFlowSpire.Persistence;
@@ -20,6 +21,10 @@ internal sealed class BlackFlowSpirePartReward(Player player, BlackFlowSpireShop
     public override int RewardsSetIndex => 4;
     public override LocString Description => BlackFlowSpireLocalization.CreateLocString(BlackFlowSpireText.PartKey(part.Id) + ".name");
     protected override string RewardIconPath => $"res://BlackFlowSpire/Images/Parts/{part.Id}.png";
+    internal string ArtPath => RewardIconPath;
+    internal string Category => part.Processed.HasValue ? "processed" : part.Natural.HasValue ? "natural" : "concept";
+    internal int InitialUses => part.Processed is { } processed ? BlackFlowSpireProcessedParts.Get(processed).Uses : 0;
+    internal int Appraisal => part.Natural is { } natural ? BlackFlowSpireNaturalParts.Get(natural).BaseAppraisal : BlackFlowSpirePartService.FixedSaleOriginium;
     internal string EffectText => part.Processed is { } processed ? BlackFlowSpirePartsUi.Description(processed)
         : part.Natural is { } natural ? BlackFlowSpirePartsUi.NaturalDescription(natural)
         : BlackFlowSpirePartsUi.ConceptDescription(part.Concept!.Value);

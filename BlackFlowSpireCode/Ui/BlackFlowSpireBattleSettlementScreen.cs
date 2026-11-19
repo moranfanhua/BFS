@@ -26,6 +26,8 @@ namespace BlackFlowSpire.Ui;
 internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScreen screen, RunState run, CombatRoom room) : Control
 {
     private const string ViewName = "BlackFlowSpireBattleSettlement";
+    private const float CardStride = 265;
+    private static readonly Vector2 ConfirmPosition = new(40.4f, 387.6f);
     private static readonly Color Green = new("32ff84");
     private static readonly Color Teal = new("26f4c6");
     private static readonly Color PartTint = new("98d9b8");
@@ -34,7 +36,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     private Control _canvas = null!;
     private Control _result = null!;
     private Control _loot = null!;
-    private HBoxContainer _row = null!;
+    private Control _row = null!;
     private ScrollContainer _scroll = null!;
     private Button _continue = null!;
     private Button _leave = null!;
@@ -46,12 +48,15 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     private readonly List<Button> _choiceButtons = [];
     private Control _nativeList = null!;
     private Button _keepLoot = null!;
+    private Button _discardLoot = null!;
+    private Tween? _confirmTween;
+    private Tween? _reflowTween;
+    private bool _confirmOpen;
     private NProceedButton _nativeProceed = null!;
     private bool _takingReward;
     private bool _proceeding;
     private bool _ready;
     private bool _cardsChanged = true;
-    private int _leaveX;
 
     private sealed record RewardCard(Control Native, Control Frame, Button Claim);
 
@@ -61,7 +66,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     internal static bool LootIsOpen => NOverlayStack.Instance?.Peek() is NRewardsScreen rewards && Find(rewards) is { } view
         && view._loot.Visible && view.Visible;
 
-    internal Control DefaultFocus => !_loot.Visible ? _continue : _confirm.Visible ? _keepLoot
+    internal Control DefaultFocus => !_loot.Visible ? _continue : _confirmOpen ? _keepLoot
         : _choice is not null ? _choiceButtons.FirstOrDefault(button => !button.Disabled) ?? _choice
         : _cards.FirstOrDefault(card => !card.Claim.Disabled)?.Claim ?? _leave;
 
@@ -157,37 +162,55 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     {
         _loot = new Control { Size = DesignSize, MouseFilter = MouseFilterEnum.Ignore, Visible = false };
         _canvas.AddChild(_loot);
-        _loot.AddChild(new BackBufferCopy { CopyMode = BackBufferCopy.CopyModeEnum.Viewport });
-        Rect(_loot, Colors.White, 0, 0, DesignSize.X, DesignSize.Y).Material = new ShaderMaterial
-        {
-            Shader = ResourceLoader.Load<Shader>("res://BlackFlowSpire/Shaders/Ui/BlackFlowSpire_settlement_blur.gdshader")
-        };
+        AddBlurredBackdrop(_loot, 0.4f);
 
         _scroll = new ScrollContainer
         {
-            Position = new(15, 121), Size = new(549, 583), FollowFocus = true,
-            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled, HorizontalScrollMode = ScrollContainer.ScrollMode.Auto
+            Size = DesignSize, FollowFocus = true,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled, HorizontalScrollMode = ScrollContainer.ScrollMode.ShowNever
         };
         _loot.AddChild(_scroll);
         _scroll.GuiInput += ScrollLoot;
-        _row = new HBoxContainer { MouseFilter = MouseFilterEnum.Pass };
-        _row.AddThemeConstantOverride("separation", 0);
+        _row = new Control { MouseFilter = MouseFilterEnum.Pass };
         _scroll.AddChild(_row);
+        BuildLeaveCard();
+    }
 
-        _divider = Rect(_loot, new(1, 1, 1, 0.3f), 569, 291, 2, 200);
-        _leave = ActionButton(_loot, "", 581, 258, 234, 226, RequestProceed);
-        AddImage(_leave, "leave", 2, 3, 210, 192, true);
-        AddImage(_leave, "leave-glow", 3, 174, 234, 45).Modulate = new(1, 1, 1, 0.5f);
-        _leaveLabel = Label(_leave, Text("leave"), 6, 178, 234, 39, 25, alignment: HorizontalAlignment.Center);
+    private static void AddBlurredBackdrop(Control parent, float brightness)
+    {
+        parent.AddChild(new BackBufferCopy { CopyMode = BackBufferCopy.CopyModeEnum.Viewport });
+        var blur = new ShaderMaterial { Shader = ResourceLoader.Load<Shader>("res://BlackFlowSpire/Shaders/Ui/BlackFlowSpire_settlement_blur.gdshader") };
+        blur.SetShaderParameter("brightness", brightness);
+        Rect(parent, Colors.White, 0, 0, DesignSize.X, DesignSize.Y).Material = blur;
+    }
 
-        _confirm = new Control { Size = DesignSize, MouseFilter = MouseFilterEnum.Stop, Visible = false };
-        _loot.AddChild(_confirm);
-        Rect(_confirm, new(0, 0, 0, 0.75f), 0, 0, DesignSize.X, DesignSize.Y);
-        Rect(_confirm, new("172322"), 476, 295, 470, 185);
-        Rect(_confirm, Teal, 476, 295, 470, 2);
-        Label(_confirm, Text("confirm_leave"), 491, 318, 440, 79, 24, alignment: HorizontalAlignment.Center);
-        _keepLoot = ActionButton(_confirm, Text("keep_rewards"), 511, 410, 185, 43, CloseConfirmation, Teal);
-        ActionButton(_confirm, Text("leave"), 725, 410, 185, 43, Proceed, new("ffc062"));
+    private void BuildLeaveCard()
+    {
+        _leave = ActionButton(_row, "", 25, 138, 270, 522, RequestProceed);
+        _divider = Rect(_leave, new(1, 1, 1, 0.298f), 14, 153, 2, 200);
+        AddImage(_leave, "leave", 29.8f, 123.6f, 210, 192);
+        AddImage(_leave, "leave-glow", -39.6f, 295.5f, 380, 47).Modulate = new Color("b4b4b459");
+        _leaveLabel = Label(_leave, Text("leave"), 70.7f, 302.2f, 160, 30, 24, alignment: HorizontalAlignment.Center);
+
+        _confirm = new Control { Size = new(220, 84), Position = ConfirmPosition, MouseFilter = MouseFilterEnum.Stop, Visible = false };
+        _leave.AddChild(_confirm);
+        AddImage(_confirm, "leave-pointer", 98, -12, 24, 12);
+        Rect(_confirm, new("373737"), 0, 0, 220, 42);
+        Rect(_confirm, new("1d1d1d"), 0, 42, 110, 42);
+        Rect(_confirm, new("3b1213"), 110, 42, 110, 42);
+        var title = Label(_confirm, Text("confirm_leave"), 20, 9.8f, 180, 31.2f, 24, new("919191"), HorizontalAlignment.Center);
+        AddImage(_confirm, "leave-cancel", 39, 48.5f, 32, 32);
+        AddImage(_confirm, "leave-confirm", 148.5f, 46.5f, 33, 33);
+        _keepLoot = ActionButton(_confirm, "", -10, 31.5f, 120, 60, () => SetConfirmation(false));
+        _discardLoot = ActionButton(_confirm, "", 110, 31.5f, 120, 60, Proceed);
+        void RefreshText()
+        {
+            title.Text = Text("confirm_leave");
+            _keepLoot.AccessibilityName = Text("keep_rewards");
+            _discardLoot.AccessibilityName = Text("leave");
+        }
+        RefreshText();
+        BlackFlowSpireLocalization.RefreshWithLocale(_confirm, RefreshText);
     }
 
     private void ScrollLoot(InputEvent input)
@@ -207,8 +230,15 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         var group = native as NLinkedRewardSet;
         var button = group == null ? (NRewardButton)native : Candidates(group).FirstOrDefault();
         if (button?.Reward is not { } reward) return;
-        var frame = new Control { CustomMinimumSize = new(265, 579), MouseFilter = MouseFilterEnum.Pass };
+        var frame = new Control { Position = new(15 + CardStride * _cards.Count, 121), Size = new(CardStride, 579), MouseFilter = MouseFilterEnum.Pass };
         _row.AddChild(frame);
+        if (group != null)
+        {
+            var entry = BuildChoiceCard(frame, new(10, 17), button, group);
+            entry.Disabled = _takingReward;
+            _cards.Add(new(group, frame, entry));
+            return;
+        }
         var (underlay, tint) = reward switch
         {
             GoldReward => ("gold-underlay", Green),
@@ -227,9 +257,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         };
         titleGlow.Modulate = new(tint, 0.33f);
         Rect(frame, new(1, 1, 1, 0.23f), 37, 300, 210, 2);
-        var title = group == null ? RewardTitle(reward)
-            : Text(reward is BlackFlowSpirePartReward ? "part_choice" : "collectible_choice");
-        Label(frame, title, 23, 248, 238, 48, 23, alignment: HorizontalAlignment.Center);
+        Label(frame, RewardTitle(reward), 23, 248, 238, 48, 23, alignment: HorizontalAlignment.Center);
         if (reward is GoldReward gold)
         {
             AddImage(frame, "gold", 52, 52, 180, 180, true);
@@ -241,35 +269,24 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         {
             var isCardReward = reward is CardReward or BlackFlowSpireBattleCardPackReward;
             if (isCardReward) AddImage(frame, "draft", 52, 52, 180, 180, true);
-            else if (group != null)
-            {
-                var index = 0;
-                foreach (var candidate in Candidates(group))
-                    if (RewardTexture(candidate) is { } texture)
-                        AddImage(frame, texture, 32 + index++ * 102, 86, 112, 112, true);
-            }
             else AddNativeIcon(frame, button, reward);
-            if (isCardReward || linked || group != null)
-                Label(frame, Text(linked || group != null ? "choose_one" : "draft_detail"), 24, 298, 236, 46, 18,
+            if (isCardReward || linked)
+                Label(frame, Text(linked ? "choose_one" : "draft_detail"), 24, 298, 236, 46, 18,
                     new("b3bbbb"), HorizontalAlignment.Center);
         }
-        var claim = ActionButton(frame, Text(group == null ? "claim" : "choose_reward"), 41, 424, 202, 76,
-            () => { if (group == null) Claim(button); else OpenChoice(group); }, tint);
+        var claim = ActionButton(frame, Text("claim"), 41, 424, 202, 76, () => Claim(button), tint);
         claim.Disabled = _takingReward;
         claim.MouseForcePassScrollEvents = true;
-        if (group == null)
+        var tips = reward.HoverTips;
+        void ShowTips()
         {
-            var tips = reward.HoverTips;
-            void ShowTips()
-            {
-                if (!claim.Disabled && _loot.IsVisibleInTree() && ActiveScreenContext.Instance.IsCurrent(screen))
-                    NHoverTipSet.CreateAndShow(claim, tips, HoverTipAlignment.Right);
-            }
-            claim.MouseEntered += ShowTips;
-            claim.MouseExited += () => NHoverTipSet.Remove(claim);
-            claim.FocusEntered += ShowTips;
-            claim.FocusExited += () => NHoverTipSet.Remove(claim);
+            if (_choice == null && !claim.Disabled && _loot.IsVisibleInTree() && ActiveScreenContext.Instance.IsCurrent(screen))
+                NHoverTipSet.CreateAndShow(claim, tips, HoverTipAlignment.Right);
         }
+        claim.MouseEntered += ShowTips;
+        claim.MouseExited += () => NHoverTipSet.Remove(claim);
+        claim.FocusEntered += ShowTips;
+        claim.FocusExited += () => NHoverTipSet.Remove(claim);
         _cards.Add(new(native, frame, claim));
     }
 
@@ -279,50 +296,29 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     private void OpenChoice(NLinkedRewardSet group)
     {
         if (_choice != null || _takingReward || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
+        SetConfirmation(false, animate: false);
         var candidates = Candidates(group).ToArray();
         _choiceGroup = group;
         _choice = new Control { Size = DesignSize, MouseFilter = MouseFilterEnum.Stop };
         _loot.AddChild(_choice);
-        _scroll.Hide();
-        _divider.Hide();
-        _leave.Hide();
+        _scroll.FocusBehaviorRecursive = FocusBehaviorRecursiveEnum.Disabled;
+        _scroll.MouseBehaviorRecursive = MouseBehaviorRecursiveEnum.Disabled;
+        AddBlurredBackdrop(_choice, 1f);
+        const float step = CardStride + 50;
+        var left = (DesignSize.X - (candidates.Length * step - 50)) / 2;
         for (var index = 0; index < candidates.Length; index++)
         {
-            var candidate = candidates[index];
-            if (candidate.Reward is not { } reward) continue;
-            var isPart = reward is BlackFlowSpirePartReward;
-            var tint = isPart ? PartTint : CollectibleTint;
-            var card = new Control
-            {
-                Position = new(DesignSize.X / 2 + (index - candidates.Length / 2f) * 265, 110),
-                Size = new(265, 528),
-                MouseFilter = MouseFilterEnum.Ignore
-            };
-            _choice.AddChild(card);
-            AddImage(card, "card-frame", -10, -2, 273, 596);
-            AddImage(card, isPart ? "draft-underlay" : "relic-underlay", -22, -38, 309, 653);
-            AddImage(card, "card-title", -3, 235, 272, 47).Modulate = new(tint, 0.33f);
-            if (RewardTexture(candidate) is { } texture)
-                AddImage(card, texture, 20, 42, 225, 225, true);
-            Label(card, reward.Description.GetFormattedText(), 23, 237, 219, 37, 23,
-                alignment: HorizontalAlignment.Center);
-            Rect(card, new(1, 1, 1, 0.23f), 28, 284, 210, 2);
-            var description = new RichTextLabel
-            {
-                Position = new(18, 298), Size = new(228, isPart ? 90 : 116),
-                BbcodeEnabled = true, MouseFilter = MouseFilterEnum.Pass,
-                Text = reward is BlackFlowSpirePartReward part ? part.EffectText
-                    : ((BlackFlowSpireCollectibleReward)reward).EffectText
-            };
-            description.AddThemeFontOverride("normal_font", BlackFlowSpireMapAssets.Font);
-            description.AddThemeFontSizeOverride("normal_font_size", 18);
-            card.AddChild(description);
-            _choiceButtons.Add(ActionButton(card, Text("claim"), 32, 405, 201, 76, () => Claim(candidate), tint));
+            if (index > 0)
+                Label(_choice, Text("choice_or"), left + index * step - 50, 356, 50, 30, 20,
+                    new("898989"), HorizontalAlignment.Center);
+            _choiceButtons.Add(BuildChoiceCard(_choice, new(left + index * step, 108), candidates[index], null));
         }
-        _choiceButtons.Add(ActionButton(_choice, Text("back_to_loot"), 32, 696, 165, 58,
-            CloseChoice, Teal));
+        var back = ActionButton(_choice, "", 10, 9.5f, 70, 69, () => { if (!_takingReward) CloseChoice(); });
+        AddImage(back, "choice-close", 0, 0, 70, 69);
+        back.AccessibilityName = Text("back_to_loot");
+        _choiceButtons.Add(back);
         ActiveScreenContext.Instance.Update();
-        DefaultFocus.GrabFocus();
+        if (NControllerManager.Instance?.IsUsingDirectionalNavigation == true) DefaultFocus.GrabFocus();
     }
 
     private void CloseChoice()
@@ -334,10 +330,11 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         _choiceButtons.Clear();
         _loot.RemoveChild(choice);
         choice.QueueFree();
-        _scroll.Visible = _divider.Visible = _cards.Count != 0;
-        _leave.Show();
+        _scroll.FocusBehaviorRecursive = FocusBehaviorRecursiveEnum.Inherited;
+        _scroll.MouseBehaviorRecursive = MouseBehaviorRecursiveEnum.Inherited;
         ActiveScreenContext.Instance.Update();
-        (_cards.Find(card => card.Native == group)?.Claim ?? DefaultFocus).GrabFocus();
+        if (NControllerManager.Instance?.IsUsingDirectionalNavigation == true)
+            (_cards.Find(card => card.Native == group)?.Claim ?? DefaultFocus).GrabFocus();
     }
 
     private static void AddNativeIcon(Control frame, NRewardButton native, Reward reward)
@@ -396,7 +393,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
 
     private void CloseLoot()
     {
-        CloseConfirmation();
+        SetConfirmation(false, animate: false);
         _loot.Hide();
         _continue.Show();
         ActiveScreenContext.Instance.Update();
@@ -405,6 +402,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
     private void Claim(NRewardButton native)
     {
         if (_takingReward || !_loot.IsVisibleInTree() || !native.IsEnabled || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
+        SetConfirmation(false);
         if (CardFor(native) is { } frame)
             _scroll.EnsureControlVisible(frame);
         if (native.GetNodeOrNull<Control>("%Icon") is { } icon && CardFor(native) is { } card)
@@ -420,33 +418,54 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         if (ActiveScreenContext.Instance.IsCurrent(screen))
         {
             if (!_loot.Visible) OpenLoot();
-            else if (!_confirm.Visible) RequestProceed();
+            else RequestProceed();
         }
         return true;
     }
 
     private void RequestProceed()
     {
-        if (_takingReward || _choice != null || !_nativeProceed.IsEnabled || _confirm.Visible
+        if (_takingReward || _choice != null || !_nativeProceed.IsEnabled
             || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
         if (screen.IsComplete) Proceed();
-        else
-        {
-            _confirm.Show();
-            _keepLoot.GrabFocus();
-        }
+        else SetConfirmation(!_confirmOpen);
     }
 
-    private void CloseConfirmation()
+    private void SetConfirmation(bool open, bool animate = true)
     {
-        _confirm.Hide();
-        if (_loot.IsVisibleInTree() && NControllerManager.Instance?.IsUsingDirectionalNavigation == true) _leave.GrabFocus();
+        if (_confirmOpen == open && (animate || !_confirm.Visible)) return;
+        _confirmOpen = open;
+        _confirmTween?.Kill();
+        var directional = NControllerManager.Instance?.IsUsingDirectionalNavigation == true;
+        if (GetViewport().GuiGetFocusOwner() is { } focused && (focused == _leave || _confirm.IsAncestorOf(focused)))
+        {
+            if (!directional) focused.ReleaseFocus();
+            else if (!open && _leave.IsVisibleInTree()) _leave.GrabFocus();
+        }
+        _keepLoot.Disabled = _discardLoot.Disabled = !open;
+        if (!animate)
+        {
+            _confirm.Visible = open;
+            return;
+        }
+        var hiddenPosition = ConfirmPosition + Vector2.Up * 10;
+        if (!_confirm.Visible)
+        {
+            _confirm.Position = hiddenPosition;
+            _confirm.Modulate = new(1, 1, 1, 0);
+            _confirm.Show();
+        }
+        if (open && directional) _keepLoot.GrabFocus();
+        _confirmTween = _confirm.CreateTween().SetParallel().SetTrans(Tween.TransitionType.Quad).SetEase(Tween.EaseType.Out);
+        _confirmTween.TweenProperty(_confirm, "position", open ? ConfirmPosition : hiddenPosition, 0.2);
+        _confirmTween.TweenProperty(_confirm, "modulate:a", open ? 1f : 0f, 0.2);
+        if (!open) _confirmTween.Chain().TweenCallback(Callable.From(_confirm.Hide));
     }
 
     private void Proceed()
     {
-        CloseConfirmation();
         if (!_nativeProceed.IsEnabled || _takingReward || !ActiveScreenContext.Instance.IsCurrent(screen)) return;
+        SetConfirmation(false, animate: false);
         _proceeding = true;
         try { _nativeProceed.ForceClick(); }
         finally { _proceeding = false; }
@@ -461,7 +480,7 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
             {
                 if (!_takingReward) CloseChoice();
             }
-            else if (_confirm.Visible) CloseConfirmation();
+            else if (_confirmOpen) SetConfirmation(false);
             else CloseLoot();
         }
         else if (input.IsActionPressed(MegaInput.select) && GetViewport().GuiGetFocusOwner() is Button button
@@ -498,32 +517,60 @@ internal sealed partial class BlackFlowSpireBattleSettlementScreen(NRewardsScree
         }).ToArray();
         _cardsChanged = false;
         var restoreFocus = false;
+        var removed = false;
+        var animate = _loot.IsVisibleInTree();
         for (var index = _cards.Count - 1; index >= 0; index--)
         {
             var card = _cards[index];
             if (live.Any(item => item.Native == card.Native)) continue;
             restoreFocus |= card.Claim.HasFocus();
             NHoverTipSet.Remove(card.Claim);
-            _row.RemoveChild(card.Frame);
-            card.Frame.QueueFree();
             _cards.RemoveAt(index);
+            removed = true;
+            card.Claim.Disabled = true;
+            card.Claim.MouseFilter = card.Frame.MouseFilter = MouseFilterEnum.Ignore;
+            if (animate) FadeClaimedCard(card.Frame);
+            else card.Frame.QueueFree();
         }
+        var retained = _cards.Count;
         foreach (var (native, linked) in live)
             if (GodotObject.IsInstanceValid(native) && native.IsNodeReady() && _cards.All(card => card.Native != native))
                 AddCard(native, linked);
-        var slots = Math.Clamp(_cards.Count, 1, 2);
-        var leaveX = slots == 2 ? 581 : 317;
-        if (_leaveX != leaveX)
+        if (removed || _cards.Count != retained || !_ready)
         {
-            _leaveX = leaveX;
-            _scroll.Size = new(265 * slots + 18, _scroll.Size.Y);
-            _divider.Position = new(leaveX - 12, _divider.Position.Y);
-            _leave.Position = new(leaveX, _leave.Position.Y);
+            SetConfirmation(false, animate: false);
+            LayoutRewardRow(removed && animate);
         }
-        _scroll.Visible = _divider.Visible = _choice == null && _cards.Count != 0;
+        _divider.Visible = _cards.Count != 0;
         RefreshButtons();
         if (_choiceGroup != null && !live.Any(item => item.Native == _choiceGroup)) CloseChoice();
         if (restoreFocus && _loot.IsVisibleInTree() && ActiveScreenContext.Instance.IsCurrent(screen)) DefaultFocus.GrabFocus();
+    }
+
+    private static void FadeClaimedCard(Control frame)
+    {
+        var fade = frame.CreateTween().SetParallel().SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.InOut);
+        fade.TweenProperty(frame, "position:y", frame.Position.Y - 50, 0.3);
+        fade.TweenProperty(frame, "modulate:a", 0f, 0.3);
+        fade.Chain().TweenCallback(Callable.From(frame.QueueFree));
+    }
+
+    private void LayoutRewardRow(bool animate)
+    {
+        _reflowTween?.Kill();
+        _reflowTween = animate ? _row.CreateTween().SetParallel().SetTrans(Tween.TransitionType.Linear) : null;
+        void MoveTo(Control control, float targetX)
+        {
+            if (_reflowTween == null) control.Position = new(targetX, control.Position.Y);
+            else if (!Mathf.IsEqualApprox(control.Position.X, targetX))
+                _reflowTween.TweenProperty(control, "position:x", targetX, 0.2).SetDelay(0.2);
+        }
+        for (var index = 0; index < _cards.Count; index++) MoveTo(_cards[index].Frame, 15 + index * CardStride);
+        var leaveX = 25 + _cards.Count * CardStride;
+        MoveTo(_leave, leaveX);
+        var contentSize = new Vector2(leaveX + _leave.Size.X, DesignSize.Y);
+        if (_reflowTween == null) _row.CustomMinimumSize = contentSize;
+        else _reflowTween.TweenProperty(_row, "custom_minimum_size", contentSize, 0.2).SetDelay(0.2);
     }
 
     private void RefreshButtons()

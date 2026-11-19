@@ -161,7 +161,7 @@ internal static class BlackFlowSpireBattleSettlementArt
         entry.TweenProperty(stats, "modulate", Colors.White, 0.47).SetDelay(0.16);
     }
 
-    private static void FitNumber(Label label, int fontSize, float availableWidth)
+    internal static void FitNumber(Label label, int fontSize, float availableWidth)
     {
         var textWidth = label.GetThemeFont("font").GetStringSize(label.Text, fontSize: fontSize).X;
         if (textWidth > availableWidth)
