@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json.Serialization;
 using BlackFlowSpire.Combat;
 using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Exploration;
@@ -32,6 +33,8 @@ public sealed class BlackFlowSpireRunData
     public Dictionary<int, BlackFlowSpireExplorationProgress> Progress { get; set; } = [];
     public BlackFlowSpireEngineInventory Engine { get; set; } = new();
     public BlackFlowSpireFloorTransition? PendingFloorTransition { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BlackFlowSpireExpeditionDispatch? ExpeditionDispatch { get; set; }
 
     internal bool TryChangeHope(int delta)
     {
@@ -47,7 +50,7 @@ public sealed class BlackFlowSpireRunData
     }
 }
 
-public static class BlackFlowSpireGenerationService
+public static partial class BlackFlowSpireGenerationService
 {
     private static RunSavedData<BlackFlowSpireRunData>? _slot;
 

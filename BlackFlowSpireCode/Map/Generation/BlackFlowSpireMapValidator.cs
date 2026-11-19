@@ -53,7 +53,8 @@ public static class BlackFlowSpireMapValidator
                     or BlackFlowSpireNodeContent.BattleSavage,
                 BlackFlowSpireNodeKind.Event => node.Content is BlackFlowSpireNodeContent.Event or BlackFlowSpireNodeContent.Reward
                     or BlackFlowSpireNodeContent.Shop or BlackFlowSpireNodeContent.Door or BlackFlowSpireNodeContent.Light
-                    or BlackFlowSpireNodeContent.Evacuate or BlackFlowSpireNodeContent.Rest or BlackFlowSpireNodeContent.Sacrifice,
+                    or BlackFlowSpireNodeContent.Evacuate or BlackFlowSpireNodeContent.Rest or BlackFlowSpireNodeContent.Sacrifice
+                    or BlackFlowSpireNodeContent.Expedition,
                 BlackFlowSpireNodeKind.Boss => node.Content == BlackFlowSpireNodeContent.Boss,
                 BlackFlowSpireNodeKind.Exit => node.Content == BlackFlowSpireNodeContent.Final,
                 _ => false

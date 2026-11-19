@@ -1,0 +1,315 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="font"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/expedition_bg.png" id="background"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_bg_decor.png" id="decor"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_bg_mask.png" id="mask"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_left_deco.png" id="left_decor"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_decor_bird.png" id="bird"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_deco1.png" id="deco_one"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_deco2.png" id="deco_two"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_deco3.png" id="deco_three"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_title_deco.png" id="title"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_char_title.png" id="list_title"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_back_btn.png" id="back"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_confirmed_btn.png" id="confirm"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_not_confirmed_btn.png" id="unselected"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_char_scroll_bar_bg.png" id="rail"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/expedition_char_scroll_bar_handler.png" id="grabber"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Sacrifice/expedition_char_bottom_hint.png" id="end"]
+
+[sub_resource type="StyleBoxEmpty" id="empty"]
+
+[sub_resource type="StyleBoxFlat" id="focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.68, 0.94, 0.87, 0.92)
+
+[sub_resource type="StyleBoxTexture" id="rail_style"]
+texture = ExtResource("rail")
+texture_margin_left = 2.0
+texture_margin_right = 2.0
+texture_margin_top = 7.0
+texture_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="grabber_style"]
+texture = ExtResource("grabber")
+texture_margin_left = 2.0
+texture_margin_right = 2.0
+texture_margin_top = 7.0
+texture_margin_bottom = 7.0
+
+[sub_resource type="Theme" id="layout_theme"]
+default_font = ExtResource("font")
+Button/styles/focus = SubResource("focus")
+Button/styles/normal = SubResource("empty")
+Button/styles/pressed = SubResource("empty")
+Button/styles/hover = SubResource("empty")
+Button/styles/disabled = SubResource("empty")
+VScrollBar/styles/scroll = SubResource("rail_style")
+VScrollBar/styles/scroll_focus = SubResource("rail_style")
+VScrollBar/styles/grabber = SubResource("grabber_style")
+VScrollBar/styles/grabber_highlight = SubResource("grabber_style")
+VScrollBar/styles/grabber_pressed = SubResource("grabber_style")
+
+[sub_resource type="AtlasTexture" id="header_left"]
+atlas = ExtResource("list_title")
+region = Rect2(0, 0, 108, 34)
+
+[sub_resource type="AtlasTexture" id="header_right"]
+atlas = ExtResource("list_title")
+region = Rect2(192, 0, 107, 34)
+
+[node name="ExpeditionPicker" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+theme = SubResource("layout_theme")
+
+[node name="Matte" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.018, 0.044, 0.056, 1)
+
+[node name="Canvas" type="Control" parent="."]
+offset_left = 0.000
+offset_top = 0.000
+offset_right = 1280.000
+offset_bottom = 720.000
+mouse_filter = 2
+clip_contents = true
+
+[node name="Background" type="TextureRect" parent="Canvas"]
+offset_left = 0.000
+offset_top = -120.000
+offset_right = 1280.000
+offset_bottom = 840.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("background")
+
+[node name="Decoration" type="TextureRect" parent="Canvas"]
+offset_left = 0.000
+offset_top = -73.000
+offset_right = 1280.000
+offset_bottom = 793.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("decor")
+
+[node name="LowerMask" type="TextureRect" parent="Canvas"]
+offset_left = 0.000
+offset_top = 543.000
+offset_right = 1280.000
+offset_bottom = 896.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("mask")
+
+[node name="LeftDecoration" type="TextureRect" parent="Canvas"]
+offset_left = 106.000
+offset_top = 121.000
+offset_right = 620.000
+offset_bottom = 731.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("left_decor")
+
+[node name="BirdLeft" type="TextureRect" parent="Canvas"]
+offset_left = -122.000
+offset_top = 93.000
+offset_right = 170.000
+offset_bottom = 303.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("bird")
+
+[node name="BirdRight" type="TextureRect" parent="Canvas"]
+offset_left = 493.000
+offset_top = 93.000
+offset_right = 785.000
+offset_bottom = 303.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("bird")
+flip_h = true
+
+[node name="DecoOne" type="TextureRect" parent="Canvas"]
+offset_left = 269.000
+offset_top = 265.000
+offset_right = 333.000
+offset_bottom = 301.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("deco_one")
+
+[node name="DecoTwo" type="TextureRect" parent="Canvas"]
+offset_left = 81.000
+offset_top = 308.000
+offset_right = 197.000
+offset_bottom = 371.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("deco_two")
+
+[node name="DecoThree" type="TextureRect" parent="Canvas"]
+offset_left = 350.000
+offset_top = 308.000
+offset_right = 466.000
+offset_bottom = 371.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("deco_three")
+
+[node name="Title" type="TextureRect" parent="Canvas"]
+offset_left = 229.000
+offset_top = 118.000
+offset_right = 437.000
+offset_bottom = 188.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("title")
+
+[node name="Before" type="Control" parent="Canvas"]
+offset_left = 178.000
+offset_top = 344.000
+offset_right = 178.000
+offset_bottom = 344.000
+mouse_filter = 2
+
+[node name="After" type="Control" parent="Canvas"]
+offset_left = 485.000
+offset_top = 344.000
+offset_right = 485.000
+offset_bottom = 344.000
+mouse_filter = 2
+
+[node name="Prompt" type="Label" parent="Canvas"]
+offset_left = 113.000
+offset_top = 493.000
+offset_right = 583.000
+offset_bottom = 530.000
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_fonts/font = ExtResource("font")
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.88, 0.96, 0.93, 1)
+theme_override_colors/font_outline_color = Color(0.025, 0.09, 0.11, 1)
+theme_override_constants/outline_size = 4
+
+[node name="Description" type="Label" parent="Canvas"]
+offset_left = 78.000
+offset_top = 548.000
+offset_right = 618.000
+offset_bottom = 628.000
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_fonts/font = ExtResource("font")
+theme_override_font_sizes/font_size = 20
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.88, 0.96, 0.93, 1)
+theme_override_colors/font_outline_color = Color(0.025, 0.09, 0.11, 1)
+theme_override_constants/outline_size = 4
+
+[node name="HeaderLeft" type="TextureRect" parent="Canvas"]
+offset_left = 799.500
+offset_top = 124.000
+offset_right = 907.500
+offset_bottom = 158.000
+mouse_filter = 2
+expand_mode = 1
+texture = SubResource("header_left")
+
+[node name="HeaderRight" type="TextureRect" parent="Canvas"]
+offset_left = 992.500
+offset_top = 124.000
+offset_right = 1099.500
+offset_bottom = 158.000
+mouse_filter = 2
+expand_mode = 1
+texture = SubResource("header_right")
+
+[node name="CardList" type="Label" parent="Canvas"]
+offset_left = 845.000
+offset_top = 124.000
+offset_right = 1052.000
+offset_bottom = 158.000
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_fonts/font = ExtResource("font")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.88, 0.96, 0.93, 1)
+theme_override_colors/font_outline_color = Color(0.025, 0.09, 0.11, 1)
+theme_override_constants/outline_size = 4
+
+[node name="Scroll" type="ScrollContainer" parent="Canvas"]
+offset_left = 671.000
+offset_top = 164.000
+offset_right = 1241.000
+offset_bottom = 549.000
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="Cards" type="GridContainer" parent="Canvas/Scroll"]
+columns = 5
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="ListEnd" type="TextureRect" parent="Canvas"]
+offset_left = 917.000
+offset_top = 535.000
+offset_right = 989.000
+offset_bottom = 574.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("end")
+
+[node name="Back" type="Button" parent="Canvas"]
+offset_left = 654.000
+offset_top = 563.000
+offset_right = 845.000
+offset_bottom = 620.000
+mouse_default_cursor_shape = 2
+
+[node name="Art" type="TextureRect" parent="Canvas/Back"]
+offset_left = -14.000
+offset_top = -21.000
+offset_right = 205.000
+offset_bottom = 78.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("back")
+
+[node name="Confirm" type="Button" parent="Canvas"]
+offset_left = 853.000
+offset_top = 563.000
+offset_right = 1280.000
+offset_bottom = 620.000
+disabled = true
+mouse_default_cursor_shape = 2
+
+[node name="Enabled" type="TextureRect" parent="Canvas/Confirm"]
+offset_left = 0.000
+offset_top = -30.000
+offset_right = 427.000
+offset_bottom = 79.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("confirm")
+visible = false
+
+[node name="Disabled" type="TextureRect" parent="Canvas/Confirm"]
+offset_left = 0.000
+offset_top = -30.000
+offset_right = 427.000
+offset_bottom = 79.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("unselected")

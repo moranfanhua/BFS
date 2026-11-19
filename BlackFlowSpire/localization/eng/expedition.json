@@ -1,0 +1,21 @@
+{
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.title": "The Unexplored Tree",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.story.intro": "You've never seen a tree this tall. Warm light seeps through gaps in the bark, tracing the outline of a door. There might be a way out, but it pays to be careful.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.story.rested": "You decide to leave the tree alone. It's warm and safe here, so you rest before moving on.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.story.departed": "A door-shaped gap opens in the trunk. You send a card ahead and agree to meet in the next area.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.dispatch.title": "Explore inside the tree",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.dispatch.description": "Send a card ahead. It returns in the next area.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.dispatch.empty": "There are no eligible cards in your deck.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.rest.title": "Rest",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.rest.description": "Rest here and gain 2 Hope.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.leave": "Continue",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.cards": "Cards available to scout",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.prompt": "Choose a card to send ahead.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.description": "{Card} leaves your deck until the next area and brings back a processed part.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.upgrade": "{Card} leaves your deck until the next area, then returns upgraded with a processed part.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.back": "Back",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.confirm": "Send ahead",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.return.title": "Scout Returned",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.return.description": "{Card} returned with {Part}.",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.return.upgraded": "{Card} returned upgraded with {Part}."
+}

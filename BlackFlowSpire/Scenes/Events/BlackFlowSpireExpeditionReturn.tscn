@@ -1,0 +1,415 @@
+[gd_scene format=3]
+
+[ext_resource type="Font" path="res://BlackFlowSpire/Fonts/Body.tres" id="font"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_back.png" id="back"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_chain.png" id="chain"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_glow.png" id="glow"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_figure.png" id="figure"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_bird_left.png" id="bird_left"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_bird_right.png" id="bird_right"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_leaves.png" id="leaves"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_leaf_left.png" id="leaf_left"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_leaf_right.png" id="leaf_right"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_top_leaf.png" id="top_leaf"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_title_matte.png" id="title_matte"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_confirm.png" id="confirm"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_blue.png" id="blue"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_red.png" id="red"]
+[ext_resource type="Texture2D" path="res://BlackFlowSpire/Images/Events/Expedition/return_matte.png" id="matte"]
+
+[sub_resource type="StyleBoxEmpty" id="invisible"]
+
+[sub_resource type="StyleBoxFlat" id="focus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.93, 0.88, 0.85)
+
+[sub_resource type="Animation" id="entry"]
+resource_name = "entry_expedition"
+length = 1.0
+tracks/0/type = "bezier"
+tracks/0/path = NodePath("Canvas/Content:modulate:a")
+tracks/0/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.222222, 0, 1, -0.222222, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.8)
+}
+tracks/1/type = "bezier"
+tracks/1/path = NodePath("Canvas/Content:position:y")
+tracks/1/keys = {
+"points": PackedFloat32Array(393.512726, 0, -0, 0.066667, -13.145554, 369.83375, -0.066667, 3.489006, 0.155556, -8.141013, 361.178177, -0.155556, 0, 0, -0),
+"times": PackedFloat32Array(0.133333, 0.333333, 0.8)
+}
+tracks/2/type = "bezier"
+tracks/2/path = NodePath("Canvas/Continue/Mark:self_modulate:a")
+tracks/2/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.222222, 0, 1, -0.222222, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.8)
+}
+tracks/3/type = "bezier"
+tracks/3/path = NodePath("Canvas/Main/TopLeaf:position:y")
+tracks/3/keys = {
+"points": PackedFloat32Array(-84.645454, 0, 0, 0.222222, 10.626026, -68.5, -0.222222, -1.610615, 0, 0),
+"times": PackedFloat32Array(0.233333, 0.9)
+}
+tracks/4/type = "bezier"
+tracks/4/path = NodePath("Canvas/Main/TopLeaf:self_modulate:a")
+tracks/4/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.166667, 0, 1, -0.166667, -0, 0, 0),
+"times": PackedFloat32Array(0.233333, 0.733333)
+}
+tracks/5/type = "bezier"
+tracks/5/path = NodePath("Canvas/Main/Chain:self_modulate:g")
+tracks/5/keys = {
+"points": PackedFloat32Array(1, 0, -0, 0.477778, -0.312414, 0.4, -0.477778, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 1.566667)
+}
+tracks/6/type = "bezier"
+tracks/6/path = NodePath("Canvas/Main/Glow:self_modulate:a")
+tracks/6/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.111111, 0, 1, -0.111111, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.466667)
+}
+tracks/7/type = "bezier"
+tracks/7/path = NodePath("Canvas/Main/Back:self_modulate:a")
+tracks/7/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.111111, 0, 1, -0.111111, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.466667)
+}
+tracks/8/type = "bezier"
+tracks/8/path = NodePath("Canvas/Main/Birds/Right:self_modulate:g")
+tracks/8/keys = {
+"points": PackedFloat32Array(0.8, 0, 0, 0.555556, 0, 0, -0.555556, -0, 0, 0),
+"times": PackedFloat32Array(0.233333, 1.9)
+}
+tracks/9/type = "bezier"
+tracks/9/path = NodePath("Canvas/Main/Birds/Left:self_modulate:g")
+tracks/9/keys = {
+"points": PackedFloat32Array(0.8, 0, 0, 0.388889, 0, 0, -0.388889, -0, 0, 0),
+"times": PackedFloat32Array(0.233333, 1.4)
+}
+tracks/10/type = "bezier"
+tracks/10/path = NodePath("Canvas/Main/Birds/Right:self_modulate:r")
+tracks/10/keys = {
+"points": PackedFloat32Array(1, 0, -0, 0.444444, -0.487386, 0.2, -0.444444, -0, 0, 0),
+"times": PackedFloat32Array(1.233333, 2.566667)
+}
+tracks/11/type = "bezier"
+tracks/11/path = NodePath("Canvas/Main/Birds/Left:self_modulate:r")
+tracks/11/keys = {
+"points": PackedFloat32Array(1, 0, -0, 0.444444, -0.483713, 0.2, -0.444444, -0, 0, 0),
+"times": PackedFloat32Array(0.733333, 2.066667)
+}
+tracks/12/type = "bezier"
+tracks/12/path = NodePath("Canvas/Main/Birds:modulate:a")
+tracks/12/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.055556, 0, 1, -0.055556, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.3)
+}
+tracks/13/type = "bezier"
+tracks/13/path = NodePath("Canvas/Main/Figure:self_modulate:r")
+tracks/13/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.055556, 0, 1, -0.055556, 0.134456, 0.222222, -0.537824, 0.23101, -0.222222, 0.080352, 0.277778, -0.10044, 0.1, -0.277778, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.3, 0.966667, 1.8)
+}
+tracks/14/type = "bezier"
+tracks/14/path = NodePath("Canvas/Main/Figure:self_modulate:g")
+tracks/14/keys = {
+"points": PackedFloat32Array(1, 0, -0, 0.333333, -0.423011, 0.309097, -0.333333, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 1.133333)
+}
+tracks/15/type = "bezier"
+tracks/15/path = NodePath("Canvas/Main/Figure:self_modulate:b")
+tracks/15/keys = {
+"points": PackedFloat32Array(0.3, 0, 0, 0.422222, 0.552008, 1, -0.422222, -0, 0, 0),
+"times": PackedFloat32Array(0.4, 1.666667)
+}
+tracks/16/type = "bezier"
+tracks/16/path = NodePath("Matte:modulate:a")
+tracks/16/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.055556, 0.333333, 1, -0.055556, -0.333333, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.3)
+}
+tracks/17/type = "bezier"
+tracks/17/path = NodePath("Canvas/Continue/Mark:scale:x")
+tracks/17/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.055556, 0, 0.8, -0.055556, -0.066667, 0.166667, 0.2, 1, -0.166667, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.3, 0.8)
+}
+tracks/18/type = "bezier"
+tracks/18/path = NodePath("Canvas/Continue/Mark:scale:y")
+tracks/18/keys = {
+"points": PackedFloat32Array(0, 0, 0, 0.055556, 0, 0.8, -0.055556, -0.066667, 0.166667, 0.2, 1, -0.166667, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.3, 0.8)
+}
+tracks/19/type = "bezier"
+tracks/19/path = NodePath("Canvas/Main/Back:scale:x")
+tracks/19/keys = {
+"points": PackedFloat32Array(0.805151, 0, 0, 0.111111, 0, 0.926842, -0.111111, -0.016237, 0.333333, 0.048712, 1, -0.333333, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.466667, 1.466667)
+}
+tracks/20/type = "bezier"
+tracks/20/path = NodePath("Canvas/Main/Back:scale:y")
+tracks/20/keys = {
+"points": PackedFloat32Array(0.805151, 0, 0, 0.111111, 0, 0.926842, -0.111111, -0.016237, 0.333333, 0.048712, 1, -0.333333, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.466667, 1.466667)
+}
+tracks/21/type = "bezier"
+tracks/21/path = NodePath("Canvas/Main/Figure:scale:x")
+tracks/21/keys = {
+"points": PackedFloat32Array(0.921636, 0, 0, 0.166667, 0, 0.976311, -0.166667, -0.008518, 0.344444, 0.017603, 1, -0.344444, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.633333, 1.666667)
+}
+tracks/22/type = "bezier"
+tracks/22/path = NodePath("Canvas/Main/Figure:scale:y")
+tracks/22/keys = {
+"points": PackedFloat32Array(0.921636, 0, 0, 0.166667, 0, 0.976311, -0.166667, -0.008518, 0.344444, 0.017603, 1, -0.344444, -0, 0, 0),
+"times": PackedFloat32Array(0.133333, 0.633333, 1.666667)
+}
+
+[sub_resource type="AnimationLibrary" id="animations"]
+_data = {
+&"entry_expedition": SubResource("entry")
+}
+
+[node name="ExpeditionReturn" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 0
+
+[node name="Matte" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.006, 0.020, 0.023, 0.93)
+
+[node name="Canvas" type="Control" parent="."]
+offset_left = 0.000
+offset_top = 0.000
+offset_right = 1280.000
+offset_bottom = 720.000
+mouse_filter = 2
+
+[node name="MatteLeft" type="TextureRect" parent="Canvas"]
+offset_left = 131.000
+offset_top = 103.000
+offset_right = 629.000
+offset_bottom = 601.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("matte")
+
+[node name="Blue" type="TextureRect" parent="Canvas"]
+offset_left = 306.200
+offset_top = 272.200
+offset_right = 378.200
+offset_bottom = 359.200
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("blue")
+
+[node name="MatteRight" type="TextureRect" parent="Canvas"]
+offset_left = 714.000
+offset_top = 103.000
+offset_right = 1212.000
+offset_bottom = 601.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("matte")
+flip_h = true
+
+[node name="Red" type="TextureRect" parent="Canvas"]
+offset_left = 910.700
+offset_top = 255.500
+offset_right = 1040.700
+offset_bottom = 464.500
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("red")
+
+[node name="Main" type="Control" parent="Canvas"]
+offset_left = 649.000
+offset_top = 280.200
+offset_right = 649.000
+offset_bottom = 280.200
+mouse_filter = 2
+
+[node name="Back" type="TextureRect" parent="Canvas/Main"]
+offset_left = -116.700
+offset_top = -107.900
+offset_right = 94.300
+offset_bottom = 129.100
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("back")
+
+[node name="Chain" type="TextureRect" parent="Canvas/Main"]
+offset_left = -34.300
+offset_top = -124.800
+offset_right = 10.700
+offset_bottom = 116.200
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("chain")
+
+[node name="Glow" type="TextureRect" parent="Canvas/Main"]
+offset_left = -318.300
+offset_top = -281.500
+offset_right = 294.700
+offset_bottom = 330.500
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("glow")
+
+[node name="Figure" type="TextureRect" parent="Canvas/Main"]
+offset_left = -106.200
+offset_top = 72.300
+offset_right = 87.800
+offset_bottom = 182.300
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("figure")
+
+[node name="Birds" type="Control" parent="Canvas/Main"]
+offset_left = -10.000
+offset_top = -58.000
+offset_right = -10.000
+offset_bottom = -58.000
+mouse_filter = 2
+
+[node name="Left" type="TextureRect" parent="Canvas/Main/Birds"]
+offset_left = -191.500
+offset_top = -77.500
+offset_right = 1.500
+offset_bottom = 78.500
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("bird_left")
+
+[node name="Right" type="TextureRect" parent="Canvas/Main/Birds"]
+offset_left = -6.100
+offset_top = -80.500
+offset_right = 189.900
+offset_bottom = 78.500
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("bird_right")
+
+[node name="GoldLeft" type="TextureRect" parent="Canvas/Main"]
+offset_left = -195.000
+offset_top = 17.700
+offset_right = -81.000
+offset_bottom = 78.700
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("leaves")
+
+[node name="GoldRight" type="TextureRect" parent="Canvas/Main"]
+offset_left = 73.000
+offset_top = 17.700
+offset_right = 187.000
+offset_bottom = 78.700
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("leaves")
+flip_h = true
+
+[node name="LeafLeft" type="TextureRect" parent="Canvas/Main"]
+offset_left = -95.300
+offset_top = -70.400
+offset_right = -8.300
+offset_bottom = 11.600
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("leaf_left")
+
+[node name="LeafRight" type="TextureRect" parent="Canvas/Main"]
+offset_left = -17.300
+offset_top = -69.400
+offset_right = 68.700
+offset_bottom = 11.600
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("leaf_right")
+
+[node name="TopLeaf" type="TextureRect" parent="Canvas/Main"]
+offset_left = -45.500
+offset_top = -68.500
+offset_right = 18.500
+offset_bottom = -21.500
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("top_leaf")
+
+[node name="Content" type="Control" parent="Canvas"]
+offset_left = 417.350
+offset_top = 361.178
+offset_right = 893.850
+offset_bottom = 489.978
+mouse_filter = 2
+
+[node name="TitleMatte" type="TextureRect" parent="Canvas/Content"]
+offset_left = 81.650
+offset_top = -12.700
+offset_right = 381.650
+offset_bottom = 62.300
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("title_matte")
+
+[node name="Title" type="Label" parent="Canvas/Content"]
+offset_left = 36.000
+offset_top = -12.700
+offset_right = 440.500
+offset_bottom = 36.900
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_fonts/font = ExtResource("font")
+theme_override_font_sizes/font_size = 31
+theme_override_colors/font_color = Color(0.94, 0.97, 0.94, 1)
+theme_override_colors/font_outline_color = Color(0.012, 0.039, 0.045, 1)
+theme_override_constants/outline_size = 5
+
+[node name="Description" type="Label" parent="Canvas/Content"]
+offset_left = 48.650
+offset_top = 56.800
+offset_right = 428.650
+offset_bottom = 128.800
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_fonts/font = ExtResource("font")
+theme_override_font_sizes/font_size = 19
+theme_override_colors/font_color = Color(0.94, 0.97, 0.94, 1)
+theme_override_colors/font_outline_color = Color(0.012, 0.039, 0.045, 1)
+theme_override_constants/outline_size = 5
+autowrap_mode = 3
+
+[node name="Continue" type="Button" parent="Canvas"]
+offset_left = 611.200
+offset_top = 514.200
+offset_right = 682.200
+offset_bottom = 585.200
+disabled = true
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("invisible")
+theme_override_styles/disabled = SubResource("invisible")
+theme_override_styles/hover = SubResource("invisible")
+theme_override_styles/pressed = SubResource("invisible")
+theme_override_styles/focus = SubResource("focus")
+
+[node name="Mark" type="TextureRect" parent="Canvas/Continue"]
+offset_left = 10.000
+offset_top = 10.000
+offset_right = 61.000
+offset_bottom = 61.000
+mouse_filter = 2
+expand_mode = 1
+texture = ExtResource("confirm")
+pivot_offset = Vector2(25.5, 25.5)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("animations")}

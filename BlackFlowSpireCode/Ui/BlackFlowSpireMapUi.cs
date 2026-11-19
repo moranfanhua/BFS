@@ -312,6 +312,13 @@ public static class BlackFlowSpireMapUi
             field.Call("set_interaction_enabled", false);
             root.AddChild(new BlackFlowSpireWishUi(state, screen) { Name = "BlackFlowSpireWish" });
         }
+        var expeditionPending = canLead && BlackFlowSpireExpeditionRules.IsPending(map, progress);
+        if (!inspection && (expeditionPending || BlackFlowSpireExpeditionUi.HasNotice(state, progress)))
+        {
+            DefaultFocus = null;
+            field.Call("set_interaction_enabled", false);
+            root.AddChild(new BlackFlowSpireExpeditionUi(state, screen, map, progress) { Name = "BlackFlowSpireExpedition" });
+        }
         BlackFlowSpirePartsUi.Attach(root, state, screen, inspection, ClearSelection, PreviewMovement);
         if (BlackFlowSpireTeam.IsOnline && !inspection) root.AddChild(new BlackFlowSpireTeamMapStatus(state));
         BlackFlowSpireLocalization.RefreshWithLocale(root, () =>

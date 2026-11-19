@@ -141,6 +141,7 @@ public static class BlackFlowSpireMapGenerator
         BlackFlowSpireResidentAssignments.Populate(map);
         BlackFlowSpireRestRules.Populate(map);
         BlackFlowSpireSacrificeRules.Populate(map);
+        BlackFlowSpireExpeditionRules.Populate(map);
         BlackFlowSpireFog.RevealNearby(map);
         foreach (var node in map.Nodes.Where(node => node.Content == BlackFlowSpireNodeContent.Light))
             BlackFlowSpireVantageRules.RevealOnAppearance(map, node);

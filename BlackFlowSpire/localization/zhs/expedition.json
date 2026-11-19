@@ -1,0 +1,21 @@
+{
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.title": "未涉足之树",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.story.intro": "你从未见过这么高的树。暖光从树皮的缝隙里渗出，勾勒出一扇门的形状。这里也许有出路，但仍需谨慎。",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.story.rested": "你决定先不去探察。这里温暖又安全，你休息了一会儿才离开。",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.story.departed": "树干上出现了一个像门一样的缺口。你派出了一张牌，约好在下一区域会合。",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.dispatch.title": "尝试探索树的内部",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.dispatch.description": "派遣一张牌，进入下一区域时归还",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.dispatch.empty": "牌组中没有可派遣的卡牌",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.rest.title": "休息",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.rest.description": "获得 2 希望，在此处养精蓄锐",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.leave": "继续",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.cards": "可派遣卡牌",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.prompt": "选择一张牌进行先行探索",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.description": "{Card} 暂时离开牌组，进入下一区域时归还并带回一件加工品。",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.upgrade": "{Card} 暂时离开牌组，进入下一区域时升一级并带回一件加工品。",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.back": "返回",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.picker.confirm": "确认派遣",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.return.title": "先行探索归来",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.return.description": "{Card} 已归队，带回了 {Part}。",
+  "BLACK_FLOW_SPIRE.UI.EXPEDITION.return.upgraded": "{Card} 已升级归队，带回了 {Part}。"
+}

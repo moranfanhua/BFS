@@ -42,6 +42,7 @@ public static class BlackFlowSpireNodePresentation
             BlackFlowSpireNodeContent.Evacuate => EVACUATE,
             BlackFlowSpireNodeContent.Rest => REST,
             BlackFlowSpireNodeContent.Sacrifice => SACRIFICE,
+            BlackFlowSpireNodeContent.Expedition => EXPEDITION,
             _ => throw new ArgumentOutOfRangeException(nameof(node))
         };
         if (!revealAll && !node.Revealed && !BlackFlowSpireNodeVisuals.Get(visualId).AlwaysVisible)

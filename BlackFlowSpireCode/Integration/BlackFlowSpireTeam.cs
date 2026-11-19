@@ -25,7 +25,7 @@ using STS2RitsuLib.RunData;
 
 namespace BlackFlowSpire.Integration;
 
-internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle, Rest, Sacrifice, SacrificeItem, Wish }
+internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle, Rest, Sacrifice, SacrificeItem, Wish, Expedition }
 
 // Steps distinguish revisits to the same node. Act distinguishes floor changes.
 internal sealed record BlackFlowSpireTeamPosition(int Act, int Node, int Steps);
@@ -44,6 +44,10 @@ internal sealed record BlackFlowSpireTeamSnapshot(BlackFlowSpireTeamPosition Pos
     public bool IgnoreMovementRange { get; init; }
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public BlackFlowSpireWishProgress? Wish { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public BlackFlowSpireExpeditionScene ExpeditionScene { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BlackFlowSpireExpeditionReturn? ExpeditionReturn { get; init; }
 }
 internal sealed record BlackFlowSpireTeamCommand(BlackFlowSpireTeamAction Action, int Argument, BlackFlowSpireTeamSnapshot Snapshot);
 
@@ -277,6 +281,7 @@ internal static class BlackFlowSpireTeam
                 case BlackFlowSpireTeamAction.Sacrifice: await BlackFlowSpireRuntime.ResolveSacrificeCore(command.Argument, exchange: false); break;
                 case BlackFlowSpireTeamAction.SacrificeItem: await BlackFlowSpireRuntime.ResolveSacrificeCore(command.Argument, exchange: true); break;
                 case BlackFlowSpireTeamAction.Wish: await BlackFlowSpireRuntime.ResolveWishCore(command.Argument); break;
+                case BlackFlowSpireTeamAction.Expedition: await BlackFlowSpireRuntime.ResolveExpeditionCore(command.Argument); break;
                 case BlackFlowSpireTeamAction.ShopOffer:
                     purchasedOffer = await PurchaseOffer(state, context.Player, (BlackFlowSpireShopOfferKind)command.Argument);
                     break;
@@ -318,7 +323,9 @@ internal static class BlackFlowSpireTeam
         {
             MapFullyRevealed = map.Nodes.All(node => node.Revealed),
             IgnoreMovementRange = map.IgnoreMovementRange,
-            Wish = progress.Wish
+            Wish = progress.Wish,
+            ExpeditionScene = progress.ExpeditionScene,
+            ExpeditionReturn = progress.ExpeditionReturn
         };
     }
 
@@ -382,6 +389,8 @@ internal static class BlackFlowSpireTeam
         progress.SecretShops = snapshot.SecretShops;
         if (BlackFlowSpireSacrificeRules.IsPending(map, progress)) progress.Sacrifice = snapshot.Sacrifice;
         if (BlackFlowSpireWishRules.IsPending(map, progress)) progress.Wish = snapshot.Wish;
+        if (BlackFlowSpireExpeditionRules.IsPending(map, progress)) progress.ExpeditionScene = snapshot.ExpeditionScene;
+        if (snapshot.ExpeditionReturn is { } expeditionReturn) progress.ExpeditionReturn = expeditionReturn;
         BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
         var session = Sessions.GetOrCreateValue(state);
         session.Revision = Math.Max(session.Revision, snapshot.Revision);
