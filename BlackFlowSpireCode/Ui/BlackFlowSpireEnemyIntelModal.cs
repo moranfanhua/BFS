@@ -13,15 +13,26 @@ namespace BlackFlowSpire.Ui;
 internal partial class BlackFlowSpireEnemyIntelModal : Control, IScreenContext
 {
     private readonly BlackFlowSpireCombatSetup _setup;
+    private readonly List<Action> _showMonster = [];
+    private ScrollContainer _list = null!;
+    internal bool IsHunt { get; }
+    internal int SelectedIndex { get; private set; }
+    internal int Scroll => _list.ScrollVertical;
     private NVerticalPopup? _popup;
     public Control? DefaultFocusedControl => _popup?.NoButton;
 
-    private BlackFlowSpireEnemyIntelModal(BlackFlowSpireCombatSetup setup) => _setup = setup;
+    internal BlackFlowSpireEnemyIntelModal(BlackFlowSpireCombatSetup setup, bool hunt = false) => (_setup, IsHunt) = (setup, hunt);
 
-    public static void Open(BlackFlowSpireCombatSetup setup)
+    public static void Open(BlackFlowSpireCombatSetup setup, bool hunt = false)
     {
         if (NModalContainer.Instance is { OpenModal: null } container)
-            container.Add(new BlackFlowSpireEnemyIntelModal(setup) { Name = "BlackFlowSpireEnemyIntelligence" });
+            container.Add(new BlackFlowSpireEnemyIntelModal(setup, hunt) { Name = "BlackFlowSpireEnemyIntelligence" });
+    }
+
+    internal void Follow(int index, int scroll)
+    {
+        if (index != SelectedIndex && index >= 0 && index < _showMonster.Count) _showMonster[index]();
+        if (Scroll != scroll) _list.ScrollVertical = Math.Max(0, scroll);
     }
 
     public override void _Ready()
@@ -49,6 +60,7 @@ internal partial class BlackFlowSpireEnemyIntelModal : Control, IScreenContext
             new(65, 127), new(850, 40), 24, true);
         var list = new ScrollContainer { Position = new(65, 190), Size = new(290, 405),
             HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled };
+        _list = list;
         _popup.AddChild(list);
         var entries = new VBoxContainer { CustomMinimumSize = new(270, 0) };
         entries.AddThemeConstantOverride("separation", 14);
@@ -76,6 +88,7 @@ internal partial class BlackFlowSpireEnemyIntelModal : Control, IScreenContext
             button.AddThemeStyleboxOverride("focus", highlighted);
             button.AddThemeColorOverride("font_color", new Color("f5e5be"));
             entries.AddChild(button);
+            var index = _showMonster.Count;
             void Select()
             {
                 foreach (var child in preview.GetChildren())
@@ -84,6 +97,7 @@ internal partial class BlackFlowSpireEnemyIntelModal : Control, IScreenContext
                     child.QueueFree();
                 }
                 selectedMonsterId = group.Key;
+                SelectedIndex = index;
                 title.Text = BlackFlowSpireText.Get("UI.ENEMY_INTEL.row", ("Name", monster.Title.GetFormattedText()), ("Count", group.Count()));
                 var visuals = monster.CreateVisuals();
                 preview.AddChild(visuals);
@@ -96,6 +110,7 @@ internal partial class BlackFlowSpireEnemyIntelModal : Control, IScreenContext
                 foreach (var control in visuals.FindChildren("*", "Control", true, false).OfType<Control>())
                     control.MouseFilter = MouseFilterEnum.Ignore;
             }
+            _showMonster.Add(Select);
             button.Pressed += Select;
             button.FocusEntered += Select;
             if (group == groups[0]) Select();

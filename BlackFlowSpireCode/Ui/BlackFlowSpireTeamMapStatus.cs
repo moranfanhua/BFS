@@ -2,11 +2,12 @@ using BlackFlowSpire.Integration;
 using BlackFlowSpire.Map.Presentation;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Runs;
 
 namespace BlackFlowSpire.Ui;
 
-internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
+internal partial class BlackFlowSpireTeamMapStatus(RunState state, bool observing = false) : Label
 {
     private double _refreshIn;
 
@@ -24,6 +25,13 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
         AddThemeFontSizeOverride("font_size", 22);
         AddThemeConstantOverride("outline_size", 5);
         AddThemeColorOverride("font_outline_color", Colors.Black);
+        if (observing)
+        {
+            void ShowObserverLabel() => Text = BlackFlowSpireText.Get("UI.TEAM.observing");
+            ShowObserverLabel();
+            BlackFlowSpireLocalization.RefreshWithLocale(this, ShowObserverLabel);
+            SetProcess(false);
+        }
     }
 
     public override void _Process(double delta)
@@ -33,6 +41,7 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
         _refreshIn = 0.75;
         if (BlackFlowSpireTeam.IsGuest)
         {
+            Visible = NModalContainer.Instance?.OpenModal is not BlackFlowSpireObservedEvent;
             Text = BlackFlowSpireText.Get("UI.TEAM.follow");
             if (!BlackFlowSpireRuntime.IsTraveling && !CombatManager.Instance.IsInProgress) BlackFlowSpireTeam.ReportReady(state, true);
         }

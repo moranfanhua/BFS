@@ -322,7 +322,11 @@ public static class BlackFlowSpireMapUi
             root.AddChild(new BlackFlowSpireExpeditionUi(state, screen, map, progress) { Name = "BlackFlowSpireExpedition" });
         }
         BlackFlowSpirePartsUi.Attach(root, state, screen, inspection, ClearSelection, PreviewMovement);
-        if (BlackFlowSpireTeam.IsOnline && !inspection) root.AddChild(new BlackFlowSpireTeamMapStatus(state));
+        if (BlackFlowSpireTeam.IsOnline && !inspection)
+        {
+            root.AddChild(new BlackFlowSpireTeamMapStatus(state));
+            root.AddChild(new BlackFlowSpireTeamEventUi(state, screen, map, progress));
+        }
         BlackFlowSpireLocalization.RefreshWithLocale(root, () =>
         {
             if (!GodotObject.IsInstanceValid(root) || !root.IsInsideTree() || BlackFlowSpireRuntime.IsTraveling) return;

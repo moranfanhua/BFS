@@ -69,6 +69,21 @@ func configure_choices(count: int) -> void:
 func get_choice(index: int) -> Button:
 	return _choices.get_child(index) as Button if index >= 0 and index < _choices.get_child_count() else null
 
+func inspected_choice() -> int:
+	return -1 if _result else _selected
+
+func text_revealed() -> bool:
+	return not _is_typing()
+
+func follow_choice(index: int, revealed: bool) -> void:
+	if not _result:
+		_select_choice(index if index >= 0 and index < _choices.get_child_count() else -1)
+	if revealed and _is_typing():
+		if _result:
+			_result_elapsed = _description.get_total_character_count() * TEXT_INTERVAL
+		else:
+			_complete_text = true
+
 func bind_choice(index: int, title: String, description: String, icon: Texture2D, enabled: bool = true) -> void:
 	var option := get_choice(index)
 	option.set_meta("available", enabled)

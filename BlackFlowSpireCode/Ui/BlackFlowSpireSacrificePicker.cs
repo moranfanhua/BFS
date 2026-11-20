@@ -1,3 +1,4 @@
+using BlackFlowSpire.Integration;
 using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Map.Presentation;
@@ -55,7 +56,7 @@ internal sealed class BlackFlowSpireSacrificePicker
             AddIcon(item.GetNode<Control>("Icon"), offer, detail: false);
             item.GetNode<Control>("Loaded").Visible = offer.Loaded;
             item.GetNode<Label>("LoadedText").Visible = offer.Loaded;
-            item.Pressed += () => Select(offer);
+            item.Pressed += () => Select(_selected == offer ? null : offer);
             return item;
         }).ToArray();
         _view.Resized += Layout;
@@ -73,16 +74,34 @@ internal sealed class BlackFlowSpireSacrificePicker
         _canvas.Position = (_view.Size - Design * factor) / 2;
     }
 
-    private void Select(BlackFlowSpireSacrificeOffer offer)
+    private void Select(BlackFlowSpireSacrificeOffer? offer)
     {
-        _selected = _selected == offer ? null : offer;
+        _selected = offer;
         foreach (var child in _detailIcon.GetChildren())
         {
             _detailIcon.RemoveChild(child);
             child.QueueFree();
         }
-        if (_selected != null) AddIcon(_detailIcon, offer, detail: true);
+        if (offer != null) AddIcon(_detailIcon, offer, detail: true);
         Refresh();
+    }
+
+    internal bool Parts => _parts;
+    internal int? SelectedItem => _selected?.Argument;
+    internal bool ConfirmingLoaded => _judge != null;
+    internal int Scroll => Node<ScrollContainer>("Scroll").ScrollVertical;
+
+    internal void Follow(int? argument, bool judge, int scroll)
+    {
+        var offer = argument.HasValue ? _offers.FirstOrDefault(item => item.Argument == argument.Value) : null;
+        if (_selected != offer)
+        {
+            CancelJudge();
+            Select(offer);
+        }
+        if (judge && offer is { Loaded: true }) OpenJudge(() => { });
+        else CancelJudge();
+        if (Scroll != scroll) Node<ScrollContainer>("Scroll").ScrollVertical = Math.Max(0, scroll);
     }
 
     public void Refresh()
@@ -139,7 +158,7 @@ internal sealed class BlackFlowSpireSacrificePicker
         };
         RefreshJudge();
         SetBusy(false);
-        _judgeBack.GrabFocus();
+        if (!BlackFlowSpireTeam.IsGuest) _judgeBack.GrabFocus();
     }
 
     private void RefreshJudge()
@@ -158,7 +177,7 @@ internal sealed class BlackFlowSpireSacrificePicker
         _judge = null;
         _judgeBack = null;
         SetBusy(false);
-        _confirm.GrabFocus();
+        if (!BlackFlowSpireTeam.IsGuest) _confirm.GrabFocus();
         return true;
     }
 

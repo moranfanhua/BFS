@@ -51,6 +51,8 @@ internal static partial class BlackFlowSpireTeam
         public bool CommandQueued { get; set; }
         public bool AttachedToLobby { get; set; }
         public BlackFlowSpireTeamSnapshot? DeferredSnapshot { get; set; }
+        public ForestEventMessage? EventView { get; set; }
+        public bool EventViewSent { get; set; }
         public TaskCompletionSource<BlackFlowSpireShopOfferEntry?>? OfferCompletion { get; set; }
         public Dictionary<(ulong PlayerId, uint ChoiceId), TaskCompletionSource<bool>> HopePayments { get; } = [];
     }
@@ -77,6 +79,7 @@ internal static partial class BlackFlowSpireTeam
         RitsuLibSidecarSyncMessages.Register(ReadyMessage);
         RitsuLibSidecarSyncMessages.Register(SnapshotMessage);
         RitsuLibSidecarSyncMessages.Register(FrameMessage);
+        RitsuLibSidecarSyncMessages.Register(EventMessage);
         RitsuLibSidecarSyncMessages.Register(HopePaymentMessage);
         RitsuLibFramework.SubscribeLifecycle<RunSavedDataPreparingEvent>(e =>
         {
@@ -203,8 +206,10 @@ internal static partial class BlackFlowSpireTeam
             || !BlackFlowSpireRuntime.CanContinueRun || BlackFlowSpireRuntime.State is not { } state
             || RunManager.Instance.RunLobby?.PlayerIds.Contains(context.SenderNetId) != true) return Task.CompletedTask;
         var session = SessionFor(state);
-        var first = !session.Ready.ContainsKey(context.SenderNetId);
+        var first = !session.Ready.TryGetValue(context.SenderNetId, out var prior);
         session.Ready[context.SenderNetId] = context.Message;
+        if (prior?.Ready != true && session.EventView is { } view && context.Message.Ready)
+            RitsuLibSidecarSyncMessages.SendToPeer(Net, context.SenderNetId, EventMessage, view);
         if (context.Message.Ready && !session.CommandQueued && !RunManager.Instance.IsChangingRooms
             && context.Message.Completed == session.Completed && context.Message.Room == BlackFlowSpireRoomKey.From(state)
             && (first || context.Message != ReadyAt(state, session, true)))
