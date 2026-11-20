@@ -36,7 +36,7 @@ internal sealed record BlackFlowSpireTeamSnapshot(BlackFlowSpireTeamPosition Pos
     Dictionary<int, List<BlackFlowSpireShopOfferStock>> ShopOffers, Dictionary<int, BlackFlowSpireSecretShopStock> SecretShops,
     int TargetLife, int MaxTargetLife, int TargetShield,
     BlackFlowSpireDamageMultipliers DamageMultipliers, Dictionary<ulong, decimal> PlayerLifeMultipliers,
-    int Hope, int MaxHope, int CommandExperience, BlackFlowSpireSacrificeProgress? Sacrifice)
+    Dictionary<ulong, BlackFlowSpireHope> PlayerHope, int CommandExperience, BlackFlowSpireSacrificeProgress? Sacrifice)
 {
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool MapFullyRevealed { get; init; }
@@ -66,11 +66,11 @@ internal static class BlackFlowSpireTeam
 
     private static readonly ConditionalWeakTable<RunState, Session> Sessions = new();
     private static readonly RitsuLibManagedNetActionDescriptor<BlackFlowSpireTeamCommand> Command = new(
-        Entry.ModId, "BlackFlowSpire-team-command/v1", Encode, Decode<BlackFlowSpireTeamCommand>, Execute, GameActionType.NonCombat);
+        Entry.ModId, "BlackFlowSpire-team-command/v2", Encode, Decode<BlackFlowSpireTeamCommand>, Execute, GameActionType.NonCombat);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<BlackFlowSpireTeamReady> ReadyMessage = new(
         Entry.ModId, "BlackFlowSpire-team-ready/v1", Encode, Decode<BlackFlowSpireTeamReady>, OnReady, false, false);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<BlackFlowSpireTeamSnapshot> SnapshotMessage = new(
-        Entry.ModId, "BlackFlowSpire-team-state/v1", Encode, Decode<BlackFlowSpireTeamSnapshot>, OnSnapshot,
+        Entry.ModId, "BlackFlowSpire-team-state/v2", Encode, Decode<BlackFlowSpireTeamSnapshot>, OnSnapshot,
         DispatchLocalOnBroadcast: false, ShouldBuffer: false);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<BlackFlowSpireHopePayment> HopePaymentMessage = new(
         Entry.ModId, "BlackFlowSpire-hope-payment/v1", Encode, Decode<BlackFlowSpireHopePayment>, OnHopePayment,
@@ -125,14 +125,13 @@ internal static class BlackFlowSpireTeam
     internal static async Task<bool> TryPayHope(RunState state, Player player, uint choiceId, int cost)
     {
         if (cost == 0) return true;
-        if (!IsOnline) return BlackFlowSpireGenerationService.TryChangeHope(state, -cost);
+        if (!IsOnline) return BlackFlowSpireGenerationService.TryChangeHope(state, player.NetId, -cost);
         if (IsHost)
         {
-            // Reward choices can complete concurrently. Only the host debits the shared balance.
-            var accepted = BlackFlowSpireGenerationService.TryChangeHope(state, -cost, replicated: true);
+            var accepted = BlackFlowSpireGenerationService.TryChangeHope(state, player.NetId, -cost, replicated: true);
             if (!RitsuLibSidecarSyncMessages.Broadcast(Net, HopePaymentMessage, new BlackFlowSpireHopePayment(player.NetId, choiceId, accepted)))
             {
-                if (accepted) BlackFlowSpireGenerationService.RefundHope(state, cost);
+                if (accepted) BlackFlowSpireGenerationService.RefundHope(state, player.NetId, cost);
                 Entry.Logger.Warn("[BlackFlowSpire] Could not synchronize the card pack's Hope payment.");
                 return false;
             }
@@ -314,12 +313,11 @@ internal static class BlackFlowSpireTeam
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var (life, maxLife, shield) = BlackFlowSpireGenerationService.GetTargetLife(state);
-        var hope = BlackFlowSpireGenerationService.GetHopeStatus(state);
         return new(new(state.CurrentActIndex, map.PositionNodeId, progress.StepsTaken), ++Sessions.GetOrCreateValue(state).Revision,
             BlackFlowSpireGenerationService.GetEngine(state), progress.ActionPointsRemaining, progress.HuntPhase,
             progress.ShopParts, progress.ShopOffers, progress.SecretShops, life, maxLife, shield,
             BlackFlowSpireGenerationService.GetDamageMultipliers(state), BlackFlowSpireGenerationService.CopyPlayerLifeMultipliers(state),
-            hope.Balance, hope.Maximum, BlackFlowSpireGenerationService.GetCommandExperience(state), progress.Sacrifice)
+            BlackFlowSpireGenerationService.CopyPlayerHope(state), BlackFlowSpireGenerationService.GetCommandExperience(state), progress.Sacrifice)
         {
             MapFullyRevealed = map.Nodes.All(node => node.Revealed),
             IgnoreMovementRange = map.IgnoreMovementRange,
@@ -379,7 +377,7 @@ internal static class BlackFlowSpireTeam
         if (snapshot.MapFullyRevealed) BlackFlowSpireFog.RevealAll(map);
         map.IgnoreMovementRange = snapshot.IgnoreMovementRange;
         BlackFlowSpireGenerationService.SetTargetLife(state, snapshot.TargetLife, snapshot.MaxTargetLife, snapshot.TargetShield);
-        BlackFlowSpireGenerationService.RestoreCommandProgress(state, snapshot.Hope, snapshot.MaxHope, snapshot.CommandExperience);
+        BlackFlowSpireGenerationService.RestoreCommandProgress(state, snapshot.PlayerHope, snapshot.CommandExperience);
         BlackFlowSpireGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers);
         BlackFlowSpireGenerationService.RestorePlayerLifeMultipliers(state, snapshot.PlayerLifeMultipliers);
         progress.ActionPointsRemaining = snapshot.ActionPoints;

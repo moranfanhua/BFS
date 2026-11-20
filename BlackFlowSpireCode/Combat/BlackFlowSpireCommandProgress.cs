@@ -1,8 +1,8 @@
 namespace BlackFlowSpire.Combat;
 
-internal readonly record struct BlackFlowSpireHope(int Balance, int Maximum)
+public readonly record struct BlackFlowSpireHope(int Balance, int Maximum)
 {
-    public const int Initial = 6;
+    public static BlackFlowSpireHope Initial { get; } = new(6, 6);
 
     public bool TryChange(int delta, out BlackFlowSpireHope result)
     {

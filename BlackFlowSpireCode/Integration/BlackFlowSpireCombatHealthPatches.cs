@@ -233,11 +233,8 @@ internal static class BlackFlowSpireCombatHealthRuntime
                 RoomType.Elite => BlackFlowSpireBattleVariant.Emergency,
                 _ => BlackFlowSpireBattleVariant.Normal
             });
-        var previousExperience = BlackFlowSpireGenerationService.GetCommandExperience(run);
-        var previousHope = BlackFlowSpireGenerationService.GetHopeStatus(run).Maximum;
-        BlackFlowSpireGenerationService.GrantCommandExperience(run, experience);
-        battle.Result = new(battle.Damage, BlackFlowSpireGenerationService.GetCommandExperience(run) - previousExperience,
-            BlackFlowSpireGenerationService.GetHopeStatus(run).Maximum - previousHope);
+        var reward = BlackFlowSpireGenerationService.GrantCommandExperience(run, experience);
+        battle.Result = new(battle.Damage, reward.Experience, reward.Hope);
     }
 
     internal static Settlement? GetSettlement(CombatRoom room) => Battles.TryGetValue(room.CombatState, out var battle)

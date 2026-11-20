@@ -39,7 +39,7 @@ public static partial class BlackFlowSpireGenerationService
                 if (progress.ExpeditionScene != BlackFlowSpireExpeditionScene.Intro) return;
                 if (choice == BlackFlowSpireExpeditionRules.Rest)
                 {
-                    if (!data.TryChangeHope(BlackFlowSpireExpeditionRules.RestHope)) return;
+                    GrantTeamHope(state, data, BlackFlowSpireExpeditionRules.RestHope);
                     progress.ExpeditionScene = BlackFlowSpireExpeditionScene.Rested;
                 }
                 else

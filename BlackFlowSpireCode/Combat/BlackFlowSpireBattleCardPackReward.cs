@@ -57,7 +57,7 @@ internal sealed class BlackFlowSpireBattleCardPackReward(Player player, BlackFlo
     {
         var run = (RunState)Player.RunState;
         var (choiceId, index) = await BlackFlowSpireCardPackSelection.ChooseIndex(Player,
-            () => BlackFlowSpireCardPackRarityScreen.Choose(run, TextKey, Choices, available, _opened?.Index, cardStyle));
+            () => BlackFlowSpireCardPackRarityScreen.Choose(Player, TextKey, Choices, available, _opened?.Index, cardStyle));
         if (index is not int option || option < 0 || option >= Choices.Length) return false;
         if (_opened is { } opened && opened.Index != option) return false;
         var (rarity, cost) = Choices[option];
@@ -74,7 +74,7 @@ internal sealed class BlackFlowSpireBattleCardPackReward(Player player, BlackFlo
             }
             finally
             {
-                if (!_opened.HasValue) BlackFlowSpireGenerationService.RefundHope(run, cost);
+                if (!_opened.HasValue) BlackFlowSpireGenerationService.RefundHope(run, Player.NetId, cost);
             }
         }
         var selected = await BlackFlowSpireCardPackSelection.ChooseCard(cards, Player);
