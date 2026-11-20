@@ -312,7 +312,9 @@ public static class BlackFlowSpireMapUi
             field.Call("set_interaction_enabled", false);
             root.AddChild(new BlackFlowSpireWishUi(state, screen) { Name = "BlackFlowSpireWish" });
         }
-        var expeditionPending = canLead && BlackFlowSpireExpeditionRules.IsPending(map, progress);
+        var expeditionPending = BlackFlowSpireExpeditionRules.IsPending(map, progress)
+            && (!BlackFlowSpireTeam.IsGuest || progress.ExpeditionScene == BlackFlowSpireExpeditionScene.Intro);
+        if (!expeditionPending) BlackFlowSpireExpeditionUi.Dismiss(screen, choiceOnly: true);
         if (!inspection && (expeditionPending || BlackFlowSpireExpeditionUi.HasNotice(state, progress)))
         {
             DefaultFocus = null;

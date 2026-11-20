@@ -34,6 +34,8 @@
 
 原版 `RoguelikeExpeditionState._OnConfirmExpedition` 提交派遣，`RL06ExpeditionReturnDialog.RenderSingle` 绑定归队文本并播放入场动画。Mod 在 [派遣存档](../BlackFlowSpireCode/Persistence/BlackFlowSpireExpeditionSave.cs) 暂存卡牌，在换层时归还并发放加工品。归队场景的主要图层和 23 条入场曲线来自 `panel_exped_return_dialog` 的 `entry_expedition`。奖励池采用原版物品表中七件标为 `NORMAL` 的加工品。
 
+联机沿用 `expedition_view` 的选牌页和 `panel_exped_return_dialog` 的归队页，每台客户端绑定本人的牌组和归队结果。[事件交互](../BlackFlowSpireCode/Integration/BlackFlowSpireExpeditionRuntime.cs)按玩家确认派遣或留下，[队伍派遣记录](../BlackFlowSpireCode/Persistence/BlackFlowSpireExpeditionParty.cs)保存各自的卡牌，并在换层时统一结算奖励。
+
 失与得的事件正文和选项对应原表 `scene_ro6_sacrifice*`、`choice_ro6_sacrifice*`。`RoguelikeChoiceState._SelectChoice` 和 `RoguelikeDungeonPage._JumpToSacrificeInChoiceScene` 对应事件页进入交换页；`RoguelikeSacrificeView.OnValueChanged`、`_UpdateSacrificeTypePanels` 和 `RoguelikeSacrificeConfirmView._RenderCost` 对应列表、选中详情及确认按钮的显隐；`RoguelikeSacrificeViewModel.SelectItem` 对应再次点击同一物品时取消选择。`RL06SacrificeModelParamBuilder.Build`、`RL06SacrificeSelectedView.RenderCustomInfo` 和 `RL06SacrificeConfirmBehaviour.OnConfirmClick` 对应可用零件、估价及卸下在用加工品前的确认。原版选物后由 `RoguelikeSacrificeState._OnConfirmSacrifice` 提交服务端。Mod 使用[本地交换规则](../BlackFlowSpireCode/Map/Exploration/BlackFlowSpireSacrificeRules.cs)决定产物和深层分支条件；「焚毁文明」可获得，原作 Boss 专属效果未移植。
 
 `sacrifice_item/img_icon` 的列表图标容器为 100×100，`sacrifice_view/left_part/panel_icon/item_icon_container` 的详情容器为 160×160。`RL06SacrificeListItem.RenderItemIcon` 和 `RL06SacrificeSelectedView.RenderSelectedItemIcon` 分别让 `RL06ItemIconWithScrap.RenderScrap` 显示 `sacrifice_item_icon` 的普通零件图或大图。Godot 在 `BlackFlowSpireSacrificePicker.AddIcon` 按对应容器缩放原预制体的图层和剩余次数星标，详情场景沿用 `panel_sell_price` 的位置、字号和叠放顺序。

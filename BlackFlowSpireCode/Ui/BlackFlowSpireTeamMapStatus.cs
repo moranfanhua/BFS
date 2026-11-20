@@ -39,6 +39,7 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
         else
         {
             BlackFlowSpireTeam.ResumeExitIfReady(state);
+            BlackFlowSpireTeam.ConfirmExpeditionIfReady(state);
             Text = BlackFlowSpireTeam.CanTravel(state) ? "" : BlackFlowSpireText.Get("UI.TEAM.wait");
         }
     }

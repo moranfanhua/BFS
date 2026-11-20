@@ -15,6 +15,7 @@ internal sealed class BlackFlowSpireExpeditionPicker
     private readonly Control _canvas;
     private readonly Button _back;
     private readonly Button _confirm;
+    private readonly bool _teamReward;
     private readonly List<(Button Button, CardModel Card)> _items = [];
     private NCard? _before;
     private NCard? _after;
@@ -24,6 +25,7 @@ internal sealed class BlackFlowSpireExpeditionPicker
 
     public BlackFlowSpireExpeditionPicker(Control parent, Player owner, Action back, Action<int> dispatch)
     {
+        _teamReward = owner.RunState.Players.Count > 1;
         _view = ResourceLoader.Load<PackedScene>(SceneFolder + "BlackFlowSpireExpeditionPicker.tscn").Instantiate<Control>();
         _canvas = _view.GetNode<Control>("Canvas");
         _back = Node<Button>("Back");
@@ -109,8 +111,9 @@ internal sealed class BlackFlowSpireExpeditionPicker
         var selected = _selected;
         Node<Label>("CardList").Text = Text("picker.cards");
         Node<Label>("Prompt").Text = selected == null ? Text("picker.prompt") : "";
+        var description = _after == null ? "picker.description" : "picker.upgrade";
         Node<Label>("Description").Text = selected == null ? "" :
-            Text(_after == null ? "picker.description" : "picker.upgrade", ("Card", selected.Title));
+            Text(_teamReward ? description + ".team" : description, ("Card", selected.Title));
         _back.TooltipText = Text("picker.back");
         _confirm.TooltipText = Text(selected == null ? "picker.prompt" : "picker.confirm");
         foreach (var (button, card) in _items)

@@ -14,7 +14,7 @@ internal sealed record BlackFlowSpireTeamFrame(long Command, int Index, ForestBo
 internal static partial class BlackFlowSpireTeam
 {
     private static readonly RitsuLibSidecarSyncMessageDescriptor<BlackFlowSpireTeamFrame> FrameMessage = new(
-        Entry.ModId, "BlackFlowSpire-team-frame/v1", Encode, Decode<BlackFlowSpireTeamFrame>, OnFrame,
+        Entry.ModId, "BlackFlowSpire-team-frame/v2", Encode, Decode<BlackFlowSpireTeamFrame>, OnFrame,
         ShouldBuffer: false, DispatchLocalOnBroadcast: false);
 
     internal static bool InCommand(RunState state) => Sessions.TryGetValue(state, out var session) && session.Active != 0 && !session.NativePurchase;
@@ -76,6 +76,8 @@ internal static partial class BlackFlowSpireTeam
         if (frame.Returned is { } returned) BlackFlowSpireGenerationService.ApplyExpeditionDeck(state, returned, returned: true);
         BlackFlowSpireGenerationService.ApplyFloor(state, snapshot.Forest);
         session.Revision = snapshot.Revision;
+        if (frame.Dispatched != null) BlackFlowSpireGenerationService.RefreshExpeditionDecks(state, frame.Dispatched);
+        if (frame.Returned != null) BlackFlowSpireGenerationService.RefreshExpeditionDecks(state, frame.Returned);
         return frame.Boundary;
     }
 

@@ -73,6 +73,7 @@ internal static partial class BlackFlowSpireTeam
     internal static void Register()
     {
         RitsuLibManagedNetActions.Register(Command);
+        RitsuLibManagedNetActions.Register(ExpeditionPick);
         RitsuLibSidecarSyncMessages.Register(ReadyMessage);
         RitsuLibSidecarSyncMessages.Register(SnapshotMessage);
         RitsuLibSidecarSyncMessages.Register(FrameMessage);
