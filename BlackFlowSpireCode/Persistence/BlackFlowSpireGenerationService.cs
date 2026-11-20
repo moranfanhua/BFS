@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json.Serialization;
 using BlackFlowSpire.Combat;
 using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Exploration;
@@ -16,26 +15,6 @@ using STS2RitsuLib.RunData;
 
 namespace BlackFlowSpire.Persistence;
 
-public sealed partial class BlackFlowSpireRunData
-{
-    internal const int CurrentSchemaVersion = 2;
-    public int SchemaVersion { get; set; } = CurrentSchemaVersion;
-    public bool Enabled { get; set; }
-    public ulong? TeamOwnerId { get; set; }
-    public int TargetLife { get; set; } = BlackFlowSpireCombatHealth.InitialTargetLife;
-    public int MaxTargetLife { get; set; } = BlackFlowSpireCombatHealth.InitialTargetLife;
-    public int TargetShield { get; set; }
-    public int CommandExperience { get; set; }
-    public BlackFlowSpireDamageMultipliers DamageMultipliers { get; set; } = new();
-    public Dictionary<ulong, decimal> PlayerLifeMultipliers { get; set; } = [];
-    public Dictionary<int, BlackFlowSpireMap> Maps { get; set; } = [];
-    public Dictionary<int, BlackFlowSpireExplorationProgress> Progress { get; set; } = [];
-    public BlackFlowSpireEngineInventory Engine { get; set; } = new();
-    public BlackFlowSpireFloorTransition? PendingFloorTransition { get; set; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public BlackFlowSpireExpeditionDispatch? ExpeditionDispatch { get; set; }
-}
-
 public static partial class BlackFlowSpireGenerationService
 {
     private static RunSavedData<BlackFlowSpireRunData>? _slot;
@@ -51,6 +30,28 @@ public static partial class BlackFlowSpireGenerationService
 
     public static void Enable(RunState state) => _slot!.Modify(state, data => data.Enabled = true);
     internal static ulong? GetTeamOwnerId(RunState state) => _slot!.Get(state).TeamOwnerId;
+    internal static long GetCommandId(RunState state) => _slot!.Get(state).TeamCommandId;
+    internal static void SetCommandId(RunState state, long id) => _slot!.Modify(state, data => data.TeamCommandId = id);
+
+    internal static BlackFlowSpireRunData CaptureFloor(RunState state)
+    {
+        GetProgress(state);
+        return _slot!.Get(state).ActiveFloor(state.CurrentActIndex);
+    }
+
+    internal static void ApplyFloor(RunState state, BlackFlowSpireRunData authoritative)
+    {
+        var act = state.CurrentActIndex;
+        if (authoritative.SchemaVersion != BlackFlowSpireRunData.CurrentSchemaVersion || !authoritative.Enabled
+            || !authoritative.Maps.TryGetValue(act, out var map) || map.ActIndex != act || !authoritative.Progress.ContainsKey(act))
+            throw new InvalidDataException("Invalid authoritative forest floor.");
+        BlackFlowSpireMapValidator.Validate(map);
+        var saved = _slot!.Get(state);
+        authoritative.KeepOtherFloors(saved, act);
+        _slot.Set(state, authoritative);
+        if (state.Map is BlackFlowSpireActMap adapter && adapter.Rebind(map)) return;
+        state.Map = new BlackFlowSpireActMap(map);
+    }
 
     public static int GetHope(RunState state) => GetHopeStatus(state).Balance;
 
@@ -59,12 +60,6 @@ public static partial class BlackFlowSpireGenerationService
     internal static BlackFlowSpireHope GetHopeStatus(RunState state) => GetHopeStatus(state, LocalPlayerId(state));
 
     internal static BlackFlowSpireHope GetHopeStatus(RunState state, ulong playerId) => _slot!.Get(state).GetHope(playerId);
-
-    internal static Dictionary<ulong, BlackFlowSpireHope> CopyPlayerHope(RunState state)
-    {
-        var data = _slot!.Get(state);
-        return state.Players.ToDictionary(player => player.NetId, player => data.GetHope(player.NetId));
-    }
 
     internal static int GetCommandExperience(RunState state) => _slot!.Get(state).CommandExperience;
 
@@ -88,13 +83,6 @@ public static partial class BlackFlowSpireGenerationService
         _slot!.Modify(state, data => data.RefundHope(playerId, amount));
         BlackFlowSpireTeam.Publish(state);
     }
-
-    internal static void RestoreCommandProgress(RunState state, Dictionary<ulong, BlackFlowSpireHope> playerHope, int experience) =>
-        _slot!.Modify(state, data =>
-        {
-            data.PlayerHope = playerHope;
-            data.CommandExperience = Math.Clamp(experience, 0, BlackFlowSpireCommandLevel.MaximumExperience);
-        });
 
     internal static (int Experience, int Hope) GrantCommandExperience(RunState state, int amount)
     {
@@ -151,25 +139,11 @@ public static partial class BlackFlowSpireGenerationService
         BlackFlowSpireTeam.Publish(state);
     }
 
-    internal static Dictionary<ulong, decimal> CopyPlayerLifeMultipliers(RunState state) =>
-        new(_slot!.Get(state).PlayerLifeMultipliers);
-
-    internal static void RestorePlayerLifeMultipliers(RunState state, Dictionary<ulong, decimal> multipliers) =>
-        _slot!.Modify(state, data => data.PlayerLifeMultipliers = multipliers);
-
     internal static (int Current, int Maximum, int Shield) GetTargetLife(RunState state)
     {
         var data = _slot!.Get(state);
         return (data.TargetLife, data.MaxTargetLife, data.TargetShield);
     }
-
-    internal static void SetTargetLife(RunState state, int life, int maximum, int shield) =>
-        _slot!.Modify(state, data =>
-        {
-            data.MaxTargetLife = Math.Max(1, maximum);
-            data.TargetLife = Math.Clamp(life, 0, data.MaxTargetLife);
-            data.TargetShield = Math.Max(0, shield);
-        });
 
     public static void GrantTargetLife(RunState state, int maxLifeGain = 0, int lifeRestored = 0)
     {
@@ -271,9 +245,6 @@ public static partial class BlackFlowSpireGenerationService
         else _slot!.Lobby.Remove(lobby);
     }
 
-    internal static void SetSharedEngine(RunState state, BlackFlowSpireEngineInventory engine) =>
-        _slot!.Modify(state, data => data.Engine = engine);
-
     public static BlackFlowSpireEngineInventory GetEngine(RunState state) => _slot!.Get(state).Engine;
 
     public static BlackFlowSpireFloorTransition? GetFloorTransition(RunState state) => _slot!.Get(state).PendingFloorTransition;
@@ -371,6 +342,7 @@ public static partial class BlackFlowSpireGenerationService
             if (saved.Maps.TryGetValue(runState.CurrentActIndex, out var existing))
             {
                 BlackFlowSpireMapValidator.Validate(existing);
+                if (BlackFlowSpireTeam.IsGuest) return existing;
                 var revealed = BlackFlowSpireFog.RevealNearby(existing, saved.Engine).Count > 0;
                 revealed |= BlackFlowSpireCollectibleRules.RevealMap(existing, saved.Engine);
                 if (revealed)

@@ -36,6 +36,10 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
             Text = BlackFlowSpireText.Get("UI.TEAM.follow");
             if (!BlackFlowSpireRuntime.IsTraveling && !CombatManager.Instance.IsInProgress) BlackFlowSpireTeam.ReportReady(state, true);
         }
-        else Text = BlackFlowSpireTeam.CanTravel(state) ? "" : BlackFlowSpireText.Get("UI.TEAM.wait");
+        else
+        {
+            BlackFlowSpireTeam.ResumeExitIfReady(state);
+            Text = BlackFlowSpireTeam.CanTravel(state) ? "" : BlackFlowSpireText.Get("UI.TEAM.wait");
+        }
     }
 }

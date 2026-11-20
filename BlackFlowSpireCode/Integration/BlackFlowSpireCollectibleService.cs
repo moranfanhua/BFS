@@ -60,6 +60,7 @@ public static class BlackFlowSpireCollectibleService
         try
         {
             await PlayerCmd.GainGold(amount, player);
+            BlackFlowSpireTeam.RecordGold(state, amount);
         }
         catch
         {

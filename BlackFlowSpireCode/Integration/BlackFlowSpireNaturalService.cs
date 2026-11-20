@@ -75,6 +75,7 @@ public static class BlackFlowSpireNaturalService
             var price = BlackFlowSpirePartService.GoldPerOriginium;
             if (part == null || player.Gold < price) continue;
             await PlayerCmd.LoseGold(price, player, GoldLossType.Spent);
+            BlackFlowSpireTeam.RecordGold(state, -price);
             if (!replicated) RunManager.Instance.RewardSynchronizer.SyncLocalGoldLost(price);
             BlackFlowSpireGenerationService.ModifyEngine(state, _ => part.Adjust(3));
         }

@@ -36,6 +36,7 @@ public static partial class BlackFlowSpireRuntime
                 if (BlackFlowSpireTeam.Owner(state) is not { } player || player.Gold < price
                     || !BlackFlowSpireWishRules.CanRefresh(map, progress, engine)) return;
                 await PlayerCmd.LoseGold(price, player, GoldLossType.Spent);
+                BlackFlowSpireTeam.RecordGold(state, -price);
                 progress.Wish = new(Refreshed: true);
             }
             else if (choice == BlackFlowSpireWishRules.Leave)

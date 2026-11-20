@@ -64,6 +64,7 @@ public static class BlackFlowSpirePartService
             var gold = checked(reward.Originium * GoldPerOriginium);
             var player = BlackFlowSpireTeam.Owner(state) ?? throw new InvalidOperationException("No player owns the part reward.");
             await PlayerCmd.GainGold(gold, player);
+            BlackFlowSpireTeam.RecordGold(state, gold);
             if (!replicated) RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
         }
         await BlackFlowSpireNaturalService.PayMovementCosts(state, reward.NaturalPaymentIds, replicated);

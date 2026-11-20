@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using BlackFlowSpire.Integration;
 using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Parts;
@@ -11,6 +13,12 @@ namespace BlackFlowSpire.Persistence;
 
 public sealed record BlackFlowSpireExpeditionDispatch(int SourceActIndex, int SourceNodeId,
     ulong PlayerId, int DeckIndex, SerializableCard Card, BlackFlowSpireProcessedPartKind Reward);
+
+public sealed partial class BlackFlowSpireRunData
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public BlackFlowSpireExpeditionDispatch? ExpeditionDispatch { get; set; }
+}
 
 public static partial class BlackFlowSpireGenerationService
 {
@@ -53,6 +61,7 @@ public static partial class BlackFlowSpireGenerationService
                     owner.Deck.RemoveInternal(card, silent: true);
                     state.RemoveCard(card);
                     data.ExpeditionDispatch = dispatch;
+                    BlackFlowSpireTeam.RecordDeck(state, dispatch, returned: false);
                     progress.ExpeditionScene = BlackFlowSpireExpeditionScene.Departed;
                     refreshDeck = true;
                 }
@@ -72,22 +81,16 @@ public static partial class BlackFlowSpireGenerationService
             ?? throw new InvalidDataException("The scouting card's owner is missing from the run.");
         _slot.Modify(state, data =>
         {
-            var card = state.LoadCard(dispatch.Card, owner);
+            var (card, upgraded) = ReturnCard(state, owner, dispatch);
             try
             {
-                var upgraded = card.IsUpgradable;
-                if (upgraded)
-                {
-                    card.UpgradeInternal();
-                    card.FinalizeUpgradeInternal();
-                }
-                owner.Deck.AddInternal(card, Math.Min(dispatch.DeckIndex, owner.Deck.Cards.Count), silent: true);
                 // Put a newly found part in the shared box after its normal floor-entry cleanup.
                 data.Engine.Add(dispatch.Reward);
                 progress.ExpeditionReturn = new(dispatch.SourceActIndex, dispatch.SourceNodeId,
                     card.Id.Category, card.Id.Entry, upgraded, dispatch.Reward);
                 data.ExpeditionDispatch = null;
                 data.Progress[map.ActIndex] = progress;
+                BlackFlowSpireTeam.RecordDeck(state, dispatch, returned: true);
             }
             catch
             {
@@ -97,5 +100,41 @@ public static partial class BlackFlowSpireGenerationService
             }
         });
         owner.Deck.InvokeContentsChanged();
+    }
+
+    internal static void ApplyExpeditionDeck(RunState state, BlackFlowSpireExpeditionDispatch dispatch, bool returned)
+    {
+        var owner = state.Players.Single(player => player.NetId == dispatch.PlayerId);
+        if (returned) ReturnCard(state, owner, dispatch);
+        else
+        {
+            var card = owner.Deck.Cards[dispatch.DeckIndex];
+            if (!card.ToSerializable().Equals(dispatch.Card)) throw new InvalidDataException("Different expedition card on the guest.");
+            owner.Deck.RemoveInternal(card, silent: true);
+            state.RemoveCard(card);
+        }
+        owner.Deck.InvokeContentsChanged();
+    }
+
+    private static (CardModel Card, bool Upgraded) ReturnCard(RunState state, Player owner, BlackFlowSpireExpeditionDispatch dispatch)
+    {
+        var card = state.LoadCard(dispatch.Card, owner);
+        try
+        {
+            var upgraded = card.IsUpgradable;
+            if (upgraded)
+            {
+                card.UpgradeInternal();
+                card.FinalizeUpgradeInternal();
+            }
+            owner.Deck.AddInternal(card, Math.Min(dispatch.DeckIndex, owner.Deck.Cards.Count), silent: true);
+            return (card, upgraded);
+        }
+        catch
+        {
+            if (owner.Deck.Cards.Contains(card)) owner.Deck.RemoveInternal(card, silent: true);
+            state.RemoveCard(card);
+            throw;
+        }
     }
 }

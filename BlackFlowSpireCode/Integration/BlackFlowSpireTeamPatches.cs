@@ -3,8 +3,10 @@ using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Ui;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
+using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
@@ -58,6 +60,19 @@ internal static class BlackFlowSpireTeamCleanupPatch
     }
 }
 
+[HarmonyPatch(typeof(RunLobby), "HandleClientRejoinRequestMessage")]
+internal static class BlackFlowSpireTeamRejoinPatch
+{
+    private static bool Prefix(ulong senderId)
+    {
+        if (RunManager.Instance.NetService is not INetHostGameService host || BlackFlowSpireRuntime.State is not { } state
+            || !BlackFlowSpireGenerationService.IsEnabled(state)
+            || BlackFlowSpireTeam.CanManage(state) && !RunManager.Instance.IsChangingRooms && !BlackFlowSpireRuntime.IsTraveling) return true;
+        host.DisconnectClient(senderId, NetError.TryAgainLater);
+        return false;
+    }
+}
+
 [HarmonyPatch(typeof(Hook), nameof(Hook.BeforeRoomEntered))]
 internal static class BlackFlowSpireCombatArrivalRewardPatch
 {
@@ -70,14 +85,19 @@ internal static class BlackFlowSpireCombatArrivalRewardPatch
             __result = HarmonyAsyncTaskBridge.After(__result, () => SettleBeforeCombat(state));
     }
 
-    private static Task SettleBeforeCombat(RunState state)
+    private static async Task SettleBeforeCombat(RunState state)
     {
+        if (BlackFlowSpireTeam.IsGuest && BlackFlowSpireTeam.InCommand(state))
+        {
+            await BlackFlowSpireTeam.ReceiveExpected(state, ForestBoundary.CombatArrival);
+            return;
+        }
         // Native player and RNG synchronization is complete. Settle shared rewards
         // and apply any movement shield before combat starts.
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var engine = BlackFlowSpireGenerationService.GetEngine(state);
-        return progress.PendingPartReward != null || engine.PendingConceptRewards.Count > 0 || engine.Collectibles.PendingGold > 0
-            ? BlackFlowSpirePartService.SettleMovementRewards(state, BlackFlowSpireGenerationService.GetOrGenerate(state), progress)
-            : Task.CompletedTask;
+        if (progress.PendingPartReward != null || engine.PendingConceptRewards.Count > 0 || engine.Collectibles.PendingGold > 0)
+            await BlackFlowSpirePartService.SettleMovementRewards(state, BlackFlowSpireGenerationService.GetOrGenerate(state), progress);
+        BlackFlowSpireTeam.Emit(state, ForestBoundary.CombatArrival);
     }
 }
