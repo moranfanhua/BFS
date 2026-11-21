@@ -47,7 +47,8 @@ public static class BlackFlowSpireConceptService
         BlackFlowSpireGenerationService.ModifyEngine(state, engine => engine.DiscardConcept(id));
         var gold = BlackFlowSpirePartService.FixedSaleGold;
         await PlayerCmd.GainGold(gold, LocalContext.GetMe(state) ?? throw new InvalidOperationException("No local player."));
-        RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
+        if (BlackFlowSpireTeam.InCommand(state)) BlackFlowSpireTeam.RecordGold(state, gold);
+        else RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
         await BlackFlowSpirePartService.SaveAndRefresh(state);
     }
 

@@ -19,7 +19,7 @@ internal partial class BlackFlowSpireShopController
 
     public void SetSelling(bool selling)
     {
-        if (_busy || _disposed || BlackFlowSpireTeam.IsGuest || _selling == selling) return;
+        if (_busy || _disposed || !BlackFlowSpireTeam.CanOperate || _selling == selling) return;
         _selling = selling;
         _confirmLeave = false;
         Speak(selling ? BlackFlowSpireMerchantDialogueGroup.SaleMode : BlackFlowSpireMerchantDialogueGroup.Browse);
@@ -45,13 +45,13 @@ internal partial class BlackFlowSpireShopController
         _view.GetNode<Label>("Canvas/BuySell/SellText").AddThemeColorOverride("font_color", _selling ? Colors.White : new Color(0.25f, 0.25f, 0.25f));
         _view.GetNode<CanvasItem>("Canvas/BuySell/BuyIcon").Modulate = _selling ? new Color(0.3f, 0.3f, 0.3f) : Colors.White;
         _view.GetNode<Label>("Canvas/BuySell/BuyText").AddThemeColorOverride("font_color", _selling ? new Color(0.25f, 0.25f, 0.25f) : Colors.White);
-        _view.GetNode<Button>("Canvas/BuySell/SellButton").Disabled = _busy || BlackFlowSpireTeam.IsGuest;
-        _view.GetNode<Button>("Canvas/BuySell/BuyButton").Disabled = _busy;
+        _view.GetNode<Button>("Canvas/BuySell/SellButton").Disabled = _busy || !BlackFlowSpireTeam.CanOperate;
+        _view.GetNode<Button>("Canvas/BuySell/BuyButton").Disabled = _busy || !BlackFlowSpireTeam.CanOperate;
         _view.GetNode<Control>("Canvas/BatchSell").Visible = _selling;
-        _view.GetNode<Button>("Canvas/BatchSell").Disabled = _busy || _saleGoods.Count == 0;
+        _view.GetNode<Button>("Canvas/BatchSell").Disabled = _busy || !BlackFlowSpireTeam.CanOperate || _saleGoods.Count == 0;
         _view.GetNode<Control>("Canvas/SaleEmpty").Visible = _selling && _saleGoods.Count == 0;
         _refresh.Visible = !_selling;
-        foreach (var goods in _saleGoods) goods.Button.Disabled = _busy;
+        foreach (var goods in _saleGoods) goods.Button.Disabled = _busy || !BlackFlowSpireTeam.CanOperate;
     }
 
     private void BindSaleGoods()
@@ -118,6 +118,12 @@ internal partial class BlackFlowSpireShopController
     {
         // A sale can trigger a refresh while payment or batch sale holds the UI
         // lock. Apply it after those sales, rather than losing the natural effect.
+        if (BlackFlowSpireTeam.IsHost && _inventory.Player.RunState is RunState state && BlackFlowSpireTeam.InCommand(state))
+        {
+            _stock.ReadSharedStock();
+            _stock.RefreshStock(false);
+            return Task.FromResult(true);
+        }
         if (_busy) { _pendingNaturalRefreshes++; return Task.FromResult(true); }
         return RefreshGoods(false);
     }
@@ -132,6 +138,8 @@ internal partial class BlackFlowSpireShopController
         Refresh();
         try
         {
+            if (BlackFlowSpireTeam.IsOnline)
+                return await BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.SellParts, items: selected);
             if (selected.Length == 1) await BlackFlowSpirePartService.Sell(selected[0]);
             else await BlackFlowSpirePartService.SellBatch(selected);
             Speak(BlackFlowSpireMerchantDialogueGroup.SaleComplete);

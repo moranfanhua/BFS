@@ -1,4 +1,5 @@
 using BlackFlowSpire.Map.Presentation;
+using BlackFlowSpire.Integration;
 using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Shop;
 using Godot;
@@ -79,7 +80,11 @@ internal partial class BlackFlowSpireCultivationScreen(RunState state, Action cl
         Refresh();
         try
         {
-            await BlackFlowSpireSecretShop.Cultivate(state, _quantity);
+            if (BlackFlowSpireTeam.IsOnline)
+            {
+                if (!await BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.Cultivate, _quantity)) return;
+            }
+            else await BlackFlowSpireSecretShop.Cultivate(state, _quantity);
             if (_closing || !IsInsideTree()) return;
             _stage = 1;
             _view.Call("set_stage", 1);
@@ -152,7 +157,13 @@ internal partial class BlackFlowSpireCultivationScreen(RunState state, Action cl
         if (_busy || _stage != 2) return;
         _busy = true;
         Refresh();
-        try { await BlackFlowSpireSecretShop.AcknowledgeHarvest(state); _busy = false; Close(); }
+        try
+        {
+            if (BlackFlowSpireTeam.IsOnline) await BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.Harvest);
+            else await BlackFlowSpireSecretShop.AcknowledgeHarvest(state);
+            _busy = false;
+            Close();
+        }
         catch (Exception error) { _busy = false; Entry.Logger.Error("[BlackFlowSpire] Harvest acknowledgement failed: " + error); Refresh(); }
     }
 

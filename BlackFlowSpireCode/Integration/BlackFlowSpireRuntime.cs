@@ -31,6 +31,7 @@ public static partial class BlackFlowSpireRuntime
     public static async Task GenerateMap(RunManager manager)
     {
         var state = manager.DebugOnlyGetState()!;
+        BlackFlowSpireTeamEconomy.Initialize(state);
         manager.MapSelectionSynchronizer.BeforeMapGenerated();
         var following = BlackFlowSpireTeam.IsGuest && BlackFlowSpireTeam.InCommand(state);
         if (following) await BlackFlowSpireTeam.ReceiveExpected(state, ForestBoundary.FloorGenerated);
@@ -65,6 +66,12 @@ public static partial class BlackFlowSpireRuntime
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var inspection = fromTopBar && state.CurrentRoom is not MapRoom;
+        if (BlackFlowSpireTeam.IsOnline && state.CurrentRoom is MerchantRoom && !inspection
+            && progress.PendingNodeId.HasValue && BlackFlowSpireTeam.Idle(state))
+        {
+            if (BlackFlowSpireTeam.CanOperate) _ = BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.LeaveNode);
+            return;
+        }
         if (!BlackFlowSpireTeam.IsOnline && !inspection && BlackFlowSpireGenerationService.GetFloorTransition(state) is { } transition
             && transition.SourceActIndex == state.CurrentActIndex)
         {

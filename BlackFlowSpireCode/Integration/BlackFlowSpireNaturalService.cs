@@ -48,7 +48,8 @@ public static class BlackFlowSpireNaturalService
         if (gold > 0)
         {
             await PlayerCmd.GainGold(gold, LocalContext.GetMe(state) ?? throw new InvalidOperationException("No local player."));
-            RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
+            if (BlackFlowSpireTeam.InCommand(state)) BlackFlowSpireTeam.RecordGold(state, gold);
+            else RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
         }
         await FinishSale(state, part);
         await BlackFlowSpirePartService.SaveAndRefresh(state);

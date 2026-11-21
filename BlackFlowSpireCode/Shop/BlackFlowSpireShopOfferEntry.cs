@@ -24,7 +24,6 @@ internal sealed class BlackFlowSpireShopOfferEntry : MerchantEntry
     private readonly BlackFlowSpireShopOfferStock _stock;
     private readonly bool _replicated;
     private List<CardCreationResult>? _cards;
-    private List<PotionModel>? _deferredPotions;
 
     public BlackFlowSpireShopOfferKind Kind => _stock.Kind;
     public override bool IsStocked => !_stock.Purchased;
@@ -70,16 +69,19 @@ internal sealed class BlackFlowSpireShopOfferEntry : MerchantEntry
         await PlayerCmd.LoseGold(price, _player, GoldLossType.Spent);
         if (!_replicated) RunManager.Instance.RewardSynchronizer.SyncLocalGoldLost(price);
         Persist();
+        if (_replicated)
+        {
+            BlackFlowSpireTeam.IssueTickets((RunState)_player.RunState, Kind);
+            OnMerchantInventoryUpdated();
+            return (true, price);
+        }
         if (LocalContext.IsMe(_player)) await Save();
         OnMerchantInventoryUpdated();
         if (Kind == BlackFlowSpireShopOfferKind.PotionPack)
         {
             var potions = PotionFactory.CreateRandomPotionsOutOfCombat(_player, 3, _player.PlayerRng.Shops)
                 .Select(potion => potion.ToMutable()).ToList();
-            // Potion discards use the native action queue. Open this picker after
-            // the synchronized purchase so that queue stays available.
-            if (!_replicated) await ClaimPotion(potions);
-            else if (LocalContext.IsMe(_player)) _deferredPotions = potions;
+            await ClaimPotion(potions);
         }
         else if (Kind is BlackFlowSpireShopOfferKind.RemoveCard or BlackFlowSpireShopOfferKind.UpgradeCard)
         {
@@ -113,13 +115,6 @@ internal sealed class BlackFlowSpireShopOfferEntry : MerchantEntry
             }
         }
         return (true, price);
-    }
-
-    internal async Task CompleteDeferredClaim()
-    {
-        if (_deferredPotions is not { } potions) return;
-        _deferredPotions = null;
-        await ClaimPotion(potions);
     }
 
     private async Task ClaimPotion(IReadOnlyList<PotionModel> potions)

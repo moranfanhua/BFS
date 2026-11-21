@@ -67,7 +67,7 @@ internal static class BlackFlowSpireTeamRejoinPatch
     {
         if (RunManager.Instance.NetService is not INetHostGameService host || BlackFlowSpireRuntime.State is not { } state
             || !BlackFlowSpireGenerationService.IsEnabled(state)
-            || BlackFlowSpireTeam.CanManage(state) && !RunManager.Instance.IsChangingRooms && !BlackFlowSpireRuntime.IsTraveling) return true;
+            || BlackFlowSpireTeam.Idle(state) && !RunManager.Instance.IsChangingRooms && !BlackFlowSpireRuntime.IsTraveling) return true;
         host.DisconnectClient(senderId, NetError.TryAgainLater);
         return false;
     }

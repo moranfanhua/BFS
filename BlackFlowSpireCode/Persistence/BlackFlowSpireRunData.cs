@@ -11,6 +11,8 @@ public sealed partial class BlackFlowSpireRunData
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
     public bool Enabled { get; set; }
     public ulong? TeamOwnerId { get; set; }
+    public bool TeamGoldPooled { get; set; }
+    public List<BlackFlowSpireShopTicket> ShopTickets { get; set; } = [];
     public long TeamCommandId { get; set; }
     public int TargetLife { get; set; } = BlackFlowSpireCombatHealth.InitialTargetLife;
     public int MaxTargetLife { get; set; } = BlackFlowSpireCombatHealth.InitialTargetLife;

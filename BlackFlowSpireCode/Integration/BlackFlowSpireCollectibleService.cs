@@ -68,7 +68,7 @@ public static class BlackFlowSpireCollectibleService
                 BlackFlowSpireGenerationService.ModifyEngine(state, engine => engine.Collectibles.PendingGold += amount);
             throw;
         }
-        if (!replicated && player.Gold > before)
+        if (!replicated && !BlackFlowSpireTeam.InCommand(state) && player.Gold > before)
             RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(player.Gold - before);
         return true;
     }

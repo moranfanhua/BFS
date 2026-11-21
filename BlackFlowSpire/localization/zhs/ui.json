@@ -11,6 +11,7 @@
   "BLACK_FLOW_SPIRE.UI.TEAM.observing": "正在观看房主的事件选择",
   "BLACK_FLOW_SPIRE.UI.TEAM.wait": "等待队友完成当前节点",
   "BLACK_FLOW_SPIRE.UI.TEAM.shop": "共享货物由房主操作",
+  "BLACK_FLOW_SPIRE.UI.TEAM.shop_claims": "等待队友领取或跳过已购买的商品",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.victory": "成功通过",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.normal": "作战",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.emergency": "紧急作战",

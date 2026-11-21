@@ -181,7 +181,7 @@ internal static class BlackFlowSpireCollectiblePricePatch
 {
     private static void Postfix(IRunState runState, MerchantEntry entry, ref decimal __result)
     {
-        if (entry is BlackFlowSpireShopPartEntry or MerchantRelicEntry && runState is RunState run
+        if (entry is BlackFlowSpireShopPartEntry or BlackFlowSpireShopCollectibleEntry && runState is RunState run
             && BlackFlowSpireGenerationService.IsEnabled(run) && BlackFlowSpireCollectibleService.GetInventory(run).Has(194))
             __result /= 2m;
     }

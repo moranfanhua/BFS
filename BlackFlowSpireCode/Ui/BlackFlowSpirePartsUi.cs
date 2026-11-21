@@ -51,7 +51,7 @@ internal static class BlackFlowSpirePartsUi
 
     public static void OpenSale(RunState state)
     {
-        if (BlackFlowSpireRuntime.IsTraveling || !BlackFlowSpireTeam.CanManage(state) || NModalContainer.Instance?.OpenModal != null) return;
+        if (BlackFlowSpireRuntime.IsTraveling || !BlackFlowSpireTeam.CanOperate || NModalContainer.Instance?.OpenModal != null) return;
         if (ReferenceEquals(BlackFlowSpireRuntime.State, state) && MegaCrit.Sts2.Core.Nodes.Rooms.NMerchantRoom.Instance is { } room)
             BlackFlowSpireShopUi.Find(room)?.SetSelling(true);
     }

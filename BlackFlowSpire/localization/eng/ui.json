@@ -11,6 +11,7 @@
   "BLACK_FLOW_SPIRE.UI.TEAM.observing": "Watching the host's event",
   "BLACK_FLOW_SPIRE.UI.TEAM.wait": "Waiting for teammates to finish this node",
   "BLACK_FLOW_SPIRE.UI.TEAM.shop": "The host manages shared stock",
+  "BLACK_FLOW_SPIRE.UI.TEAM.shop_claims": "Waiting for teammates to claim or skip their purchases",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.victory": "Victory",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.normal": "Combat",
   "BLACK_FLOW_SPIRE.UI.BATTLE_SETTLEMENT.emergency": "Emergency Combat",

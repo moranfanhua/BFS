@@ -29,6 +29,8 @@ public static partial class BlackFlowSpireGenerationService
         && _slot.TryGet(state, out var data) && data.Enabled;
 
     public static void Enable(RunState state) => _slot!.Modify(state, data => data.Enabled = true);
+    internal static BlackFlowSpireRunData TeamData(RunState state) => _slot!.Get(state);
+    internal static void SaveTeamChange(RunState state) => _slot!.Set(state, _slot.Get(state));
     internal static ulong? GetTeamOwnerId(RunState state) => _slot!.Get(state).TeamOwnerId;
     internal static long GetCommandId(RunState state) => _slot!.Get(state).TeamCommandId;
     internal static void SetCommandId(RunState state, long id) => _slot!.Modify(state, data => data.TeamCommandId = id);
