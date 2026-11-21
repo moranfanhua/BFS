@@ -158,7 +158,7 @@ internal sealed class BlackFlowSpireSacrificePicker
         };
         RefreshJudge();
         SetBusy(false);
-        if (!BlackFlowSpireTeam.IsGuest) _judgeBack.GrabFocus();
+        if (BlackFlowSpireTeam.CanOperate) _judgeBack.GrabFocus();
     }
 
     private void RefreshJudge()
@@ -177,7 +177,7 @@ internal sealed class BlackFlowSpireSacrificePicker
         _judge = null;
         _judgeBack = null;
         SetBusy(false);
-        if (!BlackFlowSpireTeam.IsGuest) _confirm.GrabFocus();
+        if (BlackFlowSpireTeam.CanOperate) _confirm.GrabFocus();
         return true;
     }
 

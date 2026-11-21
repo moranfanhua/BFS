@@ -11,9 +11,10 @@ using MegaCrit.Sts2.Core.Runs;
 namespace BlackFlowSpire.Ui;
 
 internal partial class BlackFlowSpireTeamEventUi(RunState state, NMapScreen screen, BlackFlowSpireMap map,
-    BlackFlowSpireExplorationProgress progress) : Node
+    BlackFlowSpireExplorationProgress progress, Func<int?> selected, Action<int?> followNode) : Node
 {
     private double _nextUpdate;
+    private int? _shownNode;
     private BlackFlowSpireObservedEvent? _mirror;
 
     public override void _Ready() => screen.Closed += OnClosed;
@@ -30,8 +31,9 @@ internal partial class BlackFlowSpireTeamEventUi(RunState state, NMapScreen scre
             CloseMirror();
             return;
         }
-        if (BlackFlowSpireTeam.IsHost)
+        if (BlackFlowSpireTeam.IsOperator(state))
         {
+            CloseMirror();
             if (container.OpenModal is Node modal && !modal.IsNodeReady()) return;
             var view = ReadHostPage(container.OpenModal);
             BlackFlowSpireTeam.ShareEventView(state, map.PositionNodeId, progress.StepsTaken, view);
@@ -39,7 +41,15 @@ internal partial class BlackFlowSpireTeamEventUi(RunState state, NMapScreen scre
         }
         var remote = BlackFlowSpireTeam.ReadEventView(state, map.PositionNodeId, progress.StepsTaken);
         if (_mirror != null && (!ReferenceEquals(container.OpenModal, _mirror) || _mirror.Page != remote.Page)) CloseMirror();
-        if (remote.Page == ForestEventPage.Map) return;
+        if (remote.Page == ForestEventPage.Map)
+        {
+            if (container.OpenModal == null && _shownNode != remote.SelectedNode)
+            {
+                _shownNode = remote.SelectedNode;
+                followNode(_shownNode);
+            }
+            return;
+        }
         if (_mirror == null)
         {
             if (container.OpenModal != null || CreatePage(remote.Page) is not { } content) return;
@@ -65,7 +75,7 @@ internal partial class BlackFlowSpireTeamEventUi(RunState state, NMapScreen scre
                 => ForestEventPage.ExpeditionResult,
             _ => ForestEventPage.Map
         };
-        if (page == ForestEventPage.Map) return ForestEventView.Map;
+        if (page == ForestEventPage.Map) return modal == null ? ForestEventView.Map with { SelectedNode = selected() } : ForestEventView.Map;
         if (modal is BlackFlowSpireEnemyIntelModal intel) return new(page, intel.SelectedIndex, Scroll: intel.Scroll);
         var choices = (modal as Control)?.GetNodeOrNull<Control>("EventChoice");
         var view = choices != null ? new ForestEventView(page, choices.Call("inspected_choice").AsInt32(),
@@ -101,7 +111,7 @@ internal partial class BlackFlowSpireTeamEventUi(RunState state, NMapScreen scre
     private void OnClosed()
     {
         CloseMirror();
-        if (BlackFlowSpireTeam.IsHost && ReferenceEquals(state, BlackFlowSpireRuntime.State))
+        if (BlackFlowSpireTeam.IsOperator(state) && ReferenceEquals(state, BlackFlowSpireRuntime.State))
             BlackFlowSpireTeam.ShareEventView(state, map.PositionNodeId, progress.StepsTaken, ForestEventView.Map);
     }
 

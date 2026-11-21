@@ -1,4 +1,5 @@
 using BlackFlowSpire.Integration;
+using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Map.Presentation;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
@@ -27,12 +28,15 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state, bool observin
         AddThemeColorOverride("font_outline_color", Colors.Black);
         if (observing)
         {
-            void ShowObserverLabel() => Text = BlackFlowSpireText.Get("UI.TEAM.observing");
+            void ShowObserverLabel() => Text = BlackFlowSpireText.Get("UI.TEAM.observing", ("Player", OperatorName()));
             ShowObserverLabel();
             BlackFlowSpireLocalization.RefreshWithLocale(this, ShowObserverLabel);
             SetProcess(false);
         }
     }
+
+    private string OperatorName() => BlackFlowSpireGenerationService.TeamData(state).Turn.PlayerId is { } id
+        ? MegaCrit.Sts2.Core.Platform.PlatformUtil.GetPlayerNameRaw(RunManager.Instance.NetService.Platform, id) : "…";
 
     public override void _Process(double delta)
     {
@@ -41,15 +45,14 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state, bool observin
         _refreshIn = 0.75;
         if (BlackFlowSpireTeam.IsGuest)
         {
-            Visible = NModalContainer.Instance?.OpenModal is not BlackFlowSpireObservedEvent;
-            Text = BlackFlowSpireText.Get("UI.TEAM.follow");
             if (!BlackFlowSpireRuntime.IsTraveling && !CombatManager.Instance.IsInProgress) BlackFlowSpireTeam.ReportReady(state, true);
         }
         else
         {
             BlackFlowSpireTeam.ResumeExitIfReady(state);
             BlackFlowSpireTeam.ConfirmExpeditionIfReady(state);
-            Text = BlackFlowSpireTeam.CanTravel(state) ? "" : BlackFlowSpireText.Get("UI.TEAM.wait");
         }
+        Visible = NModalContainer.Instance?.OpenModal is not BlackFlowSpireObservedEvent;
+        Text = BlackFlowSpireText.Get("UI.TEAM.follow", ("Player", OperatorName()));
     }
 }

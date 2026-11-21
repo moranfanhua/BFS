@@ -78,7 +78,7 @@ internal static class BlackFlowSpirePartsUi
                 BlackFlowSpireProcessedParts.Get(loaded.Kind).Uses);
         }
         else widget.Call("bind_movement", "", 0, 0);
-        var canOpen = !inspection && !BlackFlowSpireTeam.IsGuest;
+        var canOpen = !inspection && BlackFlowSpireTeam.CanOperate;
         widget.GetNode<Control>("Change").Visible = canOpen;
         root.Call("bind_movement_layout", widget);
         if (!canOpen) return;

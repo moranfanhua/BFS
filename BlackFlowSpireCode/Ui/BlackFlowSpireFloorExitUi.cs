@@ -43,7 +43,7 @@ internal partial class BlackFlowSpireFloorExitScreen(RunState state, NMapScreen 
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
         _view = new BlackFlowSpireEventView(this, index => Choose(index == 0));
-        if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state));
+        if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireTeam.CanOperate) AddChild(new BlackFlowSpireTeamMapStatus(state));
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
     }

@@ -62,12 +62,12 @@ internal partial class BlackFlowSpirePartsSelectionScreen(RunState state, bool i
         Detail.GetNode<Button>("Panel/Actions/Equip").Pressed += () =>
         {
             if (Selected is not { Category: "processed" } part) return;
-            TaskHelper.RunSafely(Apply(() => BlackFlowSpirePartService.Load(part.Loaded ? null : part.Id)));
+            TaskHelper.RunSafely(Apply(() => BlackFlowSpireTeam.IsOnline ? BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.Equip, part.Loaded ? -1 : part.Id) : BlackFlowSpirePartService.Load(part.Loaded ? null : part.Id)));
         };
         Detail.GetNode<Button>("Panel/Actions/Discard").Pressed += () =>
         {
             if (Selected is not { } part) return;
-            TaskHelper.RunSafely(Apply(() => part.Category switch
+            TaskHelper.RunSafely(Apply(() => BlackFlowSpireTeam.IsOnline ? BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.Discard, part.Id) : part.Category switch
             {
                 "natural" => BlackFlowSpireNaturalService.Discard(part.Id),
                 "concept" => BlackFlowSpireConceptService.Discard(part.Id),
@@ -193,13 +193,14 @@ internal partial class BlackFlowSpirePartsSelectionScreen(RunState state, bool i
         Detail.GetNode<Button>("Panel/Previous").Visible = index > 0;
         Detail.GetNode<Button>("Panel/Next").Visible = index + 1 < _parts.Length;
         var equip = Detail.GetNode<Button>("Panel/Actions/Equip");
-        equip.Visible = part.Category == "processed" && !BlackFlowSpireTeam.IsGuest;
+        equip.Visible = part.Category == "processed" && BlackFlowSpireTeam.CanOperate;
         equip.GetNode<Label>("Text").Text = BlackFlowSpireText.Get(part.Loaded ? "UI.PARTS.detail_unequip" : "UI.PARTS.detail_equip");
         Detail.GetNode<Button>("Panel/Actions/Sell").Visible = state.CurrentRoom is MerchantRoom && BlackFlowSpireTeam.CanOperate;
         Detail.GetNode<Label>("Panel/Actions/Sell/Text").Text = BlackFlowSpireText.Get("UI.PARTS.sell_gold", ("Gold", part.Gold));
         var processed = BlackFlowSpireGenerationService.GetEngine(state).Parts.FirstOrDefault(item => item.Id == part.Id);
+        Detail.GetNode<Button>("Panel/Actions/Discard").Visible = BlackFlowSpireTeam.CanOperate;
         var use = Detail.GetNode<Button>("Panel/Actions/Use");
-        use.Visible = processed != null && part.Loaded && !BlackFlowSpireTeam.IsGuest && BlackFlowSpireProcessedParts.Get(processed.Kind).RandomDestination;
+        use.Visible = processed != null && part.Loaded && BlackFlowSpireTeam.CanOperate && BlackFlowSpireProcessedParts.Get(processed.Kind).RandomDestination;
         if (use.Visible)
         {
             var progress = BlackFlowSpireGenerationService.GetProgress(state);
@@ -220,7 +221,7 @@ internal partial class BlackFlowSpirePartsSelectionScreen(RunState state, bool i
     private async Task Apply(Func<Task> action, bool closeBefore = false)
     {
         if (_busy || _closed || Detail.Call("is_switching").AsBool() || !BlackFlowSpireRuntime.CanContinueRun
-            || BlackFlowSpireRuntime.IsTraveling || !BlackFlowSpireTeam.CanManage(state)) return;
+            || BlackFlowSpireRuntime.IsTraveling || !BlackFlowSpireTeam.CanOperate) return;
         if (closeBefore)
         {
             Close();

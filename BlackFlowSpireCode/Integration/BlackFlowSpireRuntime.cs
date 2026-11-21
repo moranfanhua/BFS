@@ -66,10 +66,10 @@ public static partial class BlackFlowSpireRuntime
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var inspection = fromTopBar && state.CurrentRoom is not MapRoom;
-        if (BlackFlowSpireTeam.IsOnline && state.CurrentRoom is MerchantRoom && !inspection
+        if (BlackFlowSpireTeam.IsOnline && state.CurrentRoom is (MerchantRoom or EventRoom { CanonicalEvent.IsShared: true }) && !inspection
             && progress.PendingNodeId.HasValue && BlackFlowSpireTeam.Idle(state))
         {
-            if (BlackFlowSpireTeam.CanOperate) _ = BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.LeaveNode);
+            if (BlackFlowSpireTeam.IsOperator(state)) _ = BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.LeaveNode);
             return;
         }
         if (!BlackFlowSpireTeam.IsOnline && !inspection && BlackFlowSpireGenerationService.GetFloorTransition(state) is { } transition
@@ -98,6 +98,7 @@ public static partial class BlackFlowSpireRuntime
             BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
             Entry.Logger.Info("[BlackFlowSpire] Hunt queued after the current node settled at zero AP.");
         }
+        if (!inspection) BlackFlowSpireTeam.UpdateTurn(state, progress);
         foreach (var child in screen.GetChildren().OfType<Control>()) child.Hide();
         SetMapFlag(screen, "IsOpen", true);
         screen.ProcessMode = Node.ProcessModeEnum.Inherit;
@@ -192,6 +193,7 @@ public static partial class BlackFlowSpireRuntime
             IsTraveling = true;
             LastError = null;
             var route = BlackFlowSpireTravelRules.PlanMove(map, progress, targetId, engine);
+            if (BlackFlowSpireTeam.IsHost) BlackFlowSpireGenerationService.TeamData(state).Turn.EnteredNode = true;
             Entry.Logger.Info($"[BlackFlowSpire] Route {string.Join("->", route.NodeIds)}, steps={route.Steps}, cost={route.ActionPointCost}");
             // Keep the map over the outgoing room until native room entry clears it.
             await manager.FadeOut();
@@ -376,6 +378,7 @@ public static partial class BlackFlowSpireRuntime
             BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
             await SaveManager.Instance.SaveRun(null);
         }
+        BlackFlowSpireTeam.UpdateTurn(state, progress);
         BlackFlowSpireMapUi.Show(screen, state, false, focusCurrent: focusCurrent);
     }
 

@@ -33,7 +33,10 @@ public static class BlackFlowSpireMapUi
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var engine = BlackFlowSpireGenerationService.GetEngine(state);
-        var canLead = !inspection && !BlackFlowSpireTeam.IsGuest;
+        var canLead = !inspection && BlackFlowSpireTeam.CanOperate;
+        if ((!canLead || BlackFlowSpireTeam.IsGuest) && !inspection && MegaCrit.Sts2.Core.Nodes.CommonUi.NModalContainer.Instance is { } modals
+            && modals.OpenModal is BlackFlowSpireRestScreen or BlackFlowSpireFloorExitScreen or BlackFlowSpireWishScreen
+                or BlackFlowSpireSacrificeScreen or BlackFlowSpirePassageNotice or BlackFlowSpireHuntNotice) modals.Clear();
         var cameraKey = map.Seed + "|" + map.ActIndex;
         var cameraState = new Godot.Collections.Dictionary();
         if (screen.GetNodeOrNull<Control>("BlackFlowSpireMap") is { } old)
@@ -251,7 +254,7 @@ public static class BlackFlowSpireMapUi
             BlackFlowSpireEnemyIntelModal.Open(setup);
         });
         field.Connect("background_clicked", Callable.From(ClearSelection));
-        if (inspection || canLead && progress.ActionPointsRemaining < map.Options.MoveCost && progress.HuntPhase == BlackFlowSpireHuntPhase.None)
+        if (inspection || canLead && !BlackFlowSpireTeam.IsGuest && progress.ActionPointsRemaining < map.Options.MoveCost && progress.HuntPhase == BlackFlowSpireHuntPhase.None)
         {
             var action = new Button { Text = BlackFlowSpireText.Get(inspection ? "UI.ACTION.return" : "UI.ACTION.end") };
             BlackFlowSpireMapAssets.ClearButtonStyle(action);
@@ -313,8 +316,8 @@ public static class BlackFlowSpireMapUi
             root.AddChild(new BlackFlowSpireWishUi(state, screen) { Name = "BlackFlowSpireWish" });
         }
         var expeditionPending = BlackFlowSpireExpeditionRules.IsPending(map, progress)
-            && (!BlackFlowSpireTeam.IsGuest || progress.ExpeditionScene == BlackFlowSpireExpeditionScene.Intro);
-        if (!expeditionPending) BlackFlowSpireExpeditionUi.Dismiss(screen, choiceOnly: true);
+            && (BlackFlowSpireTeam.CanOperate || progress.ExpeditionScene == BlackFlowSpireExpeditionScene.Intro);
+        if (!expeditionPending || BlackFlowSpireTeam.IsGuest && progress.ExpeditionScene != BlackFlowSpireExpeditionScene.Intro) BlackFlowSpireExpeditionUi.Dismiss(screen, choiceOnly: true);
         if (!inspection && (expeditionPending || BlackFlowSpireExpeditionUi.HasNotice(state, progress)))
         {
             DefaultFocus = null;
@@ -325,7 +328,13 @@ public static class BlackFlowSpireMapUi
         if (BlackFlowSpireTeam.IsOnline && !inspection)
         {
             root.AddChild(new BlackFlowSpireTeamMapStatus(state));
-            root.AddChild(new BlackFlowSpireTeamEventUi(state, screen, map, progress));
+            root.AddChild(new BlackFlowSpireTeamEventUi(state, screen, map, progress, () => selectedNodeId, id =>
+            {
+                if (id is not { } nodeId || !buttons.ContainsKey(nodeId)) { ClearSelection(); return; }
+                SelectNode(nodeId);
+                var info = BlackFlowSpireNodeInfoPresentation.Get(map, progress, nodeId, false, false, bossTitle, engine);
+                PreviewRoute(info.CanMove ? info.Route : null);
+            }));
         }
         BlackFlowSpireLocalization.RefreshWithLocale(root, () =>
         {

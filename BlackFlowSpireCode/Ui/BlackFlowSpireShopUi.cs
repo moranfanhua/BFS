@@ -1,6 +1,7 @@
 using BlackFlowSpire.Map.Presentation;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Integration;
+using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Shop;
 using Godot;
 using MegaCrit.Sts2.Core.Entities.Merchant;
@@ -97,7 +98,8 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
     {
         var merchant = RunManager.Instance.MerchantSynchronizer;
         if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireRuntime.State is { } state
-            && BlackFlowSpireTeam.Owner(state) is { } buyer)
+            && BlackFlowSpireGenerationService.TeamData(state).Turn.PlayerId is { } id
+            && state.Players.FirstOrDefault(p => p.NetId == id) is { } buyer)
             return merchant.GetInventoryFor(buyer);
         return merchant.GetLocalInventory();
     }

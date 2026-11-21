@@ -86,6 +86,6 @@ internal static partial class BlackFlowSpireTeam
     internal static void ConfirmExpeditionIfReady(RunState state)
     {
         if (IsHost && BlackFlowSpireGenerationService.ExpeditionReady(state))
-            Request(state, BlackFlowSpireTeamAction.Expedition, BlackFlowSpireExpeditionRules.ConfirmParty);
+            QueueAutomatic(state, BlackFlowSpireTeamAction.Expedition, BlackFlowSpireExpeditionRules.ConfirmParty);
     }
 }

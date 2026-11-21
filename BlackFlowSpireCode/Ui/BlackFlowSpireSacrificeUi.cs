@@ -72,7 +72,7 @@ internal partial class BlackFlowSpireSacrificeScreen(RunState state, NMapScreen 
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
         _eventView = new BlackFlowSpireEventView(this, index => _choices[index].Action(), () => Resolve(BlackFlowSpireSacrificeAction.Leave));
-        if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
+        if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireTeam.CanOperate) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
     }

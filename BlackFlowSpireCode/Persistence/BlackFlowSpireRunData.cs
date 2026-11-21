@@ -12,6 +12,7 @@ public sealed partial class BlackFlowSpireRunData
     public bool Enabled { get; set; }
     public ulong? TeamOwnerId { get; set; }
     public bool TeamGoldPooled { get; set; }
+    public BlackFlowSpireOperatorTurn Turn { get; set; } = new();
     public List<BlackFlowSpireShopTicket> ShopTickets { get; set; } = [];
     public long TeamCommandId { get; set; }
     public int TargetLife { get; set; } = BlackFlowSpireCombatHealth.InitialTargetLife;

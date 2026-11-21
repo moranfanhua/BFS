@@ -1,3 +1,4 @@
+using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Shop;
 using BlackFlowSpire.Ui;
@@ -14,23 +15,46 @@ namespace BlackFlowSpire.Integration;
 
 internal static partial class BlackFlowSpireTeam
 {
-    private sealed record OperatorRequest(long Request, BlackFlowSpireTeamCommand Command);
+    private sealed record OperatorRequest(long Request, long Turn, BlackFlowSpireTeamCommand Command);
     private sealed record OperatorReply(long Request, bool Accepted);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<OperatorRequest> OperatorRequestMessage = new(
         Entry.ModId, "operator-request/v1", Encode, Decode<OperatorRequest>, OnOperatorRequest, ShouldBuffer: false);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<OperatorReply> OperatorReplyMessage = new(
         Entry.ModId, "operator-reply/v1", Encode, Decode<OperatorReply>, OnOperatorReply, ShouldBuffer: false);
 
-    internal static bool CanOperate => !IsGuest;
+    internal static bool IsOperator(RunState state) => !IsOnline || BlackFlowSpireGenerationService.TeamData(state).Turn.PlayerId == Net.NetId;
+    internal static bool CanOperate => BlackFlowSpireRuntime.State is { } state && IsOperator(state);
+
+    private static void Redraw(RunState state, BlackFlowSpireOperatorTurn turn)
+    {
+        var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
+        turn.Draw(map.Seed, map.ActIndex, RunManager.Instance.RunLobby?.PlayerIds ?? state.Players.Select(p => p.NetId));
+        BlackFlowSpireGenerationService.SaveTeamChange(state);
+    }
+
+    internal static void UpdateTurn(RunState state, BlackFlowSpireExplorationProgress progress)
+    {
+        if (!IsHost) return;
+        var data = BlackFlowSpireGenerationService.TeamData(state);
+        var turn = data.Turn;
+        if (turn.PlayerId == null || RunManager.Instance.RunLobby is { } lobby && !lobby.PlayerIds.Contains(turn.PlayerId.Value))
+            Redraw(state, turn);
+        else if (turn.EnteredNode && progress.PendingNodeId == null && data.PendingFloorTransition == null
+            && progress.HuntPhase is BlackFlowSpireHuntPhase.None or BlackFlowSpireHuntPhase.Won)
+        {
+            turn.EnteredNode = false;
+            Redraw(state, turn);
+        }
+    }
 
     internal static async Task<bool> Operate(RunState state, BlackFlowSpireTeamAction action, int argument = 0,
         int[]? items = null, long ticket = 0, string? key = null)
     {
         var session = SessionFor(state);
-        if (!IsOnline || !Net.IsConnected || action != BlackFlowSpireTeamAction.ClaimOffer && !CanOperate) return false;
+        if (!IsOnline || !Net.IsConnected || action != BlackFlowSpireTeamAction.ClaimOffer && !IsOperator(state)) return false;
         var command = new BlackFlowSpireTeamCommand(action, argument, session.Completed + 1, BlackFlowSpireRoomKey.From(state),
             Net.NetId, items, ticket, key);
-        var request = new OperatorRequest(++session.RequestId, command);
+        var request = new OperatorRequest(++session.RequestId, BlackFlowSpireGenerationService.TeamData(state).Turn.Number, command);
         if (IsHost) return await Accept(state, Net.NetId, request);
         var reply = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         session.Replies.Add(request.Request, reply);
@@ -73,13 +97,36 @@ internal static partial class BlackFlowSpireTeam
         if (cmd.Action == BlackFlowSpireTeamAction.ClaimOffer)
             return data.ShopTickets.Any(t => t.Purchase == cmd.Ticket && t.Player == sender)
                 && await Queue(state, cmd with { Id = session.Completed + 1 });
-        if (cmd.Id != session.Completed + 1 || sender != Net.NetId || state.CurrentRoom is not MerchantRoom
-            || NMapScreen.Instance is { IsOpen: true } open && !BlackFlowSpireMapUi.IsInspection(open)) return false;
-        if (cmd.Action is not (BlackFlowSpireTeamAction.ShopOffer or BlackFlowSpireTeamAction.ShopPart
+        if (cmd.Id != session.Completed + 1 || !Enum.IsDefined(cmd.Action) || cmd.Action is BlackFlowSpireTeamAction.RestoreRoom or BlackFlowSpireTeamAction.ResumeExit
+            || cmd.Action == BlackFlowSpireTeamAction.Expedition && cmd.Argument != BlackFlowSpireExpeditionRules.Leave
+            || data.Turn.Number != request.Turn || data.Turn.PlayerId != sender) return false;
+        bool shop = cmd.Action is BlackFlowSpireTeamAction.ShopOffer or BlackFlowSpireTeamAction.ShopPart
             or BlackFlowSpireTeamAction.ShopCollectible or BlackFlowSpireTeamAction.ShopRefresh or BlackFlowSpireTeamAction.SellParts
-            or BlackFlowSpireTeamAction.Cultivate or BlackFlowSpireTeamAction.Harvest or BlackFlowSpireTeamAction.LeaveNode)) return false;
-        if (cmd.Action == BlackFlowSpireTeamAction.LeaveNode && (data.Progress[state.CurrentActIndex].PendingNodeId == null
-            || data.ShopTickets.Any(t => RunManager.Instance.RunLobby!.PlayerIds.Contains(t.Player)))) return false;
+            or BlackFlowSpireTeamAction.Cultivate or BlackFlowSpireTeamAction.Harvest;
+        if (cmd.Action == BlackFlowSpireTeamAction.LeaveNode)
+        {
+            if (data.Progress[state.CurrentActIndex].PendingNodeId == null) return false;
+            if (state.CurrentRoom is EventRoom { CanonicalEvent.IsShared: true })
+            {
+                if (RunManager.Instance.EventSynchronizer.Events.Any(e => !e.IsFinished)) return false;
+            }
+            else if (state.CurrentRoom is not MerchantRoom || data.ShopTickets.Any(t => RunManager.Instance.RunLobby!.PlayerIds.Contains(t.Player))) return false;
+        }
+        else if (shop)
+        {
+            if (state.CurrentRoom is not MerchantRoom || NMapScreen.Instance is { IsOpen: true } open && !BlackFlowSpireMapUi.IsInspection(open)) return false;
+        }
+        else if (cmd.Action is not (BlackFlowSpireTeamAction.Equip or BlackFlowSpireTeamAction.Discard)
+            && (NMapScreen.Instance is not { IsOpen: true } screen || BlackFlowSpireMapUi.IsInspection(screen) || !TeamReady(state)))
+            return false;
+        if (cmd.Action == BlackFlowSpireTeamAction.Move)
+        {
+            var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
+            if (!map.Nodes.Any(n => n.Id == cmd.Argument)) return false;
+            try { BlackFlowSpireTravelRules.PlanMove(map, BlackFlowSpireGenerationService.GetProgress(state), cmd.Argument, data.Engine); }
+            catch (ArgumentException) { return false; }
+            catch (InvalidOperationException) { return false; }
+        }
         return await Queue(state, cmd);
     }
 
@@ -93,13 +140,28 @@ internal static partial class BlackFlowSpireTeam
     private static async Task<bool> ExecuteUtility(RunState state, BlackFlowSpireTeamCommand cmd)
     {
         var player = state.Players.Single(p => p.NetId == cmd.Actor);
+        var engine = BlackFlowSpireGenerationService.GetEngine(state);
         switch (cmd.Action)
         {
+            case BlackFlowSpireTeamAction.Equip:
+                if (cmd.Argument >= 0 && !engine.Parts.Any(p => p.Id == cmd.Argument && p.RemainingUses > 0)) return false;
+                await BlackFlowSpirePartService.Load(cmd.Argument < 0 ? null : cmd.Argument);
+                break;
+            case BlackFlowSpireTeamAction.Exhaust:
+                await BlackFlowSpirePartService.ExhaustActionPoints(state);
+                break;
+            case BlackFlowSpireTeamAction.Discard:
             case BlackFlowSpireTeamAction.SellParts:
-                int[] ids = cmd.Items ?? [];
+                int[] ids = cmd.Action == BlackFlowSpireTeamAction.Discard ? [cmd.Argument] : cmd.Items ?? [];
                 var held = BlackFlowSpireShopSaleItem.Get(state).Select(p => p.Id).ToHashSet();
                 if (ids.Length == 0 || ids.Any(id => !held.Contains(id))) return false;
-                await BlackFlowSpirePartService.SellBatch(ids);
+                if (cmd.Action == BlackFlowSpireTeamAction.Discard)
+                {
+                    if (engine.NaturalParts.Any(p => p.Id == cmd.Argument)) await BlackFlowSpireNaturalService.Discard(cmd.Argument);
+                    else if (engine.ConceptParts.Any(p => p.Id == cmd.Argument)) await BlackFlowSpireConceptService.Discard(cmd.Argument);
+                    else await BlackFlowSpirePartService.Discard(cmd.Argument);
+                }
+                else await BlackFlowSpirePartService.SellBatch(ids);
                 break;
             case BlackFlowSpireTeamAction.Cultivate:
                 if (!BlackFlowSpireSecretShop.IsCurrent(state) || cmd.Argument <= 0 || cmd.Argument > BlackFlowSpireSecretShop.SeedCount(state)

@@ -52,7 +52,7 @@ internal sealed partial class BlackFlowSpireWishScreen(RunState state, NMapScree
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
         _view = new BlackFlowSpireEventView(this, index => Submit(_actions[index]), () => Submit(BlackFlowSpireWishRules.Leave));
-        if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state));
+        if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireTeam.CanOperate) AddChild(new BlackFlowSpireTeamMapStatus(state));
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
     }

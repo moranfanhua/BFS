@@ -37,7 +37,7 @@ internal partial class BlackFlowSpireExpeditionUi(RunState state, NMapScreen scr
             || NModalContainer.Instance is not { OpenModal: null } container) return;
         var notice = HasNotice(state, progress) ? progress.ExpeditionReturn : null;
         if (notice == null && (!BlackFlowSpireExpeditionRules.IsPending(map, progress)
-            || BlackFlowSpireTeam.IsGuest && progress.ExpeditionScene != BlackFlowSpireExpeditionScene.Intro)) return;
+            || !BlackFlowSpireTeam.CanOperate && progress.ExpeditionScene != BlackFlowSpireExpeditionScene.Intro)) return;
         container.Add(new BlackFlowSpireExpeditionScreen(state, screen, map, progress, notice, () =>
         {
             if (notice == null) return;
@@ -103,7 +103,7 @@ internal partial class BlackFlowSpireExpeditionScreen(RunState state, NMapScreen
                 if (index == 0) OpenPicker();
                 else Submit(BlackFlowSpireExpeditionRules.Rest);
             }, () => Submit(BlackFlowSpireExpeditionRules.Leave));
-            if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
+            if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireTeam.CanOperate) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
         }
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();

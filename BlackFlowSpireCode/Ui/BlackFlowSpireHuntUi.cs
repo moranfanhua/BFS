@@ -56,7 +56,7 @@ internal partial class BlackFlowSpireHuntLayer(RunState state, NMapScreen screen
             intelligence.GetNode<TextureRect>("Image").Modulate = Colors.White;
             intelligence.Pressed += () =>
                 BlackFlowSpireEnemyIntelModal.Open(BlackFlowSpireResidentEncounterService.CreateHunt(BlackFlowSpireGenerationService.GetOrGenerate(state)), hunt: true);
-            if (!start.Disabled && !BlackFlowSpireTeam.IsGuest) start.GrabFocus();
+            if (!start.Disabled && BlackFlowSpireTeam.CanOperate) start.GrabFocus();
             SetProcess(false);
         }
     }
