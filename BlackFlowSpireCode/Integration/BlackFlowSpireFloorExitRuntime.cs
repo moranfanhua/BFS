@@ -103,6 +103,7 @@ public static partial class BlackFlowSpireRuntime
             BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
             await manager.FadeOut();
             // A hunt adds a native room and checkpoint at the current coordinate.
+            BlackFlowSpireTeam.Emit(state, ForestBoundary.HuntBattle);
             await manager.EnterMapPointInternal(progress.StepsTaken, MapPointType.Monster, null, true);
         }
         catch (Exception error)
@@ -116,6 +117,7 @@ public static partial class BlackFlowSpireRuntime
                 BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
                 await SaveManager.Instance.SaveRun(null);
             }
+            if (BlackFlowSpireTeam.InCommand(state)) throw;
         }
         finally
         {

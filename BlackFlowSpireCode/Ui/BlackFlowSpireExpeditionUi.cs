@@ -5,6 +5,7 @@ using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Presentation;
 using BlackFlowSpire.Persistence;
 using Godot;
+using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
@@ -35,7 +36,8 @@ internal partial class BlackFlowSpireExpeditionUi(RunState state, NMapScreen scr
             || NRun.Instance?.HasNode("BlackFlowSpireZoneEntry") == true
             || NModalContainer.Instance is not { OpenModal: null } container) return;
         var notice = HasNotice(state, progress) ? progress.ExpeditionReturn : null;
-        if (notice == null && (BlackFlowSpireTeam.IsGuest || !BlackFlowSpireExpeditionRules.IsPending(map, progress))) return;
+        if (notice == null && (!BlackFlowSpireExpeditionRules.IsPending(map, progress)
+            || !BlackFlowSpireTeam.CanOperate && progress.ExpeditionScene != BlackFlowSpireExpeditionScene.Intro)) return;
         container.Add(new BlackFlowSpireExpeditionScreen(state, screen, map, progress, notice, () =>
         {
             if (notice == null) return;
@@ -46,10 +48,10 @@ internal partial class BlackFlowSpireExpeditionUi(RunState state, NMapScreen scr
         }), showBackstop: false);
     }
 
-    public static void Dismiss(NMapScreen screen)
+    public static void Dismiss(NMapScreen screen, bool choiceOnly = false)
     {
         if (NModalContainer.Instance is { OpenModal: BlackFlowSpireExpeditionScreen expedition } container
-            && ReferenceEquals(expedition.Screen, screen)) container.Clear();
+            && ReferenceEquals(expedition.Screen, screen) && (!choiceOnly || expedition.IsChoice)) container.Clear();
     }
 }
 
@@ -65,15 +67,18 @@ internal partial class BlackFlowSpireExpeditionScreen(RunState state, NMapScreen
     private Button? _continue;
     private BlackFlowSpireExpeditionScene _shown;
     private bool _submitting;
+    private bool _waiting;
     private bool _focused;
     private bool Busy => _submitting || BlackFlowSpireRuntime.IsTraveling;
 
     public NMapScreen Screen => screen;
+    internal bool IsChoice => notice == null;
     public NetScreenType ScreenType => NetScreenType.Room;
     public Control? DefaultFocusedControl => _continue ?? (_picker is { } picker ? picker.DefaultFocus
-        : Busy ? null : _shown != BlackFlowSpireExpeditionScene.Intro ? _eventView?.LeaveButton
+        : Busy || _waiting ? null : _shown != BlackFlowSpireExpeditionScene.Intro ? _eventView?.LeaveButton
         : _eventView?.GetChoice(HasCards ? 0 : 1));
-    private bool HasCards => BlackFlowSpireTeam.Owner(state)?.Deck.Cards.Any(BlackFlowSpireGenerationService.CanDispatchCard) == true;
+    private bool HasCards => LocalContext.GetMe(state)?.Deck.Cards.Any(BlackFlowSpireGenerationService.CanDispatchCard) == true;
+    private bool WaitingForParty => LocalContext.GetMe(state) is { } player && BlackFlowSpireGenerationService.HasExpeditionChoice(state, player.NetId);
 
     public override void _Ready()
     {
@@ -98,7 +103,7 @@ internal partial class BlackFlowSpireExpeditionScreen(RunState state, NMapScreen
                 if (index == 0) OpenPicker();
                 else Submit(BlackFlowSpireExpeditionRules.Rest);
             }, () => Submit(BlackFlowSpireExpeditionRules.Leave));
-            if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
+            if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireTeam.CanOperate) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
         }
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
@@ -118,7 +123,7 @@ internal partial class BlackFlowSpireExpeditionScreen(RunState state, NMapScreen
         if (_eventView != null)
         {
             var busy = Busy;
-            if (!busy && _shown != progress.ExpeditionScene)
+            if (!busy && (_shown != progress.ExpeditionScene || _waiting != WaitingForParty))
             {
                 ClosePicker();
                 _eventView.ResetSelection();
@@ -160,31 +165,40 @@ internal partial class BlackFlowSpireExpeditionScreen(RunState state, NMapScreen
     {
         if (notice != null)
         {
-            var card = SaveUtil.CardOrDeprecated(new ModelId(notice.CardCategory, notice.CardEntry)).Title;
             var reward = BlackFlowSpirePartsUi.Title(notice.Reward);
             _returnCanvas!.GetNode<Label>("Content/Title").Text = Text("return.title");
-            _returnCanvas.GetNode<Label>("Content/Description").Text =
-                Text(notice.Upgraded ? "return.upgraded" : "return.description", ("Card", card), ("Part", reward));
+            var description = Text("return.team", ("Part", reward));
+            if (LocalContext.GetMe(state) is { } player && notice.Cards.TryGetValue(player.NetId, out var card))
+            {
+                var key = card.Upgraded ? "return.upgraded" : "return.description";
+                description = Text(notice.Hope > 0 ? key + ".team" : key,
+                    ("Card", SaveUtil.CardOrDeprecated(new ModelId(card.Category, card.Entry)).Title), ("Part", reward));
+            }
+            _returnCanvas.GetNode<Label>("Content/Description").Text = description;
             _continue!.TooltipText = Text("leave");
             return;
         }
 
         _shown = progress.ExpeditionScene;
+        _waiting = WaitingForParty;
         _focused = false;
         var story = _shown switch
         {
             BlackFlowSpireExpeditionScene.Rested => "story.rested",
-            BlackFlowSpireExpeditionScene.Departed => "story.departed",
+            BlackFlowSpireExpeditionScene.Departed => BlackFlowSpireTeam.IsOnline ? "story.team_departed" : "story.departed",
+            _ when _waiting => "story.waiting",
             _ => "story.intro"
         };
         _eventView!.SetStory(Asset("pic_rogue_6_22"), Text("title"), Text(story));
-        if (_shown == BlackFlowSpireExpeditionScene.Intro)
+        if (_waiting) _eventView.SetOptions([]);
+        else if (_shown == BlackFlowSpireExpeditionScene.Intro)
         {
             var hasCards = HasCards;
             _eventView.SetOptions([
                 new(Text("dispatch.title"), Text(hasCards ? "dispatch.description" : "dispatch.empty"),
                     ResourceLoader.Load<Texture2D>("res://BlackFlowSpire/Images/Map/Nodes/icon_expedition.png"), hasCards),
-                new(Text("rest.title"), Text("rest.description"), BlackFlowSpireEventView.LoadTexture("population"))
+                new(Text(BlackFlowSpireTeam.IsOnline ? "pass.title" : "rest.title"),
+                    Text(BlackFlowSpireTeam.IsOnline ? "pass.description" : "rest.description"), BlackFlowSpireEventView.LoadTexture("population"))
             ]);
             _picker?.RefreshLocale();
         }
@@ -193,7 +207,7 @@ internal partial class BlackFlowSpireExpeditionScreen(RunState state, NMapScreen
 
     private void OpenPicker()
     {
-        if (Busy || _picker != null || BlackFlowSpireTeam.Owner(state) is not { } owner || !HasCards) return;
+        if (Busy || _waiting || _picker != null || LocalContext.GetMe(state) is not { } owner || !HasCards) return;
         _eventView!.Visible = false;
         _picker = new(this, owner, ClosePicker, Submit);
         _focused = false;
@@ -212,7 +226,7 @@ internal partial class BlackFlowSpireExpeditionScreen(RunState state, NMapScreen
 
     private void Submit(int choice)
     {
-        if (Busy || !BlackFlowSpireTeam.CanTravel(state)) return;
+        if (Busy || _waiting || choice == BlackFlowSpireExpeditionRules.Leave && !BlackFlowSpireTeam.CanTravel(state)) return;
         _submitting = true;
         _eventView!.SetBusy(true);
         _picker?.SetBusy(true);

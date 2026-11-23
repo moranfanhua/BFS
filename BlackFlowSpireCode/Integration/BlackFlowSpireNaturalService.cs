@@ -48,7 +48,8 @@ public static class BlackFlowSpireNaturalService
         if (gold > 0)
         {
             await PlayerCmd.GainGold(gold, LocalContext.GetMe(state) ?? throw new InvalidOperationException("No local player."));
-            RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
+            if (BlackFlowSpireTeam.InCommand(state)) BlackFlowSpireTeam.RecordGold(state, gold);
+            else RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
         }
         await FinishSale(state, part);
         await BlackFlowSpirePartService.SaveAndRefresh(state);
@@ -75,6 +76,7 @@ public static class BlackFlowSpireNaturalService
             var price = BlackFlowSpirePartService.GoldPerOriginium;
             if (part == null || player.Gold < price) continue;
             await PlayerCmd.LoseGold(price, player, GoldLossType.Spent);
+            BlackFlowSpireTeam.RecordGold(state, -price);
             if (!replicated) RunManager.Instance.RewardSynchronizer.SyncLocalGoldLost(price);
             BlackFlowSpireGenerationService.ModifyEngine(state, _ => part.Adjust(3));
         }

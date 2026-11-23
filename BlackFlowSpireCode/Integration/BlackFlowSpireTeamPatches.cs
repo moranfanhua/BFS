@@ -3,8 +3,11 @@ using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Ui;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Hooks;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
+using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
@@ -58,6 +61,19 @@ internal static class BlackFlowSpireTeamCleanupPatch
     }
 }
 
+[HarmonyPatch(typeof(RunLobby), "HandleClientRejoinRequestMessage")]
+internal static class BlackFlowSpireTeamRejoinPatch
+{
+    private static bool Prefix(ulong senderId)
+    {
+        if (RunManager.Instance.NetService is not INetHostGameService host || BlackFlowSpireRuntime.State is not { } state
+            || !BlackFlowSpireGenerationService.IsEnabled(state)
+            || BlackFlowSpireTeam.Idle(state) && !RunManager.Instance.IsChangingRooms && !BlackFlowSpireRuntime.IsTraveling) return true;
+        host.DisconnectClient(senderId, NetError.TryAgainLater);
+        return false;
+    }
+}
+
 [HarmonyPatch(typeof(Hook), nameof(Hook.BeforeRoomEntered))]
 internal static class BlackFlowSpireCombatArrivalRewardPatch
 {
@@ -70,14 +86,66 @@ internal static class BlackFlowSpireCombatArrivalRewardPatch
             __result = HarmonyAsyncTaskBridge.After(__result, () => SettleBeforeCombat(state));
     }
 
-    private static Task SettleBeforeCombat(RunState state)
+    private static async Task SettleBeforeCombat(RunState state)
     {
+        if (BlackFlowSpireTeam.IsGuest && BlackFlowSpireTeam.InCommand(state))
+        {
+            await BlackFlowSpireTeam.ReceiveExpected(state, ForestBoundary.CombatArrival);
+            return;
+        }
         // Native player and RNG synchronization is complete. Settle shared rewards
         // and apply any movement shield before combat starts.
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var engine = BlackFlowSpireGenerationService.GetEngine(state);
-        return progress.PendingPartReward != null || engine.PendingConceptRewards.Count > 0 || engine.Collectibles.PendingGold > 0
-            ? BlackFlowSpirePartService.SettleMovementRewards(state, BlackFlowSpireGenerationService.GetOrGenerate(state), progress)
-            : Task.CompletedTask;
+        if (progress.PendingPartReward != null || engine.PendingConceptRewards.Count > 0 || engine.Collectibles.PendingGold > 0)
+            await BlackFlowSpirePartService.SettleMovementRewards(state, BlackFlowSpireGenerationService.GetOrGenerate(state), progress);
+        BlackFlowSpireTeam.Emit(state, ForestBoundary.CombatArrival);
+    }
+}
+
+// Use the native shared-event decision and broadcast after the operator chooses.
+// Private character events still use the game's per-player flow.
+[HarmonyPatch(typeof(EventSynchronizer), nameof(EventSynchronizer.ChooseLocalOption))]
+internal static class BlackFlowSpireSharedEventInputPatch
+{
+    private static bool Prefix(EventSynchronizer __instance, int index)
+    {
+        if (!BlackFlowSpireTeam.IsOnline || !BlackFlowSpireRuntime.IsActive || !__instance.IsShared) return true;
+        if (!BlackFlowSpireTeam.CanOperate) return false;
+        if (!BlackFlowSpireTeam.IsHost) return true;
+        BlackFlowSpireSharedEventVotePatch.Resolve(__instance, (uint)index);
+        return false;
+    }
+}
+
+[HarmonyPatch(typeof(EventSynchronizer), "PlayerVotedForSharedOptionIndex")]
+internal static class BlackFlowSpireSharedEventVotePatch
+{
+    private static readonly Action<EventSynchronizer> Choose = AccessTools.MethodDelegate<Action<EventSynchronizer>>(
+        AccessTools.Method(typeof(EventSynchronizer), "ChooseSharedEventOption"));
+    private static readonly AccessTools.FieldRef<EventSynchronizer, List<uint?>> Votes =
+        AccessTools.FieldRefAccess<EventSynchronizer, List<uint?>>("_playerVotes");
+
+    private static bool Prefix(EventSynchronizer __instance, Player player, uint optionIndex, uint pageIndex, uint ____pageIndex)
+    {
+        if (!BlackFlowSpireTeam.IsOnline || !BlackFlowSpireRuntime.IsActive || !__instance.IsShared) return true;
+        if (!BlackFlowSpireTeam.IsHost) return true;
+        var state = BlackFlowSpireRuntime.State!;
+        if (pageIndex == ____pageIndex && BlackFlowSpireGenerationService.TeamData(state).Turn.PlayerId == player.NetId)
+            Resolve(__instance, optionIndex);
+        return false;
+    }
+
+    internal static void Resolve(EventSynchronizer synchronizer, uint index)
+    {
+        if (index > int.MaxValue || synchronizer.Events.Count == 0
+            || synchronizer.Events.Any(e => e.IsFinished || index >= e.CurrentOptions.Count)) return;
+        var state = BlackFlowSpireRuntime.State!;
+        var owner = BlackFlowSpireGenerationService.TeamData(state).Turn.PlayerId;
+        var choice = synchronizer.Events.FirstOrDefault(e => e.Owner?.NetId == owner)?.CurrentOptions[(int)index];
+        if (choice == null || choice.IsLocked) return;
+        var votes = Votes(synchronizer);
+        for (var slot = 0; slot < votes.Count; slot++) votes[slot] = index;
+        Choose(synchronizer);
     }
 }

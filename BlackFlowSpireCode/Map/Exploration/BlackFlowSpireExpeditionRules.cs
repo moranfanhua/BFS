@@ -6,13 +6,16 @@ namespace BlackFlowSpire.Map.Exploration;
 
 public enum BlackFlowSpireExpeditionScene { Intro, Rested, Departed }
 
-public sealed record BlackFlowSpireExpeditionReturn(int SourceActIndex, int SourceNodeId, string CardCategory, string CardEntry,
-    bool Upgraded, BlackFlowSpireProcessedPartKind Reward);
+public sealed record BlackFlowSpireReturnedCard(string Category, string Entry, bool Upgraded);
+
+public sealed record BlackFlowSpireExpeditionReturn(int SourceActIndex, int SourceNodeId,
+    Dictionary<ulong, BlackFlowSpireReturnedCard> Cards, BlackFlowSpireProcessedPartKind Reward, int Hope);
 
 internal static class BlackFlowSpireExpeditionRules
 {
     public const int Rest = -1;
     public const int Leave = -2;
+    public const int ConfirmParty = -3;
     public const int RestHope = 2;
 
     // The original rogue_6 item table grades these seven processed parts NORMAL.

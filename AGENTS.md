@@ -2,6 +2,10 @@
 
 BlackFlowSpire（黑流尖塔）是《杀戮尖塔 2》的 Mod，将《明日方舟》黑流树海的探索玩法与界面移植到尖塔。项目使用 Godot 4.5.1 .NET 和 C#（.NET 9）。
 
+本项目处于早期开发中，尚未正式发布，因此不需要考虑旧版本存档迁移问题。
+
+同理，仅在用户要求时，修改版本号。
+
 本项目基于第三方 Mod 开发框架 **RitsuLib**。开发新功能时，可以复用框架提供的 API 来简化开发，例如局内存档、联机动作同步、本地化和音频。框架参考源码位于 `dllsrc/STS2-RitsuLib-main/`，本地依赖包位于 `dll/STS2-RitsuLib/`，由 `BlackFlowSpire.References.props` 统一引用。
 
 ## 项目结构

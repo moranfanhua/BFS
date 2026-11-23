@@ -51,7 +51,7 @@ internal static class BlackFlowSpirePartsUi
 
     public static void OpenSale(RunState state)
     {
-        if (BlackFlowSpireRuntime.IsTraveling || !BlackFlowSpireTeam.CanManage(state) || NModalContainer.Instance?.OpenModal != null) return;
+        if (BlackFlowSpireRuntime.IsTraveling || !BlackFlowSpireTeam.CanOperate || NModalContainer.Instance?.OpenModal != null) return;
         if (ReferenceEquals(BlackFlowSpireRuntime.State, state) && MegaCrit.Sts2.Core.Nodes.Rooms.NMerchantRoom.Instance is { } room)
             BlackFlowSpireShopUi.Find(room)?.SetSelling(true);
     }
@@ -78,7 +78,7 @@ internal static class BlackFlowSpirePartsUi
                 BlackFlowSpireProcessedParts.Get(loaded.Kind).Uses);
         }
         else widget.Call("bind_movement", "", 0, 0);
-        var canOpen = !inspection && !BlackFlowSpireTeam.IsGuest;
+        var canOpen = !inspection && BlackFlowSpireTeam.CanOperate;
         widget.GetNode<Control>("Change").Visible = canOpen;
         root.Call("bind_movement_layout", widget);
         if (!canOpen) return;

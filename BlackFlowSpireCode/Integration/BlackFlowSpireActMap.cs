@@ -9,12 +9,16 @@ namespace BlackFlowSpire.Integration;
 public sealed class BlackFlowSpireActMap : ActMap
 {
     private readonly Dictionary<MapCoord, BlackFlowSpireNode> _nodeData = [];
+    private readonly string _seed;
+    private readonly int _act;
     public override MapPoint BossMapPoint { get; }
     public override MapPoint StartingMapPoint { get; }
     protected override MapPoint?[,] Grid { get; }
 
     public BlackFlowSpireActMap(BlackFlowSpireMap snapshot)
     {
+        _seed = snapshot.Seed;
+        _act = snapshot.ActIndex;
         BlackFlowSpireMapValidator.Validate(snapshot);
         Grid = new MapPoint?[snapshot.Options.Width, snapshot.Options.Height];
         var points = new Dictionary<int, MapPoint>();
@@ -40,6 +44,15 @@ public sealed class BlackFlowSpireActMap : ActMap
     }
 
     public BlackFlowSpireNode GetNodeData(MapCoord coordinate) => _nodeData[coordinate];
+
+    internal bool Rebind(BlackFlowSpireMap snapshot)
+    {
+        if (_act != snapshot.ActIndex || _seed != snapshot.Seed || snapshot.Nodes.Count != _nodeData.Count) return false;
+        foreach (var node in snapshot.Nodes)
+            _nodeData[new MapCoord(node.X, node.Y)] = node;
+        RefreshPointTypes();
+        return true;
+    }
 
     // Native map points are cached separately from forest content. Keep their saved
     // types in sync when a one-time node turns empty, without rewriting floor history.

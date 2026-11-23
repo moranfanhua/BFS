@@ -94,7 +94,7 @@ internal partial class BlackFlowSpirePassageNotice(RunState state, NMapScreen sc
 
     private void Choose(bool usePassage)
     {
-        if (_submitted || !HasValidContext) return;
+        if (_submitted || !HasValidContext || !BlackFlowSpireTeam.CanOperate) return;
         _submitted = true;
         // Let the native popup finish closing before a teleport or hunt opens another UI.
         Callable.From(() => { TaskHelper.RunSafely(BlackFlowSpireRuntime.ResolvePassage(usePassage)); }).CallDeferred();

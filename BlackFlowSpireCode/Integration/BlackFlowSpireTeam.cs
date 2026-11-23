@@ -1,15 +1,13 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using BlackFlowSpire.Combat;
-using BlackFlowSpire.Map.Collectibles;
-using BlackFlowSpire.Map.Exploration;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Shop;
 using BlackFlowSpire.Ui;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Multiplayer;
@@ -25,52 +23,56 @@ using STS2RitsuLib.RunData;
 
 namespace BlackFlowSpire.Integration;
 
-internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle, Rest, Sacrifice, SacrificeItem, Wish, Expedition }
+internal enum BlackFlowSpireTeamAction { Move, Passage, FloorExit, Hunt, ShopOffer, HuntBattle, Rest, Sacrifice, SacrificeItem, Wish, Expedition, ResumeExit, RestoreRoom, ShopPart, ShopCollectible, ShopRefresh, SellParts, Equip, Discard, Exhaust, Cultivate, Harvest, LeaveNode, ClaimOffer }
 
-// Steps distinguish revisits to the same node. Act distinguishes floor changes.
-internal sealed record BlackFlowSpireTeamPosition(int Act, int Node, int Steps);
-internal sealed record BlackFlowSpireTeamReady(BlackFlowSpireTeamPosition Position, bool Ready);
-internal sealed record BlackFlowSpireHopePayment(ulong PlayerId, uint ChoiceId, bool Accepted);
-internal sealed record BlackFlowSpireTeamSnapshot(BlackFlowSpireTeamPosition Position, long Revision, BlackFlowSpireEngineInventory Engine,
-    int ActionPoints, BlackFlowSpireHuntPhase Hunt, Dictionary<int, BlackFlowSpireShopPartStock> ShopParts,
-    Dictionary<int, List<BlackFlowSpireShopOfferStock>> ShopOffers, Dictionary<int, BlackFlowSpireSecretShopStock> SecretShops,
-    int TargetLife, int MaxTargetLife, int TargetShield,
-    BlackFlowSpireDamageMultipliers DamageMultipliers, Dictionary<ulong, decimal> PlayerLifeMultipliers,
-    int Hope, int MaxHope, int CommandExperience, BlackFlowSpireSacrificeProgress? Sacrifice)
+internal sealed record BlackFlowSpireRoomKey(int Act, int? Column, int? Row, int Visits, int History, RoomType? Room, int? RoomId)
 {
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool MapFullyRevealed { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool IgnoreMovementRange { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public BlackFlowSpireWishProgress? Wish { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public BlackFlowSpireExpeditionScene ExpeditionScene { get; init; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public BlackFlowSpireExpeditionReturn? ExpeditionReturn { get; init; }
+    internal static BlackFlowSpireRoomKey From(RunState state) => new(state.CurrentActIndex, state.CurrentMapCoord?.col,
+        state.CurrentMapCoord?.row, state.VisitedMapCoords.Count, state.MapPointHistory.ElementAtOrDefault(state.CurrentActIndex)?.Count ?? 0,
+        state.CurrentRoom?.RoomType, state.CurrentRoom?.Id);
 }
-internal sealed record BlackFlowSpireTeamCommand(BlackFlowSpireTeamAction Action, int Argument, BlackFlowSpireTeamSnapshot Snapshot);
+internal sealed record BlackFlowSpireTeamReady(BlackFlowSpireRoomKey Room, long Completed, int Node, int Steps, bool Ready);
+internal sealed record BlackFlowSpireHopePayment(ulong PlayerId, uint ChoiceId, bool Accepted);
+internal sealed record BlackFlowSpireTeamSnapshot(BlackFlowSpireRoomKey Room, long Revision, long Completed, BlackFlowSpireRunData Forest);
+internal sealed record BlackFlowSpireTeamCommand(BlackFlowSpireTeamAction Action, int Argument, long Id, BlackFlowSpireRoomKey Room, ulong Actor = 0, int[]? Items = null, long Ticket = 0, string? Key = null);
 
-internal static class BlackFlowSpireTeam
+internal static partial class BlackFlowSpireTeam
 {
     private sealed class Session
     {
-        public Dictionary<ulong, BlackFlowSpireTeamPosition> Ready { get; } = [];
+        public Dictionary<ulong, BlackFlowSpireTeamReady> Ready { get; } = [];
+        public long Completed;
+        public long Active;
+        public int Sequence;
+        public bool NativePurchase;
+        public required BlackFlowSpireFrameInbox<BlackFlowSpireTeamFrame> Frames { get; init; }
+        public readonly List<BlackFlowSpireGoldChange> Gold = [];
+        public BlackFlowSpireExpeditionDispatch? Dispatched;
+        public BlackFlowSpireExpeditionDispatch? Returned;
         public long Revision { get; set; }
         public bool CommandQueued { get; set; }
+        public bool RosterChanged;
         public bool AttachedToLobby { get; set; }
         public BlackFlowSpireTeamSnapshot? DeferredSnapshot { get; set; }
-        public TaskCompletionSource<BlackFlowSpireShopOfferEntry?>? OfferCompletion { get; set; }
+        public ForestEventMessage? EventView { get; set; }
+        public bool EventViewSent { get; set; }
+        public TaskCompletionSource<bool>? Operation { get; set; }
+        public Dictionary<long, TaskCompletionSource<bool>> Replies { get; } = [];
+        public long RequestId;
+        public bool ExecutingUtility;
         public Dictionary<(ulong PlayerId, uint ChoiceId), TaskCompletionSource<bool>> HopePayments { get; } = [];
     }
 
     private static readonly ConditionalWeakTable<RunState, Session> Sessions = new();
+    private static readonly ConditionalWeakTable<INetGameService, BlackFlowSpireFrameInbox<BlackFlowSpireTeamFrame>> Connections = new();
+    private static Session SessionFor(RunState state) => Sessions.GetValue(state, static run =>
+        new Session { Completed = BlackFlowSpireGenerationService.GetCommandId(run), Frames = IsGuest ? Connections.GetOrCreateValue(Net) : new() });
     private static readonly RitsuLibManagedNetActionDescriptor<BlackFlowSpireTeamCommand> Command = new(
-        Entry.ModId, "BlackFlowSpire-team-command/v1", Encode, Decode<BlackFlowSpireTeamCommand>, Execute, GameActionType.NonCombat);
+        Entry.ModId, "BlackFlowSpire-team-command/v3", Encode, Decode<BlackFlowSpireTeamCommand>, Execute, GameActionType.NonCombat);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<BlackFlowSpireTeamReady> ReadyMessage = new(
-        Entry.ModId, "BlackFlowSpire-team-ready/v1", Encode, Decode<BlackFlowSpireTeamReady>, OnReady, false, false);
+        Entry.ModId, "BlackFlowSpire-team-ready/v2", Encode, Decode<BlackFlowSpireTeamReady>, OnReady, false, false);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<BlackFlowSpireTeamSnapshot> SnapshotMessage = new(
-        Entry.ModId, "BlackFlowSpire-team-state/v1", Encode, Decode<BlackFlowSpireTeamSnapshot>, OnSnapshot,
+        Entry.ModId, "BlackFlowSpire-team-state/v3", Encode, Decode<BlackFlowSpireTeamSnapshot>, OnSnapshot,
         DispatchLocalOnBroadcast: false, ShouldBuffer: false);
     private static readonly RitsuLibSidecarSyncMessageDescriptor<BlackFlowSpireHopePayment> HopePaymentMessage = new(
         Entry.ModId, "BlackFlowSpire-hope-payment/v1", Encode, Decode<BlackFlowSpireHopePayment>, OnHopePayment,
@@ -79,8 +81,13 @@ internal static class BlackFlowSpireTeam
     internal static void Register()
     {
         RitsuLibManagedNetActions.Register(Command);
+        RitsuLibManagedNetActions.Register(ExpeditionPick);
         RitsuLibSidecarSyncMessages.Register(ReadyMessage);
         RitsuLibSidecarSyncMessages.Register(SnapshotMessage);
+        RitsuLibSidecarSyncMessages.Register(FrameMessage);
+        RitsuLibSidecarSyncMessages.Register(EventMessage);
+        RitsuLibSidecarSyncMessages.Register(OperatorRequestMessage);
+        RitsuLibSidecarSyncMessages.Register(OperatorReplyMessage);
         RitsuLibSidecarSyncMessages.Register(HopePaymentMessage);
         RitsuLibFramework.SubscribeLifecycle<RunSavedDataPreparingEvent>(e =>
         {
@@ -99,25 +106,43 @@ internal static class BlackFlowSpireTeam
     internal static bool IsOnline => IsGuest || IsHost;
     internal static bool CanManage(RunState state)
     {
-        if (IsGuest) return false;
-        var session = Sessions.GetOrCreateValue(state);
-        return !session.CommandQueued && session.OfferCompletion == null;
+        var session = SessionFor(state);
+        if (IsGuest) return session.ExecutingUtility && session.NativePurchase;
+        return !session.CommandQueued || session.ExecutingUtility;
     }
 
     internal static void AttachLobby(RunState state)
     {
-        if (!IsHost || !BlackFlowSpireGenerationService.IsEnabled(state) || RunManager.Instance.RunLobby is not { } lobby) return;
-        var session = Sessions.GetOrCreateValue(state);
+        if (!IsOnline || !BlackFlowSpireGenerationService.IsEnabled(state) || RunManager.Instance.RunLobby is not { } lobby) return;
+        var session = SessionFor(state);
         if (session.AttachedToLobby) return;
         session.AttachedToLobby = true;
-        lobby.RemotePlayerDisconnected += id => session.Ready.Remove(id);
-        lobby.PlayerRejoined += player => session.Ready.Remove(player.id);
+        lobby.RemotePlayerDisconnected += id => MembershipChanged(id, disconnected: true);
+        lobby.PlayerRejoined += peer => MembershipChanged(peer.id, disconnected: false);
+
+        void MembershipChanged(ulong id, bool disconnected)
+        {
+            if (!ReferenceEquals(BlackFlowSpireRuntime.State, state) || !BlackFlowSpireRuntime.CanContinueRun) return;
+            session.Ready.Remove(id);
+            var turn = BlackFlowSpireGenerationService.TeamData(state).Turn;
+            if (IsHost && disconnected && turn.PlayerId == id) Redraw(state, turn);
+            if (session.CommandQueued) { session.RosterChanged = true; return; }
+            RefreshViews(state);
+            if (IsHost)
+            {
+                Publish(state);
+                if (!RunManager.Instance.IsChangingRooms) TaskHelper.RunSafely(SaveManager.Instance.SaveRun(null));
+            }
+        }
     }
 
     internal static void EndSession(RunState state)
     {
         if (!Sessions.TryGetValue(state, out var session)) return;
-        session.OfferCompletion?.TrySetResult(null);
+        session.Operation?.TrySetResult(false);
+        foreach (var reply in session.Replies.Values) reply.TrySetResult(false);
+        session.Frames.Cancel();
+        if (IsGuest) Connections.Remove(Net);
         foreach (var payment in session.HopePayments.Values) payment.TrySetResult(false);
         Sessions.Remove(state);
     }
@@ -125,14 +150,13 @@ internal static class BlackFlowSpireTeam
     internal static async Task<bool> TryPayHope(RunState state, Player player, uint choiceId, int cost)
     {
         if (cost == 0) return true;
-        if (!IsOnline) return BlackFlowSpireGenerationService.TryChangeHope(state, -cost);
+        if (!IsOnline) return BlackFlowSpireGenerationService.TryChangeHope(state, player.NetId, -cost);
         if (IsHost)
         {
-            // Reward choices can complete concurrently. Only the host debits the shared balance.
-            var accepted = BlackFlowSpireGenerationService.TryChangeHope(state, -cost, replicated: true);
+            var accepted = BlackFlowSpireGenerationService.TryChangeHope(state, player.NetId, -cost, replicated: true);
             if (!RitsuLibSidecarSyncMessages.Broadcast(Net, HopePaymentMessage, new BlackFlowSpireHopePayment(player.NetId, choiceId, accepted)))
             {
-                if (accepted) BlackFlowSpireGenerationService.RefundHope(state, cost);
+                if (accepted) BlackFlowSpireGenerationService.RefundHope(state, player.NetId, cost);
                 Entry.Logger.Warn("[BlackFlowSpire] Could not synchronize the card pack's Hope payment.");
                 return false;
             }
@@ -140,7 +164,7 @@ internal static class BlackFlowSpireTeam
             return accepted;
         }
 
-        var payments = Sessions.GetOrCreateValue(state).HopePayments;
+        var payments = SessionFor(state).HopePayments;
         var key = (player.NetId, choiceId);
         var payment = GetHopePayment(payments, key);
         try { return await payment.Task; }
@@ -153,7 +177,7 @@ internal static class BlackFlowSpireTeam
             && ReferenceEquals(context.NetService, Net) && BlackFlowSpireRuntime.State is { } state)
         {
             var payment = context.Message;
-            var payments = Sessions.GetOrCreateValue(state).HopePayments;
+            var payments = SessionFor(state).HopePayments;
             GetHopePayment(payments, (payment.PlayerId, payment.ChoiceId)).TrySetResult(payment.Accepted);
         }
         return Task.CompletedTask;
@@ -178,26 +202,30 @@ internal static class BlackFlowSpireTeam
         return owner is { } id ? state.Players.FirstOrDefault(player => player.NetId == id) : LocalContext.GetMe(state);
     }
 
-    private static BlackFlowSpireTeamPosition Position(RunState state)
-    {
-        var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
-        return new(state.CurrentActIndex, map.PositionNodeId, BlackFlowSpireGenerationService.GetProgress(state).StepsTaken);
-    }
-
     internal static bool CanTravel(RunState state)
     {
-        if (!CanManage(state)) return false;
-        if (!IsHost) return true;
-        var position = Position(state);
-        var ready = Sessions.GetOrCreateValue(state).Ready;
-        return RunManager.Instance.RunLobby?.PlayerIds.All(id => id == Net.NetId
-            || (ready.TryGetValue(id, out var reported) && reported == position)) == true;
+        if (!IsOnline) return CanManage(state);
+        return IsOperator(state) && !SessionFor(state).CommandQueued && (!IsHost || TeamReady(state));
     }
+
+    private static bool TeamReady(RunState state)
+    {
+        var session = SessionFor(state);
+        var expected = ReadyAt(state, session, true);
+        return RunManager.Instance.RunLobby?.PlayerIds.All(id => id == Net.NetId || session.Ready.GetValueOrDefault(id) == expected) == true;
+    }
+
+    private static BlackFlowSpireTeamReady ReadyAt(RunState state, Session session, bool ready) =>
+        new(BlackFlowSpireRoomKey.From(state), session.Completed, BlackFlowSpireGenerationService.GetOrGenerate(state).PositionNodeId,
+            BlackFlowSpireGenerationService.GetProgress(state).StepsTaken, ready);
 
     internal static void ReportReady(RunState state, bool ready)
     {
-        if (IsGuest && Net.IsConnected)
-            RitsuLibSidecarSyncMessages.SendToHost(Net, ReadyMessage, new BlackFlowSpireTeamReady(Position(state), ready));
+        if (!IsGuest || !Net.IsConnected) return;
+        var session = SessionFor(state);
+        if (session.CommandQueued) return;
+        if (ready) Flush(state);
+        RitsuLibSidecarSyncMessages.SendToHost(Net, ReadyMessage, ReadyAt(state, session, ready));
     }
 
     private static Task OnReady(RitsuLibSidecarSyncMessageContext<BlackFlowSpireTeamReady> context)
@@ -205,76 +233,120 @@ internal static class BlackFlowSpireTeam
         if (!context.IsHostIngest || !IsHost || !ReferenceEquals(context.NetService, Net)
             || !BlackFlowSpireRuntime.CanContinueRun || BlackFlowSpireRuntime.State is not { } state
             || RunManager.Instance.RunLobby?.PlayerIds.Contains(context.SenderNetId) != true) return Task.CompletedTask;
-        var ready = Sessions.GetOrCreateValue(state).Ready;
-        if (context.Message.Ready)
-        {
-            if (context.Message.Position == Position(state)) ready[context.SenderNetId] = context.Message.Position;
-        }
-        else if (ready.TryGetValue(context.SenderNetId, out var reported) && reported == context.Message.Position)
-            ready.Remove(context.SenderNetId);
+        var session = SessionFor(state);
+        var first = !session.Ready.TryGetValue(context.SenderNetId, out var prior);
+        session.Ready[context.SenderNetId] = context.Message;
+        if (prior?.Ready != true && session.EventView is { } view && context.Message.Ready)
+            RitsuLibSidecarSyncMessages.SendToPeer(Net, context.SenderNetId, EventMessage, view);
+        if (context.Message.Ready && !session.CommandQueued && !RunManager.Instance.IsChangingRooms
+            && context.Message.Completed == session.Completed && context.Message.Room == BlackFlowSpireRoomKey.From(state)
+            && (first || context.Message != ReadyAt(state, session, true)))
+            RitsuLibSidecarSyncMessages.SendToPeer(Net, context.SenderNetId, SnapshotMessage, Capture(state));
         return Task.CompletedTask;
     }
 
     internal static bool Request(RunState state, BlackFlowSpireTeamAction action, int argument)
     {
-        if (!IsHost || !CanTravel(state) || NMapScreen.Instance is not { IsOpen: true } screen || BlackFlowSpireMapUi.IsInspection(screen)) return false;
-        return Queue(state, action, argument);
-    }
+        if (!CanTravel(state)) return false;
+        TaskHelper.RunSafely(Submit());
+        return true;
 
-    internal static async Task<bool> BuyOffer(RunState state, BlackFlowSpireShopOfferKind kind)
-    {
-        if (!IsHost || !CanManage(state) || state.CurrentRoom is not MerchantRoom) return false;
-        var session = Sessions.GetOrCreateValue(state);
-        var completion = new TaskCompletionSource<BlackFlowSpireShopOfferEntry?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        session.OfferCompletion = completion;
-        try
+        async Task Submit()
         {
-            if (!Queue(state, BlackFlowSpireTeamAction.ShopOffer, (int)kind) || await completion.Task is not { } offer) return false;
-            await offer.CompleteDeferredClaim();
-            await offer.Save();
-            return true;
-        }
-        finally
-        {
-            session.OfferCompletion = null;
+            if (!await Operate(state, action, argument) && ReferenceEquals(state, BlackFlowSpireRuntime.State)
+                && !RunManager.Instance.IsCleaningUp && NMapScreen.Instance is { IsOpen: true })
+                RefreshViews(state);
         }
     }
 
-    private static bool Queue(RunState state, BlackFlowSpireTeamAction action, int argument)
+    internal static void ResumeExitIfReady(RunState state)
     {
-        var session = Sessions.GetOrCreateValue(state);
+        if (IsHost && BlackFlowSpireGenerationService.GetFloorTransition(state)?.SourceActIndex == state.CurrentActIndex)
+            QueueAutomatic(state, BlackFlowSpireTeamAction.ResumeExit, 0);
+    }
+
+    internal static void QueueAutomatic(RunState state, BlackFlowSpireTeamAction action, int argument)
+    {
+        var session = SessionFor(state);
+        if (!IsHost || session.CommandQueued || !TeamReady(state)) return;
+        _ = Queue(state, new(action, argument, session.Completed + 1, BlackFlowSpireRoomKey.From(state), Net.NetId));
+    }
+
+    private static async Task<bool> Queue(RunState state, BlackFlowSpireTeamCommand command)
+    {
+        var session = SessionFor(state);
+        if (session.CommandQueued) return false;
+        var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        session.Operation = done;
         session.CommandQueued = true;
-        var queued = false;
         try
         {
-            queued = RitsuLibManagedNetActions.Request(RunManager.Instance, Command,
-                new BlackFlowSpireTeamCommand(action, argument, Capture(state)));
-            return queued;
+            return RitsuLibManagedNetActions.Request(RunManager.Instance, Command, command) && await done.Task;
         }
         finally
         {
-            if (!queued) session.CommandQueued = false;
+            if (ReferenceEquals(session.Operation, done))
+            {
+                session.Operation = null;
+                session.CommandQueued = false;
+                done.TrySetResult(false);
+            }
         }
     }
 
-    private static async Task Execute(RitsuLibManagedNetActionContext<BlackFlowSpireTeamCommand> context)
+    private static Task Execute(RitsuLibManagedNetActionContext<BlackFlowSpireTeamCommand> context)
     {
         if (!BlackFlowSpireRuntime.CanContinueRun || BlackFlowSpireRuntime.State is not { } state
-            || Owner(state)?.NetId != context.Player.NetId) return;
-        var session = Sessions.GetOrCreateValue(state);
-        var command = context.Message;
-        BlackFlowSpireShopOfferEntry? purchasedOffer = null;
+            || Owner(state)?.NetId != context.Player.NetId) return Task.CompletedTask;
+        return RunCommand(state, context.Message);
+    }
+
+    internal static Task RestorePendingRoom(RunState state, Func<Task> enter) => RunCommand(state,
+        new(BlackFlowSpireTeamAction.RestoreRoom, 0, SessionFor(state).Completed + 1, BlackFlowSpireRoomKey.From(state)), enter);
+
+    private static async Task RunCommand(RunState state, BlackFlowSpireTeamCommand command, Func<Task>? restore = null)
+    {
+        var net = Net;
+        var session = SessionFor(state);
+        if (command.Id <= session.Completed) return;
+        var success = false;
+        var originalTurn = BlackFlowSpireGenerationService.TeamData(state).Turn.Number;
         session.CommandQueued = true;
         try
         {
-            if (command.Snapshot.Position != Position(state))
-                throw new InvalidOperationException("Forest team command arrived at a different map position.");
-            if (IsGuest) Apply(state, command.Snapshot);
+            session.Active = command.Id;
+            session.Sequence = 0;
+            session.NativePurchase = command.Action is BlackFlowSpireTeamAction.ShopOffer or BlackFlowSpireTeamAction.ClaimOffer
+                or BlackFlowSpireTeamAction.ShopPart or BlackFlowSpireTeamAction.ShopCollectible;
+            if (command.Id != session.Completed + 1 || command.Room != BlackFlowSpireRoomKey.From(state))
+                throw new InvalidOperationException("Forest command reached a different native room.");
+            BlackFlowSpireGenerationService.SetCommandId(state, command.Id);
+            if (restore != null)
+            {
+                await restore();
+                if (IsHost) await BlackFlowSpirePartService.SettleMovementRewards(state,
+                    BlackFlowSpireGenerationService.GetOrGenerate(state), BlackFlowSpireGenerationService.GetProgress(state));
+            }
+            else if (IsGuest)
+            {
+                await ReceiveExpected(state, ForestBoundary.Begin);
+                if (!session.NativePurchase)
+                {
+                    await BlackFlowSpireRuntime.FollowHost(state);
+                    if (command.Action == BlackFlowSpireTeamAction.LeaveNode && state.CurrentRoom is MerchantRoom or EventRoom)
+                        ReturnToMap();
+                    return;
+                }
+            }
+            else Emit(state, ForestBoundary.Begin);
+            success = true;
             switch (command.Action)
             {
+                case BlackFlowSpireTeamAction.RestoreRoom when restore != null: break;
                 case BlackFlowSpireTeamAction.Move: await BlackFlowSpireRuntime.MoveCore(command.Argument); break;
                 case BlackFlowSpireTeamAction.Passage: await BlackFlowSpireRuntime.ResolvePassageCore(command.Argument != 0); break;
                 case BlackFlowSpireTeamAction.FloorExit: await BlackFlowSpireRuntime.ResolveFloorExitCore(command.Argument != 0); break;
+                case BlackFlowSpireTeamAction.ResumeExit: await BlackFlowSpireRuntime.AdvanceThroughExit(); break;
                 case BlackFlowSpireTeamAction.Hunt: await BlackFlowSpireRuntime.ConfirmHuntCore(); break;
                 case BlackFlowSpireTeamAction.HuntBattle: await BlackFlowSpireRuntime.StartHuntCore(); break;
                 case BlackFlowSpireTeamAction.Rest: await BlackFlowSpireRuntime.ResolveRestCore(command.Argument); break;
@@ -283,17 +355,63 @@ internal static class BlackFlowSpireTeam
                 case BlackFlowSpireTeamAction.Wish: await BlackFlowSpireRuntime.ResolveWishCore(command.Argument); break;
                 case BlackFlowSpireTeamAction.Expedition: await BlackFlowSpireRuntime.ResolveExpeditionCore(command.Argument); break;
                 case BlackFlowSpireTeamAction.ShopOffer:
-                    purchasedOffer = await PurchaseOffer(state, context.Player, (BlackFlowSpireShopOfferKind)command.Argument);
+                    success = await PurchaseOffer(state, state.Players.Single(p => p.NetId == command.Actor), (BlackFlowSpireShopOfferKind)command.Argument) != null;
                     break;
-                default: throw new InvalidDataException("Unknown forest team command.");
+                case BlackFlowSpireTeamAction.ClaimOffer:
+                    success = await ClaimTicket(state, command);
+                    break;
+                default:
+                    session.ExecutingUtility = true;
+                    success = await ExecuteUtility(state, command);
+                    break;
             }
+            if (IsGuest) await ReceiveExpected(state, ForestBoundary.Finish);
+            else
+            {
+                Emit(state, ForestBoundary.Finish);
+                if (originalTurn != BlackFlowSpireGenerationService.TeamData(state).Turn.Number || session.RosterChanged
+                    || success && session.NativePurchase)
+                    await SaveManager.Instance.SaveRun(null);
+            }
+
+        }
+        catch (Exception error)
+        {
+            success = false;
+            Entry.Logger.Error($"[BlackFlowSpire] Team command {command.Id} ({command.Action}) failed: {error}");
+            if (RunManager.Instance.IsCleaningUp || !ReferenceEquals(BlackFlowSpireRuntime.State, state) || !ReferenceEquals(net, Net)) return;
+            if (IsGuest && Net.IsConnected) Net.Disconnect(NetError.StateDivergence);
+            else if (Net is INetHostGameService host && RunManager.Instance.RunLobby is { } lobby)
+                foreach (var id in lobby.PlayerIds.Where(id => id != host.NetId).ToArray())
+                    host.DisconnectClient(id, NetError.StateDivergence);
+            throw;
         }
         finally
         {
+            session.Completed = command.Id;
+            session.Frames.Complete(command.Id);
+            session.Active = 0;
+            session.Gold.Clear();
+            session.Dispatched = session.Returned = null;
             session.CommandQueued = false;
-            if (command.Action == BlackFlowSpireTeamAction.ShopOffer) session.OfferCompletion?.TrySetResult(purchasedOffer);
-            Flush(state);
-            Publish(state);
+            session.ExecutingUtility = false;
+            session.Operation?.TrySetResult(success);
+            session.Operation = null;
+            if (ReferenceEquals(BlackFlowSpireRuntime.State, state) && ReferenceEquals(net, Net) && !RunManager.Instance.IsCleaningUp)
+            {
+                Flush(state);
+                if (session.RosterChanged)
+                {
+                    session.RosterChanged = false;
+                    RefreshViews(state);
+                    Publish(state);
+                }
+                else if (command.Action is BlackFlowSpireTeamAction.ShopOffer or BlackFlowSpireTeamAction.ClaimOffer)
+                    RefreshViews(state);
+                else if (state.CurrentRoom is MerchantRoom && NMerchantRoom.Instance is { } shop)
+                    BlackFlowSpireShopUi.Find(shop)?.RefreshSharedStock();
+                if (IsGuest && NMapScreen.Instance is { IsOpen: true } map && !BlackFlowSpireMapUi.IsInspection(map)) ReportReady(state, true);
+            }
         }
     }
 
@@ -302,7 +420,7 @@ internal static class BlackFlowSpireTeam
         if (state.CurrentRoom is not MerchantRoom) return null;
         var inventory = RunManager.Instance.MerchantSynchronizer.GetInventoryFor(player);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
-        if (!progress.ShopOffers.TryGetValue(Position(state).Node, out var offers)) return null;
+        if (!progress.ShopOffers.TryGetValue(BlackFlowSpireGenerationService.GetOrGenerate(state).PositionNodeId, out var offers)) return null;
         var stock = offers.FirstOrDefault(item => item.Kind == kind && !item.Purchased);
         if (stock == null) return null;
         var offer = new BlackFlowSpireShopOfferEntry(player, stock, replicated: true);
@@ -311,27 +429,14 @@ internal static class BlackFlowSpireTeam
 
     private static BlackFlowSpireTeamSnapshot Capture(RunState state)
     {
-        var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
-        var progress = BlackFlowSpireGenerationService.GetProgress(state);
-        var (life, maxLife, shield) = BlackFlowSpireGenerationService.GetTargetLife(state);
-        var hope = BlackFlowSpireGenerationService.GetHopeStatus(state);
-        return new(new(state.CurrentActIndex, map.PositionNodeId, progress.StepsTaken), ++Sessions.GetOrCreateValue(state).Revision,
-            BlackFlowSpireGenerationService.GetEngine(state), progress.ActionPointsRemaining, progress.HuntPhase,
-            progress.ShopParts, progress.ShopOffers, progress.SecretShops, life, maxLife, shield,
-            BlackFlowSpireGenerationService.GetDamageMultipliers(state), BlackFlowSpireGenerationService.CopyPlayerLifeMultipliers(state),
-            hope.Balance, hope.Maximum, BlackFlowSpireGenerationService.GetCommandExperience(state), progress.Sacrifice)
-        {
-            MapFullyRevealed = map.Nodes.All(node => node.Revealed),
-            IgnoreMovementRange = map.IgnoreMovementRange,
-            Wish = progress.Wish,
-            ExpeditionScene = progress.ExpeditionScene,
-            ExpeditionReturn = progress.ExpeditionReturn
-        };
+        var session = SessionFor(state);
+        return new(BlackFlowSpireRoomKey.From(state), ++session.Revision, session.Completed, BlackFlowSpireGenerationService.CaptureFloor(state));
     }
 
     internal static void Publish(RunState state)
     {
         if (!IsHost || !Net.IsConnected || !BlackFlowSpireRuntime.CanContinueRun || !ReferenceEquals(BlackFlowSpireRuntime.State, state)) return;
+        if (SessionFor(state).CommandQueued || RunManager.Instance.IsChangingRooms) return;
         if (!RitsuLibSidecarSyncMessages.Broadcast(Net, SnapshotMessage, Capture(state)))
             Entry.Logger.Warn("[BlackFlowSpire] Could not publish shared forest state; next team command carries the current state.");
     }
@@ -341,7 +446,7 @@ internal static class BlackFlowSpireTeam
         if (Net is not NetClientGameService { IsConnected: true } client || context.SenderNetId != client.HostNetId
             || !ReferenceEquals(context.NetService, Net) || !BlackFlowSpireRuntime.CanContinueRun
             || BlackFlowSpireRuntime.State is not { } state) return Task.CompletedTask;
-        var session = Sessions.GetOrCreateValue(state);
+        var session = SessionFor(state);
         if (context.Message.Revision > Math.Max(session.Revision, session.DeferredSnapshot?.Revision ?? 0))
             session.DeferredSnapshot = context.Message;
         Flush(state);
@@ -351,7 +456,7 @@ internal static class BlackFlowSpireTeam
     internal static void Flush(RunState state)
     {
         if (!IsGuest || BlackFlowSpireRuntime.IsTraveling || CombatManager.Instance.IsInProgress || !ReferenceEquals(BlackFlowSpireRuntime.State, state)) return;
-        var session = Sessions.GetOrCreateValue(state);
+        var session = SessionFor(state);
         if (session.CommandQueued) return;
         if (session.DeferredSnapshot is not { } snapshot) return;
         if (snapshot.Revision <= session.Revision)
@@ -359,40 +464,20 @@ internal static class BlackFlowSpireTeam
             session.DeferredSnapshot = null;
             return;
         }
-        if (snapshot.Position != Position(state)) return;
+        if (RunManager.Instance.IsChangingRooms || snapshot.Room != BlackFlowSpireRoomKey.From(state)
+            || snapshot.Completed != session.Completed) return;
         session.DeferredSnapshot = null;
-        Apply(state, snapshot);
+        BlackFlowSpireGenerationService.ApplyFloor(state, snapshot.Forest);
+        session.Revision = snapshot.Revision;
+        RefreshViews(state);
+    }
+
+    internal static void RefreshViews(RunState state)
+    {
         BlackFlowSpirePartsUi.RefreshSharedBox();
         BlackFlowSpireCollectibleScreen.RefreshShared();
         if (NMerchantRoom.Instance is { } room) BlackFlowSpireShopUi.Find(room)?.RefreshSharedStock();
         if (NMapScreen.Instance is { IsOpen: true } screen)
             BlackFlowSpireMapUi.Show(screen, state, BlackFlowSpireMapUi.IsInspection(screen));
-    }
-
-    private static void Apply(RunState state, BlackFlowSpireTeamSnapshot snapshot)
-    {
-        var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
-        var progress = BlackFlowSpireGenerationService.GetProgress(state);
-        BlackFlowSpireGenerationService.SetSharedEngine(state, snapshot.Engine);
-        // The host inventory already includes the appraisal from these discoveries.
-        BlackFlowSpireCollectibleRules.RevealMap(map, snapshot.Engine, countInformation: false);
-        if (snapshot.MapFullyRevealed) BlackFlowSpireFog.RevealAll(map);
-        map.IgnoreMovementRange = snapshot.IgnoreMovementRange;
-        BlackFlowSpireGenerationService.SetTargetLife(state, snapshot.TargetLife, snapshot.MaxTargetLife, snapshot.TargetShield);
-        BlackFlowSpireGenerationService.RestoreCommandProgress(state, snapshot.Hope, snapshot.MaxHope, snapshot.CommandExperience);
-        BlackFlowSpireGenerationService.RestoreDamageMultipliers(state, snapshot.DamageMultipliers);
-        BlackFlowSpireGenerationService.RestorePlayerLifeMultipliers(state, snapshot.PlayerLifeMultipliers);
-        progress.ActionPointsRemaining = snapshot.ActionPoints;
-        progress.HuntPhase = snapshot.Hunt;
-        progress.ShopParts = snapshot.ShopParts;
-        progress.ShopOffers = snapshot.ShopOffers;
-        progress.SecretShops = snapshot.SecretShops;
-        if (BlackFlowSpireSacrificeRules.IsPending(map, progress)) progress.Sacrifice = snapshot.Sacrifice;
-        if (BlackFlowSpireWishRules.IsPending(map, progress)) progress.Wish = snapshot.Wish;
-        if (BlackFlowSpireExpeditionRules.IsPending(map, progress)) progress.ExpeditionScene = snapshot.ExpeditionScene;
-        if (snapshot.ExpeditionReturn is { } expeditionReturn) progress.ExpeditionReturn = expeditionReturn;
-        BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
-        var session = Sessions.GetOrCreateValue(state);
-        session.Revision = Math.Max(session.Revision, snapshot.Revision);
     }
 }

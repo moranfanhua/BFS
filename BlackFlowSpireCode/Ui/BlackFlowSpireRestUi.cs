@@ -52,7 +52,7 @@ internal partial class BlackFlowSpireRestScreen(RunState state, NMapScreen scree
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
         _view = new BlackFlowSpireEventView(this, index => Submit(choices[index]), () => Submit(null));
-        if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state));
+        if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireTeam.CanOperate) AddChild(new BlackFlowSpireTeamMapStatus(state));
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
     }

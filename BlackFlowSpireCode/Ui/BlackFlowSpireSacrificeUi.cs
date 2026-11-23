@@ -54,13 +54,25 @@ internal partial class BlackFlowSpireSacrificeScreen(RunState state, NMapScreen 
     private BlackFlowSpireSacrificeScene Scene => progress.Sacrifice?.Scene ?? BlackFlowSpireSacrificeScene.Intro;
     private BlackFlowSpireEngineInventory Engine => BlackFlowSpireGenerationService.GetEngine(state);
 
+    internal ForestEventView ReadPicker(ForestEventView view) => _picker is { } picker
+        ? view with { Parts = picker.Parts, Item = picker.SelectedItem, ConfirmLoaded = picker.ConfirmingLoaded, Scroll = picker.Scroll }
+        : view;
+
+    internal void FollowPicker(ForestEventView view)
+    {
+        if (_picker != null && _picker.Parts != view.Parts) ClosePicker();
+        if (view.Parts is not { } parts) return;
+        if (_picker == null) OpenPicker(parts);
+        _picker?.Follow(view.Item, view.ConfirmLoaded, view.Scroll);
+    }
+
     public override void _Ready()
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.TopLeft);
         FitViewport();
         MouseFilter = MouseFilterEnum.Stop;
         _eventView = new BlackFlowSpireEventView(this, index => _choices[index].Action(), () => Resolve(BlackFlowSpireSacrificeAction.Leave));
-        if (BlackFlowSpireTeam.IsHost) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
+        if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireTeam.CanOperate) AddChild(new BlackFlowSpireTeamMapStatus(state) { ZIndex = 1 });
         BlackFlowSpireLocalization.RefreshWithLocale(this, Refresh);
         Refresh();
     }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text.Json.Serialization;
 using BlackFlowSpire.Combat;
 using BlackFlowSpire.Map.Collectibles;
 using BlackFlowSpire.Map.Exploration;
@@ -8,47 +7,13 @@ using BlackFlowSpire.Map.Models;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Integration;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using STS2RitsuLib;
 using STS2RitsuLib.RunData;
 
 namespace BlackFlowSpire.Persistence;
-
-public sealed class BlackFlowSpireRunData
-{
-    internal const int CurrentSchemaVersion = 2;
-    public int SchemaVersion { get; set; } = CurrentSchemaVersion;
-    public bool Enabled { get; set; }
-    public ulong? TeamOwnerId { get; set; }
-    public int TargetLife { get; set; } = BlackFlowSpireCombatHealth.InitialTargetLife;
-    public int MaxTargetLife { get; set; } = BlackFlowSpireCombatHealth.InitialTargetLife;
-    public int TargetShield { get; set; }
-    public int Hope { get; set; } = BlackFlowSpireHope.Initial;
-    public int MaxHope { get; set; } = BlackFlowSpireHope.Initial;
-    public int CommandExperience { get; set; }
-    public BlackFlowSpireDamageMultipliers DamageMultipliers { get; set; } = new();
-    public Dictionary<ulong, decimal> PlayerLifeMultipliers { get; set; } = [];
-    public Dictionary<int, BlackFlowSpireMap> Maps { get; set; } = [];
-    public Dictionary<int, BlackFlowSpireExplorationProgress> Progress { get; set; } = [];
-    public BlackFlowSpireEngineInventory Engine { get; set; } = new();
-    public BlackFlowSpireFloorTransition? PendingFloorTransition { get; set; }
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public BlackFlowSpireExpeditionDispatch? ExpeditionDispatch { get; set; }
-
-    internal bool TryChangeHope(int delta)
-    {
-        if (!new BlackFlowSpireHope(Hope, MaxHope).TryChange(delta, out var result)) return false;
-        SetHope(result);
-        return true;
-    }
-
-    internal void SetHope(BlackFlowSpireHope hope)
-    {
-        Hope = hope.Balance;
-        MaxHope = hope.Maximum;
-    }
-}
 
 public static partial class BlackFlowSpireGenerationService
 {
@@ -64,64 +29,83 @@ public static partial class BlackFlowSpireGenerationService
         && _slot.TryGet(state, out var data) && data.Enabled;
 
     public static void Enable(RunState state) => _slot!.Modify(state, data => data.Enabled = true);
+    internal static BlackFlowSpireRunData TeamData(RunState state) => _slot!.Get(state);
+    internal static void SaveTeamChange(RunState state) => _slot!.Set(state, _slot.Get(state));
     internal static ulong? GetTeamOwnerId(RunState state) => _slot!.Get(state).TeamOwnerId;
+    internal static long GetCommandId(RunState state) => _slot!.Get(state).TeamCommandId;
+    internal static void SetCommandId(RunState state, long id) => _slot!.Modify(state, data => data.TeamCommandId = id);
+
+    internal static BlackFlowSpireRunData CaptureFloor(RunState state)
+    {
+        GetProgress(state);
+        return _slot!.Get(state).ActiveFloor(state.CurrentActIndex);
+    }
+
+    internal static void ApplyFloor(RunState state, BlackFlowSpireRunData authoritative)
+    {
+        var act = state.CurrentActIndex;
+        if (authoritative.SchemaVersion != BlackFlowSpireRunData.CurrentSchemaVersion || !authoritative.Enabled
+            || !authoritative.Maps.TryGetValue(act, out var map) || map.ActIndex != act || !authoritative.Progress.ContainsKey(act))
+            throw new InvalidDataException("Invalid authoritative forest floor.");
+        BlackFlowSpireMapValidator.Validate(map);
+        var saved = _slot!.Get(state);
+        authoritative.KeepOtherFloors(saved, act);
+        _slot.Set(state, authoritative);
+        if (state.Map is BlackFlowSpireActMap adapter && adapter.Rebind(map)) return;
+        state.Map = new BlackFlowSpireActMap(map);
+    }
 
     public static int GetHope(RunState state) => GetHopeStatus(state).Balance;
 
-    internal static BlackFlowSpireHope GetHopeStatus(RunState state)
-    {
-        var data = _slot!.Get(state);
-        return new(data.Hope, data.MaxHope);
-    }
+    private static ulong LocalPlayerId(RunState state) => (LocalContext.GetMe(state) ?? state.Players.Single()).NetId;
+
+    internal static BlackFlowSpireHope GetHopeStatus(RunState state) => GetHopeStatus(state, LocalPlayerId(state));
+
+    internal static BlackFlowSpireHope GetHopeStatus(RunState state, ulong playerId) => _slot!.Get(state).GetHope(playerId);
 
     internal static int GetCommandExperience(RunState state) => _slot!.Get(state).CommandExperience;
 
     // Gains raise both values. Spending reduces only the balance.
-    public static bool TryChangeHope(RunState state, int delta, bool replicated = false)
+    public static bool TryChangeHope(RunState state, int delta, bool replicated = false) =>
+        IsEnabled(state) && TryChangeHope(state, LocalPlayerId(state), delta, replicated);
+
+    internal static bool TryChangeHope(RunState state, ulong playerId, int delta, bool replicated = false)
     {
         if (!IsEnabled(state) || (!replicated && BlackFlowSpireTeam.IsGuest)) return false;
         if (delta == 0) return true;
         var changed = false;
-        _slot!.Modify(state, data => changed = data.TryChangeHope(delta));
+        _slot!.Modify(state, data => changed = data.TryChangeHope(playerId, delta));
         if (changed && !replicated) BlackFlowSpireTeam.Publish(state);
         return changed;
     }
 
-    internal static void RefundHope(RunState state, int amount)
+    internal static void RefundHope(RunState state, ulong playerId, int amount)
     {
         if (amount == 0 || BlackFlowSpireTeam.IsGuest) return;
-        _slot!.Modify(state, data =>
-        {
-            data.Hope = (int)Math.Min((long)data.Hope + amount, data.MaxHope);
-        });
+        _slot!.Modify(state, data => data.RefundHope(playerId, amount));
         BlackFlowSpireTeam.Publish(state);
     }
 
-    internal static void RestoreCommandProgress(RunState state, int hope, int maxHope, int experience) =>
-        _slot!.Modify(state, data =>
-        {
-            data.Hope = Math.Max(0, hope);
-            data.MaxHope = Math.Max(data.Hope, maxHope);
-            data.CommandExperience = Math.Clamp(experience, 0, BlackFlowSpireCommandLevel.MaximumExperience);
-        });
-
-    internal static void GrantCommandExperience(RunState state, int amount)
+    internal static (int Experience, int Hope) GrantCommandExperience(RunState state, int amount)
     {
-        if (amount <= 0) return;
+        if (amount <= 0) return default;
+        (int Experience, int Hope) reward = default;
         _slot!.Modify(state, data =>
         {
             var previous = Math.Clamp(data.CommandExperience, 0, BlackFlowSpireCommandLevel.MaximumExperience);
             var next = previous + Math.Min(amount, BlackFlowSpireCommandLevel.MaximumExperience - previous);
             if (previous == next) return;
-            var hope = new BlackFlowSpireHope(data.Hope, data.MaxHope);
             var earned = BlackFlowSpireCommandLevel.FromExperience(next).HopeEarned
                 - BlackFlowSpireCommandLevel.FromExperience(previous).HopeEarned;
-            // An extreme balance from the console can exhaust the stored range.
-            hope.TryChange(Math.Min(earned, int.MaxValue - hope.Maximum), out var result);
-            data.SetHope(result);
+            GrantTeamHope(state, data, earned);
             data.CommandExperience = next;
+            reward = (next - previous, earned);
         });
+        return reward;
     }
+
+    private static void GrantTeamHope(RunState state, BlackFlowSpireRunData data, int amount) =>
+        data.GrantHopeToPlayers(state.Players.Select(player => player.NetId), amount);
 
     public static BlackFlowSpireDamageMultipliers GetDamageMultipliers(RunState state) => _slot!.Get(state).DamageMultipliers;
 
@@ -157,25 +141,11 @@ public static partial class BlackFlowSpireGenerationService
         BlackFlowSpireTeam.Publish(state);
     }
 
-    internal static Dictionary<ulong, decimal> CopyPlayerLifeMultipliers(RunState state) =>
-        new(_slot!.Get(state).PlayerLifeMultipliers);
-
-    internal static void RestorePlayerLifeMultipliers(RunState state, Dictionary<ulong, decimal> multipliers) =>
-        _slot!.Modify(state, data => data.PlayerLifeMultipliers = multipliers);
-
     internal static (int Current, int Maximum, int Shield) GetTargetLife(RunState state)
     {
         var data = _slot!.Get(state);
         return (data.TargetLife, data.MaxTargetLife, data.TargetShield);
     }
-
-    internal static void SetTargetLife(RunState state, int life, int maximum, int shield) =>
-        _slot!.Modify(state, data =>
-        {
-            data.MaxTargetLife = Math.Max(1, maximum);
-            data.TargetLife = Math.Clamp(life, 0, data.MaxTargetLife);
-            data.TargetShield = Math.Max(0, shield);
-        });
 
     public static void GrantTargetLife(RunState state, int maxLifeGain = 0, int lifeRestored = 0)
     {
@@ -223,17 +193,16 @@ public static partial class BlackFlowSpireGenerationService
     }
 
     internal static void GrantCollectible(RunState state, BlackFlowSpireMap map, BlackFlowSpireCollectible item)
-        => _slot!.Modify(state, data => GrantCollectible(data, map, item));
+        => _slot!.Modify(state, data => GrantCollectible(state, data, map, item));
 
-    private static void GrantCollectible(BlackFlowSpireRunData data, BlackFlowSpireMap map, BlackFlowSpireCollectible item)
+    private static void GrantCollectible(RunState state, BlackFlowSpireRunData data, BlackFlowSpireMap map, BlackFlowSpireCollectible item)
     {
         var collectibles = data.Engine.Collectibles;
         if (collectibles.Has(item.Number)) return;
         var reward = BlackFlowSpireCollectibleRules.OnAcquired(item, data.Engine, map);
         var maxLife = checked(data.MaxTargetLife + reward.MaxLife);
         var shield = checked(data.TargetShield + reward.Shield);
-        if (!data.TryChangeHope(reward.Hope))
-            throw new InvalidOperationException("The collectible's Hope reward exceeds the balance range.");
+        GrantTeamHope(state, data, reward.Hope);
         collectibles.OwnedIds.Add(item.Id);
         data.MaxTargetLife = maxLife;
         data.TargetLife = (int)Math.Min(maxLife, (long)data.TargetLife + reward.Life);
@@ -253,7 +222,7 @@ public static partial class BlackFlowSpireGenerationService
                 : BlackFlowSpireSacrificeRules.TryResolve(map, progress, data.Engine, (BlackFlowSpireSacrificeAction)argument, reward =>
                 {
                     if (reward.CollectibleId is { } id && BlackFlowSpireCollectibleCatalog.Find(id) is { } collectible)
-                        GrantCollectible(data, map, collectible);
+                        GrantCollectible(state, data, map, collectible);
                     else if (reward.Natural is { } natural) data.Engine.AddNatural(natural);
                     else if (reward.Processed is { } processed) data.Engine.Add(processed);
                     else if (reward.Concept is { } concept) data.Engine.AddConcept(concept);
@@ -278,9 +247,6 @@ public static partial class BlackFlowSpireGenerationService
         else _slot!.Lobby.Remove(lobby);
     }
 
-    internal static void SetSharedEngine(RunState state, BlackFlowSpireEngineInventory engine) =>
-        _slot!.Modify(state, data => data.Engine = engine);
-
     public static BlackFlowSpireEngineInventory GetEngine(RunState state) => _slot!.Get(state).Engine;
 
     public static BlackFlowSpireFloorTransition? GetFloorTransition(RunState state) => _slot!.Get(state).PendingFloorTransition;
@@ -294,8 +260,7 @@ public static partial class BlackFlowSpireGenerationService
         _slot!.Modify(state, data =>
         {
             if (data.PendingFloorTransition != transition) return;
-            if (!data.TryChangeHope(transition.Hope))
-                throw new InvalidOperationException("The floor exit's Hope reward exceeds the balance range.");
+            GrantTeamHope(state, data, transition.Hope);
             progress.ActionPointsRemaining = actionPoints;
             // EnterFloor has already expired the previous floor's temporary parts.
             data.Engine.Add(transition.Reward);
@@ -318,7 +283,7 @@ public static partial class BlackFlowSpireGenerationService
                     data.MaxTargetLife = checked(data.MaxTargetLife + 3);
                     break;
                 case BlackFlowSpireRestChoice.Hope:
-                    if (!data.TryChangeHope(3)) throw new InvalidOperationException("The rest reward exceeds the Hope balance range.");
+                    GrantTeamHope(state, data, 3);
                     break;
                 case BlackFlowSpireRestChoice.ActionPoints:
                     progress.ActionPointsRemaining = checked(progress.ActionPointsRemaining + 2);
@@ -339,8 +304,7 @@ public static partial class BlackFlowSpireGenerationService
             throw new InvalidOperationException("The part reward does not match the movement destination.");
         _slot!.Modify(state, data =>
         {
-            if (!data.TryChangeHope(reward.Hope))
-                throw new InvalidOperationException("The movement's Hope reward exceeds the balance range.");
+            GrantTeamHope(state, data, reward.Hope);
             progress.PendingPartReward = null;
         });
         return reward;
@@ -380,6 +344,7 @@ public static partial class BlackFlowSpireGenerationService
             if (saved.Maps.TryGetValue(runState.CurrentActIndex, out var existing))
             {
                 BlackFlowSpireMapValidator.Validate(existing);
+                if (BlackFlowSpireTeam.IsGuest) return existing;
                 var revealed = BlackFlowSpireFog.RevealNearby(existing, saved.Engine).Count > 0;
                 revealed |= BlackFlowSpireCollectibleRules.RevealMap(existing, saved.Engine);
                 if (revealed)

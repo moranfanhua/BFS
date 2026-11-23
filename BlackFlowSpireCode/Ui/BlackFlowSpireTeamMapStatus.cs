@@ -1,12 +1,14 @@
 using BlackFlowSpire.Integration;
+using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Map.Presentation;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Runs;
 
 namespace BlackFlowSpire.Ui;
 
-internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
+internal partial class BlackFlowSpireTeamMapStatus(RunState state, bool observing = false) : Label
 {
     private double _refreshIn;
 
@@ -24,7 +26,17 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
         AddThemeFontSizeOverride("font_size", 22);
         AddThemeConstantOverride("outline_size", 5);
         AddThemeColorOverride("font_outline_color", Colors.Black);
+        if (observing)
+        {
+            void ShowObserverLabel() => Text = BlackFlowSpireText.Get("UI.TEAM.observing", ("Player", OperatorName()));
+            ShowObserverLabel();
+            BlackFlowSpireLocalization.RefreshWithLocale(this, ShowObserverLabel);
+            SetProcess(false);
+        }
     }
+
+    private string OperatorName() => BlackFlowSpireGenerationService.TeamData(state).Turn.PlayerId is { } id
+        ? MegaCrit.Sts2.Core.Platform.PlatformUtil.GetPlayerNameRaw(RunManager.Instance.NetService.Platform, id) : "…";
 
     public override void _Process(double delta)
     {
@@ -33,9 +45,14 @@ internal partial class BlackFlowSpireTeamMapStatus(RunState state) : Label
         _refreshIn = 0.75;
         if (BlackFlowSpireTeam.IsGuest)
         {
-            Text = BlackFlowSpireText.Get("UI.TEAM.follow");
             if (!BlackFlowSpireRuntime.IsTraveling && !CombatManager.Instance.IsInProgress) BlackFlowSpireTeam.ReportReady(state, true);
         }
-        else Text = BlackFlowSpireTeam.CanTravel(state) ? "" : BlackFlowSpireText.Get("UI.TEAM.wait");
+        else
+        {
+            BlackFlowSpireTeam.ResumeExitIfReady(state);
+            BlackFlowSpireTeam.ConfirmExpeditionIfReady(state);
+        }
+        Visible = NModalContainer.Instance?.OpenModal is not BlackFlowSpireObservedEvent;
+        Text = BlackFlowSpireText.Get("UI.TEAM.follow", ("Player", OperatorName()));
     }
 }

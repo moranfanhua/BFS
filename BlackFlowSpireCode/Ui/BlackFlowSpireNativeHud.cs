@@ -58,6 +58,7 @@ internal partial class BlackFlowSpireNativeHud(NGlobalUi globalUi, RunState stat
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
+        if (BlackFlowSpireTeam.IsOnline) AddChild(new BlackFlowSpireShopClaims(_state));
         _items = [globalUi.TopBar, globalUi.RelicInventory];
         foreach (var item in _items) item.VisibilityChanged += Refresh;
         _view = ResourceLoader.Load<PackedScene>("res://BlackFlowSpire/Scenes/Ui/BlackFlowSpireTopBar.tscn").Instantiate<Control>();

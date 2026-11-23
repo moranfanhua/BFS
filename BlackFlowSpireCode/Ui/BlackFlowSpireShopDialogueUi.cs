@@ -36,7 +36,7 @@ internal partial class BlackFlowSpireShopController
         var group = goods.Entry switch
         {
             BlackFlowSpireShopPartEntry => BlackFlowSpireMerchantDialogueGroup.Scrap,
-            MerchantRelicEntry => BlackFlowSpireMerchantDialogueGroup.Relic,
+            BlackFlowSpireShopCollectibleEntry => BlackFlowSpireMerchantDialogueGroup.Relic,
             BlackFlowSpireShopOfferEntry { Kind: BlackFlowSpireShopOfferKind.PotionPack } => BlackFlowSpireMerchantDialogueGroup.ActiveTool,
             // Card packs and services are not recruitment tickets.
             _ => BlackFlowSpireMerchantDialogueGroup.Browse

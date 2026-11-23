@@ -23,6 +23,7 @@ public sealed class BlackFlowSpireExplorationProgress
     public Dictionary<int, int> HistoryIndexes { get; set; } = [];
     public Dictionary<int, BlackFlowSpireShopPartStock> ShopParts { get; set; } = [];
     public Dictionary<int, List<BlackFlowSpireShopOfferStock>> ShopOffers { get; set; } = [];
+    public Dictionary<int, List<BlackFlowSpireCollectibleStock>> ShopCollectibles { get; set; } = [];
     public Dictionary<int, BlackFlowSpireSecretShopStock> SecretShops { get; set; } = [];
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public BlackFlowSpirePartMovementReward? PendingPartReward { get; set; }

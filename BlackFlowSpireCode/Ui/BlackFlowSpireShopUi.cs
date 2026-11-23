@@ -1,10 +1,9 @@
-using System.Reflection;
 using BlackFlowSpire.Map.Presentation;
 using BlackFlowSpire.Map.Parts;
 using BlackFlowSpire.Integration;
+using BlackFlowSpire.Persistence;
 using BlackFlowSpire.Shop;
 using Godot;
-using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Gold;
@@ -12,7 +11,6 @@ using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Relics;
-using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
@@ -35,13 +33,9 @@ internal static class BlackFlowSpireShopUi
             existing.Show();
             return;
         }
-        // Native merchants build every player's inventory in slot order. Do
-        // the same for extra relics because their rolls also affect the shared bag.
         if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireRuntime.State is { } state)
             foreach (var player in state.Players)
                 BlackFlowSpireShopInventory.Prepare(RunManager.Instance.MerchantSynchronizer.GetInventoryFor(player));
-        // Preserve the initialized native relic slots and purchase effects. The
-        // themed inventory replaces card/potion stock with its own offers below.
         foreach (var child in room.GetChildren().OfType<CanvasItem>()) child.Hide();
         room.AddChild(new BlackFlowSpireShopController(room) { Name = ControllerName });
         ActiveScreenContext.Instance.Update();
@@ -54,7 +48,6 @@ internal static class BlackFlowSpireShopUi
 
 internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Control
 {
-    private static readonly MethodInfo SelectNativeSlot = AccessTools.Method(typeof(NMerchantSlot), "OnSelected");
     private readonly List<GoodsBinding> _goods = [];
     private Control _view = null!;
     private MerchantInventory _inventory = null!;
@@ -76,7 +69,7 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
     {
         SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Stop;
-        _inventory = RunManager.Instance.MerchantSynchronizer.GetLocalInventory();
+        _inventory = DisplayInventory();
         _stock = BlackFlowSpireShopInventory.Prepare(_inventory);
         _view = ResourceLoader.Load<PackedScene>(_stock.IsSecret
             ? "res://BlackFlowSpire/Scenes/Shop/BlackFlowSpireSecretShopScreen.tscn"
@@ -85,11 +78,6 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
         _leave = _view.GetNode<Button>("Canvas/Leave");
         _leave.Pressed += RequestLeave;
         _refresh = _view.GetNode<Button>("Canvas/Refresh");
-        if (BlackFlowSpireTeam.IsGuest)
-        {
-            _refresh.TooltipText = BlackFlowSpireText.Get("UI.TEAM.shop");
-            _view.GetNode<Button>("Canvas/BuySell/SellButton").TooltipText = _refresh.TooltipText;
-        }
         _refresh.Pressed += () => TaskHelper.RunSafely(RefreshGoods(true));
         _view.GetNode<Button>("Canvas/BuySell/SellButton").Pressed += () => SetSelling(true);
         _view.GetNode<Button>("Canvas/BuySell/BuyButton").Pressed += () => SetSelling(false);
@@ -106,6 +94,16 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
             Callable.From(() => OpenGarden()).CallDeferred();
     }
 
+    private static MerchantInventory DisplayInventory()
+    {
+        var merchant = RunManager.Instance.MerchantSynchronizer;
+        if (BlackFlowSpireTeam.IsOnline && BlackFlowSpireRuntime.State is { } state
+            && BlackFlowSpireGenerationService.TeamData(state).Turn.PlayerId is { } id
+            && state.Players.FirstOrDefault(p => p.NetId == id) is { } buyer)
+            return merchant.GetInventoryFor(buyer);
+        return merchant.GetLocalInventory();
+    }
+
     private void BindGoods()
     {
         ClearSaleGoods();
@@ -115,34 +113,20 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
         var slots = room.Inventory.GetAllSlots().ToArray();
         _removalArtwork = slots.FirstOrDefault(slot => slot.Entry is MerchantCardRemovalEntry)
             ?.GetNodeOrNull<Sprite2D>("%Visual")?.Texture;
-        var nativeRelics = slots.Where(slot => slot.Entry is MerchantRelicEntry).ToDictionary(slot => slot.Entry);
         IEnumerable<MerchantEntry> entries = _stock.IsSecret ? _stock.SecretParts
-            : _stock.Offers.Cast<MerchantEntry>().Concat(_inventory.RelicEntries);
+            : _stock.Offers.Cast<MerchantEntry>().Concat(_stock.Collectibles);
         if (_stock.Part != null) entries = entries.Prepend(_stock.Part);
         foreach (var entry in entries)
         {
-            nativeRelics.TryGetValue(entry, out var slot);
             var button = tileScene.Instantiate<Button>();
             grid.AddChild(button);
-            var goods = new GoodsBinding(entry, slot, button);
+            var goods = new GoodsBinding(entry, button);
             _goods.Add(goods);
             button.Pressed += () => TaskHelper.RunSafely(Buy(goods));
             button.MouseEntered += () => ShowTip(goods);
             button.MouseExited += () => NHoverTipSet.Remove(button);
             button.FocusEntered += () => ShowTip(goods);
             button.FocusExited += () => NHoverTipSet.Remove(button);
-            button.GuiInput += input =>
-            {
-                if (!_busy && goods.Entry.IsStocked && input is InputEventMouseButton
-                    { Pressed: true, ButtonIndex: MouseButton.Right })
-                {
-                    NHoverTipSet.Remove(button);
-                    if (entry is MerchantRelicEntry { Model: { } relic })
-                        NGame.Instance?.GetInspectRelicScreen().Open(
-                            _inventory.RelicEntries.Select(item => item.Model).OfType<RelicModel>().ToArray(), relic);
-                    button.AcceptEvent();
-                }
-            };
             entry.EntryUpdated += Refresh;
             entry.PurchaseCompleted += OnPurchaseCompleted;
             entry.PurchaseFailed += OnPurchaseFailed;
@@ -155,6 +139,14 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
         if (_sharedStockDirty && !_busy)
         {
             _sharedStockDirty = false;
+            var display = DisplayInventory();
+            if (!ReferenceEquals(_inventory, display))
+            {
+                _inventory.Player.GoldChanged -= Refresh;
+                _inventory = display;
+                _inventory.Player.GoldChanged += Refresh;
+                _stock = BlackFlowSpireShopInventory.Prepare(display);
+            }
             _stock.ReadSharedStock();
             BindCurrentGoods();
         }
@@ -162,15 +154,19 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
         RefreshDialogue();
         _view.GetNode<Control>("Canvas/Leave/Image").Visible = !_confirmLeave;
         _view.GetNode<Control>("Canvas/Leave/Confirm").Visible = _confirmLeave;
-        _leave.Disabled = _busy;
-        _refresh.Disabled = _busy || BlackFlowSpireTeam.IsGuest || !_stock.CanRefresh || _inventory.Player.Gold < _stock.RefreshGold;
+        var waiting = WaitingForClaims;
+        _leave.Disabled = _busy || !BlackFlowSpireTeam.CanOperate || waiting;
+        _leave.TooltipText = waiting ? BlackFlowSpireText.Get("UI.TEAM.shop_claims") : "";
+        _refresh.TooltipText = BlackFlowSpireTeam.CanOperate ? "" : BlackFlowSpireText.Get("UI.TEAM.shop");
+        _view.GetNode<Button>("Canvas/BuySell/SellButton").TooltipText = _refresh.TooltipText;
+        _refresh.Disabled = _busy || !BlackFlowSpireTeam.CanOperate || !_stock.CanRefresh || _inventory.Player.Gold < _stock.RefreshGold;
         _refresh.GetNode<Label>("Price/Content/Cost").Text = BlackFlowSpireText.Get("UI.COST.amount", ("Amount", _stock.RefreshGold));
         _refresh.Modulate = _refresh.Disabled ? new Color(0.65f, 0.65f, 0.65f) : Colors.White;
         RefreshSellingControls();
         if (_stock.IsSecret && _inventory.Player.RunState is RunState state)
         {
             var garden = _view.GetNode<Button>("Canvas/GoodsViewport/Padding/Grid/Garden");
-            garden.Disabled = _busy || BlackFlowSpireTeam.IsGuest;
+            garden.Disabled = _busy || !BlackFlowSpireTeam.CanOperate;
             garden.GetNode<Label>("Count").Text = BlackFlowSpireSecretShop.SeedCount(state).ToString();
             garden.Visible = !_selling;
         }
@@ -194,15 +190,12 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
                         _ => ResourceLoader.Load<Texture2D>(ImageHelper.GetImagePath("ui/reward_screen/reward_icon_card.png"))
                     };
                     break;
-                case MerchantRelicEntry relic:
-                    if (relic.Model is { } relicModel)
-                    {
-                        goods.Title = relicModel.Title.GetFormattedText();
-                        goods.Artwork = relicModel.Icon;
-                    }
+                case BlackFlowSpireShopCollectibleEntry collectible:
+                    goods.Title = collectible.Item.Title;
+                    goods.Artwork = ResourceLoader.Load<Texture2D>(collectible.Item.IconPath);
                     break;
             }
-            goods.Button.Disabled = _busy || !entry.IsStocked || (BlackFlowSpireTeam.IsGuest && entry is not MerchantRelicEntry);
+            goods.Button.Disabled = _busy || !entry.IsStocked || !BlackFlowSpireTeam.CanOperate;
             goods.Button.GetNode<TextureRect>("Artwork").Texture = goods.Artwork;
             goods.Button.Call("bind_item", goods.Title, entry.IsStocked ? entry.Cost : 0, entry.IsStocked,
                 entry.EnoughGold, sale);
@@ -223,7 +216,9 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
 
     internal async Task<bool> RefreshGoods(bool chargeGold)
     {
-        if (_busy || _disposed || BlackFlowSpireTeam.IsGuest || !_stock.CanRefresh) return false;
+        if (_busy || _disposed || !_stock.CanRefresh) return false;
+        if (chargeGold && BlackFlowSpireTeam.IsOnline)
+            return await BlackFlowSpireTeam.Operate((RunState)_inventory.Player.RunState, BlackFlowSpireTeamAction.ShopRefresh);
         var price = chargeGold ? _stock.RefreshGold : 0;
         if (_inventory.Player.Gold < price) return false;
         _busy = true;
@@ -262,43 +257,31 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
 
     private async Task Buy(GoodsBinding goods)
     {
-        if (_busy || !goods.Entry.IsStocked || (BlackFlowSpireTeam.IsGuest && goods.Entry is not MerchantRelicEntry)) return;
+        if (_busy || !goods.Entry.IsStocked || !BlackFlowSpireTeam.CanOperate) return;
         _busy = true;
         _confirmLeave = false;
         foreach (var item in _goods) NHoverTipSet.Remove(item.Button);
         Refresh();
         try
         {
-            if (BlackFlowSpireTeam.IsHost && goods.Entry is BlackFlowSpireShopOfferEntry sharedOffer && _inventory.Player.RunState is RunState state)
+            if (BlackFlowSpireTeam.IsOnline && _inventory.Player.RunState is RunState state)
             {
-                if (await BlackFlowSpireTeam.BuyOffer(state, sharedOffer.Kind)) OnPurchaseCompleted(PurchaseStatus.Success, sharedOffer);
-                else if (_inventory.Player.Gold < sharedOffer.Cost) OnPurchaseFailed(PurchaseStatus.FailureGold);
+                bool bought = goods.Entry switch
+                {
+                    BlackFlowSpireShopOfferEntry offer => await BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.ShopOffer, (int)offer.Kind),
+                    BlackFlowSpireShopCollectibleEntry collectible => await BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.ShopCollectible, collectible.Item.Number),
+                    BlackFlowSpireShopPartEntry part => await BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.ShopPart,
+                        _stock.IsSecret ? _stock.SecretParts.ToList().IndexOf(part) : 0, key: part.Part.Id),
+                    _ => false
+                };
+                if (bought) OnPurchaseCompleted(PurchaseStatus.Success, goods.Entry);
+                else OnPurchaseFailed(goods.Entry.EnoughGold ? PurchaseStatus.FailureOutOfStock : PurchaseStatus.FailureGold);
                 RefreshSharedStock();
                 return;
             }
-            // Native purchase VFX originate at the displayed tile, including restocked items.
-            if (goods.NativeSlot is { } nativeSlot)
-            {
-                nativeSlot.GlobalPosition = goods.Button.GetGlobalRect().GetCenter();
-                AccessTools.Method(nativeSlot.GetType(), "UpdateVisual").Invoke(nativeSlot, null);
-                await (Task)SelectNativeSlot.Invoke(nativeSlot, null)!;
-            }
-            else
-            {
-                var relic = (goods.Entry as MerchantRelicEntry)?.Model;
-                var price = goods.Entry.Cost;
-                var purchased = await goods.Entry.OnTryPurchaseUnsynchronized(_inventory);
-                if (purchased && relic != null)
-                {
-                    // Extra and refreshed relics are purchased outside the native slot synchronizer.
-                    var rewards = RunManager.Instance.RewardSynchronizer;
-                    rewards.SyncLocalGoldLost(price);
-                    rewards.SyncLocalObtainedRelic(relic);
-                    NRun.Instance?.GlobalUi.RelicInventory.AnimateRelic(relic, goods.Button.GetGlobalRect().GetCenter());
-                }
-                if (purchased && goods.Entry is BlackFlowSpireShopPartEntry part) await part.Save();
-                if (purchased && goods.Entry is BlackFlowSpireShopOfferEntry offer) await offer.Save();
-            }
+            if (await goods.Entry.OnTryPurchaseUnsynchronized(_inventory)
+                && _inventory.Player.RunState is RunState run)
+                await BlackFlowSpirePartService.SaveAndRefresh(run);
         }
         catch (Exception error)
         {
@@ -341,7 +324,8 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
             BlackFlowSpireShopOfferEntry offer => NHoverTipSet.CreateAndShow(goods.Button,
                 new HoverTip(BlackFlowSpireLocalization.CreateLocString(offer.TextKey + ".title"),
                     BlackFlowSpireLocalization.CreateLocString(offer.TextKey + ".description"))),
-            MerchantRelicEntry { Model: { } relic } => NHoverTipSet.CreateAndShow(goods.Button, relic.HoverTips),
+            BlackFlowSpireShopCollectibleEntry collectible => NHoverTipSet.CreateAndShow(goods.Button,
+                new HoverTip(BlackFlowSpireLocalization.CreateLocString(collectible.Item.TextKey + ".name"), collectible.Item.Description)),
             _ => null
         };
         tip?.SetAlignment(goods.Button, HoverTip.GetHoverTipAlignment(goods.Button));
@@ -391,7 +375,7 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
 
     private void RequestLeave()
     {
-        if (_busy) return;
+        if (_busy || !BlackFlowSpireTeam.CanOperate || WaitingForClaims) return;
         if (_confirmLeave) Leave();
         else
         {
@@ -404,12 +388,14 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
     {
         if (_busy) return;
         foreach (var goods in _goods) NHoverTipSet.Remove(goods.Button);
-        NMapScreen.Instance?.Open(false);
+        if (BlackFlowSpireTeam.IsOnline)
+            TaskHelper.RunSafely(BlackFlowSpireTeam.Operate((RunState)_inventory.Player.RunState, BlackFlowSpireTeamAction.LeaveNode));
+        else NMapScreen.Instance?.Open(false);
     }
 
     private void OpenGarden()
     {
-        if (_busy || _disposed || BlackFlowSpireTeam.IsGuest || !_stock.IsSecret || _inventory.Player.RunState is not RunState state
+        if (_busy || _disposed || !BlackFlowSpireTeam.CanOperate || !_stock.IsSecret || _inventory.Player.RunState is not RunState state
             || MegaCrit.Sts2.Core.Nodes.Screens.Overlays.NOverlayStack.Instance is not { } overlays) return;
         foreach (var goods in _goods) NHoverTipSet.Remove(goods.Button);
         Speak(BlackFlowSpireMerchantDialogueGroup.Browse);
@@ -460,9 +446,8 @@ internal partial class BlackFlowSpireShopController(NMerchantRoom room) : Contro
         _goods.Clear();
     }
 
-    private sealed class GoodsBinding(MerchantEntry entry, NMerchantSlot? nativeSlot, Button button)
+    private sealed class GoodsBinding(MerchantEntry entry, Button button)
     {
-        public NMerchantSlot? NativeSlot { get; } = nativeSlot;
         public MerchantEntry Entry { get; } = entry;
         public Button Button { get; } = button;
         public string Title { get; set; } = "";

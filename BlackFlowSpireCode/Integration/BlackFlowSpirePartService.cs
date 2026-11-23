@@ -64,6 +64,7 @@ public static class BlackFlowSpirePartService
             var gold = checked(reward.Originium * GoldPerOriginium);
             var player = BlackFlowSpireTeam.Owner(state) ?? throw new InvalidOperationException("No player owns the part reward.");
             await PlayerCmd.GainGold(gold, player);
+            BlackFlowSpireTeam.RecordGold(state, gold);
             if (!replicated) RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
         }
         await BlackFlowSpireNaturalService.PayMovementCosts(state, reward.NaturalPaymentIds, replicated);
@@ -90,11 +91,12 @@ public static class BlackFlowSpirePartService
     internal static async Task ExhaustActionPoints(RunState state)
     {
         if (!ReferenceEquals(BlackFlowSpireRuntime.State, state) || !BlackFlowSpireRuntime.CanContinueRun || BlackFlowSpireRuntime.IsTraveling
-            || CombatManager.Instance.IsInProgress || !BlackFlowSpireTeam.CanTravel(state)
+            || CombatManager.Instance.IsInProgress || !(BlackFlowSpireTeam.IsHost && BlackFlowSpireTeam.InCommand(state) || BlackFlowSpireTeam.CanTravel(state))
             || NMapScreen.Instance is not { IsOpen: true } screen || BlackFlowSpireMapUi.IsInspection(screen)) return;
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         if (!BlackFlowSpireHuntRules.TryExhaust(map, progress, BlackFlowSpireGenerationService.GetEngine(state))) return;
+        if (BlackFlowSpireTeam.IsHost) BlackFlowSpireGenerationService.TeamData(state).Turn.EnteredNode = true;
         BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
         await SaveAndRefresh(state);
     }
@@ -128,13 +130,14 @@ public static class BlackFlowSpirePartService
         BlackFlowSpireGenerationService.ModifyEngine(state, inventory => inventory.Discard(id));
         var gold = FixedSaleGold;
         await PlayerCmd.GainGold(gold, LocalContext.GetMe(state) ?? throw new InvalidOperationException("No local player."));
-        RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
+        if (BlackFlowSpireTeam.InCommand(state)) BlackFlowSpireTeam.RecordGold(state, gold);
+        else RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(gold);
         await SaveAndRefresh(state);
     }
 
     public static Task UseRandomPart()
     {
-        var state = RequireState();
+        if (!BlackFlowSpireRuntime.CanContinueRun || BlackFlowSpireRuntime.State is not { } state || !BlackFlowSpireTeam.CanTravel(state)) return Task.CompletedTask;
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var target = BlackFlowSpireProcessedPartRules.RandomTarget(map, progress, BlackFlowSpireGenerationService.GetEngine(state));
@@ -169,7 +172,8 @@ public static class BlackFlowSpirePartService
         foreach (var price in prices.Where(price => price > 0))
         {
             await PlayerCmd.GainGold(price, player);
-            RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(price);
+            if (BlackFlowSpireTeam.InCommand(state)) BlackFlowSpireTeam.RecordGold(state, price);
+            else RunManager.Instance.RewardSynchronizer.SyncLocalObtainedGold(price);
         }
         foreach (var natural in naturals) await BlackFlowSpireNaturalService.FinishSale(state, natural);
         await SaveAndRefresh(state);

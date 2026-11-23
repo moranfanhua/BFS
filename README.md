@@ -8,6 +8,7 @@
 2. 将 Mod 包的 `BlackFlowSpire/` 放入游戏的 `mods/`，确认 `mods/BlackFlowSpire/` 内有 `BlackFlowSpire.dll`、`BlackFlowSpire.pck` 和 `mod_manifest.json`，然后启用黑流尖塔。
 3. 单人游戏在模式选择页选「黑流尖塔」（有未完成对局时需先结束该局或切换存档）；联机由房主在选角界面打开「黑流尖塔（联机）」。
 
+联机请使用相同版本。每轮随机选一名在线玩家担任操作员，由其决定路线、处理共享事件和逛商店，离开节点后换人。
 ## 构建
 
 1. 安装 .NET 9 SDK、Godot 4.5.1 .NET 和对应的 Windows 导出模板。

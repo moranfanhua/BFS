@@ -41,7 +41,7 @@ internal partial class BlackFlowSpireMovementModeScreen(RunState state, NMapScre
     internal static bool CanOpen(RunState state, NMapScreen screen) =>
         ReferenceEquals(BlackFlowSpireRuntime.State, state) && BlackFlowSpireRuntime.CanContinueRun
         && screen.IsOpen && !BlackFlowSpireMapUi.IsInspection(screen) && !BlackFlowSpireRuntime.IsTraveling
-        && !CombatManager.Instance.IsInProgress && BlackFlowSpireTeam.CanManage(state)
+        && !CombatManager.Instance.IsInProgress && BlackFlowSpireTeam.CanOperate
         && BlackFlowSpireGenerationService.GetProgress(state) is { PendingNodeId: null, HuntPhase: BlackFlowSpireHuntPhase.None };
 
     internal static void Dismiss(NMapScreen screen)
@@ -155,14 +155,15 @@ internal partial class BlackFlowSpireMovementModeScreen(RunState state, NMapScre
             var change = available && selected != Inventory.LoadedPartId
                 && (!selected.HasValue || Inventory.Parts.Any(part => part.Id == selected && part.RemainingUses > 0));
             ClearModal();
-            if (available && exhaust) TaskHelper.RunSafely(BlackFlowSpirePartService.ExhaustActionPoints(state));
+            if (available && exhaust) TaskHelper.RunSafely(BlackFlowSpireTeam.IsOnline ? BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.Exhaust) : BlackFlowSpirePartService.ExhaustActionPoints(state));
             else if (change) TaskHelper.RunSafely(CommitMode(selected));
         };
     }
 
-    private static async Task CommitMode(int? id)
+    private async Task CommitMode(int? id)
     {
-        await BlackFlowSpirePartService.Load(id);
+        if (BlackFlowSpireTeam.IsOnline) await BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.Equip, id ?? -1);
+        else await BlackFlowSpirePartService.Load(id);
         ActiveScreenContext.Instance.Update();
     }
 

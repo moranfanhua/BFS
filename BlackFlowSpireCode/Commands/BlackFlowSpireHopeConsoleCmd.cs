@@ -14,7 +14,7 @@ public sealed class BlackFlowSpireHopeConsoleCmd : AbstractConsoleCmd
 {
     public override string CmdName => Entry.ModId.ToLowerInvariant() + "_hope";
     public override string Args => "[signed-delta]";
-    public override string Description => "Read or change the shared Hope balance in an active forest run.";
+    public override string Description => "Read your Hope balance. The exploration leader can change their own Hope while idle.";
     public override bool IsNetworked => false;
     public override bool DebugOnly => false;
 

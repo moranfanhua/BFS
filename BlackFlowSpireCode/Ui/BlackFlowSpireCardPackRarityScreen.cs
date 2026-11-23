@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Assets;
 using MegaCrit.Sts2.Core.ControllerInput;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
@@ -19,7 +20,7 @@ using static BlackFlowSpire.Ui.BlackFlowSpireBattleSettlementArt;
 
 namespace BlackFlowSpire.Ui;
 
-internal sealed partial class BlackFlowSpireCardPackRarityScreen(RunState run, string packKey,
+internal sealed partial class BlackFlowSpireCardPackRarityScreen(Player player, string packKey,
     IReadOnlyList<(CardRarity? Rarity, int Cost)> choices, IReadOnlySet<CardRarity> available,
     int? openedOption, CardModel cardStyle) : Control, IOverlayScreen
 {
@@ -34,6 +35,7 @@ internal sealed partial class BlackFlowSpireCardPackRarityScreen(RunState run, s
     private ShaderMaterial _cardTint = null!;
     private NChoiceSelectionSkipButton _back = null!;
     private BlackFlowSpireHope? _shownHope;
+    private BlackFlowSpireHope PlayerHope => BlackFlowSpireGenerationService.GetHopeStatus((RunState)player.RunState, player.NetId);
 
     private sealed record ChoiceView(int Index, Button Button, MegaLabel Title, Label Cost);
 
@@ -41,12 +43,12 @@ internal sealed partial class BlackFlowSpireCardPackRarityScreen(RunState run, s
     public bool UseSharedBackstop => true;
     public Control? DefaultFocusedControl => _cards.FirstOrDefault(card => !card.Button.Disabled) is { } card ? card.Button : _back;
 
-    public static async Task<int?> Choose(RunState run, string packKey,
+    public static async Task<int?> Choose(Player player, string packKey,
         IReadOnlyList<(CardRarity? Rarity, int Cost)> choices, IReadOnlySet<CardRarity> available,
         int? openedOption, CardModel cardStyle)
     {
         if (NOverlayStack.Instance is not { } stack) return null;
-        var screen = new BlackFlowSpireCardPackRarityScreen(run, packKey, choices, available, openedOption, cardStyle)
+        var screen = new BlackFlowSpireCardPackRarityScreen(player, packKey, choices, available, openedOption, cardStyle)
         {
             Name = "BlackFlowSpireCardPackRarity"
         };
@@ -107,7 +109,7 @@ internal sealed partial class BlackFlowSpireCardPackRarityScreen(RunState run, s
             banner.label.SetTextAutoSize(BlackFlowSpireText.Get(packKey + ".title"));
             hopeTitle.Text = RarityText("hope");
             _back.GetNode<MegaLabel>("Label").SetTextAutoSize(RarityText("back"));
-            RefreshOptions(BlackFlowSpireGenerationService.GetHopeStatus(run));
+            RefreshOptions(PlayerHope);
         }
         RefreshText();
         BlackFlowSpireLocalization.RefreshWithLocale(this, RefreshText);
@@ -182,7 +184,7 @@ internal sealed partial class BlackFlowSpireCardPackRarityScreen(RunState run, s
         button.FocusExited += () => Highlight(button.IsHovered());
         button.Pressed += () =>
         {
-            if (!button.Disabled && (openedOption == index || choices[index].Cost <= BlackFlowSpireGenerationService.GetHope(run)))
+            if (!button.Disabled && (openedOption == index || choices[index].Cost <= PlayerHope.Balance))
                 _result.TrySetResult(index);
         };
         return new(index, button, title, cost);
@@ -219,7 +221,7 @@ internal sealed partial class BlackFlowSpireCardPackRarityScreen(RunState run, s
 
     public override void _Process(double delta)
     {
-        var hope = BlackFlowSpireGenerationService.GetHopeStatus(run);
+        var hope = PlayerHope;
         if (hope != _shownHope) RefreshOptions(hope);
     }
 

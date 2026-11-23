@@ -1,3 +1,7 @@
+using BlackFlowSpire.Persistence;
+using MegaCrit.Sts2.Core.Entities.Merchant;
+using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Runs;
 using BlackFlowSpire.Ui;
 using Godot;
 using HarmonyLib;
@@ -49,3 +53,13 @@ internal static class BlackFlowSpireShopFocusPatch
     }
 }
 
+[HarmonyPatch(typeof(MerchantInventory), "GetDefaultRelicEntries")]
+internal static class BlackFlowSpireMerchantRelicPoolPatch
+{
+    private static bool Prefix(Player player, ref List<MerchantRelicEntry> __result)
+    {
+        if (player.RunState is not RunState state || !BlackFlowSpireGenerationService.IsEnabled(state)) return true;
+        __result = [];
+        return false;
+    }
+}

@@ -97,7 +97,7 @@ internal sealed class BlackFlowSpireShopPartEntry : MerchantEntry
         if (price > 0)
         {
             await PlayerCmd.LoseGold(price, _player, GoldLossType.Spent);
-            RunManager.Instance.RewardSynchronizer.SyncLocalGoldLost(price);
+            if (!BlackFlowSpireTeam.IsOnline) RunManager.Instance.RewardSynchronizer.SyncLocalGoldLost(price);
         }
         // Use the shared acquisition path, including moss/vine growth and the
         // three moss balls from GrowingMoss. Box capacity never blocks buying.

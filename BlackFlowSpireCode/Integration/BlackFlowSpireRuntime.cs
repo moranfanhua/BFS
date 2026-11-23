@@ -28,22 +28,33 @@ public static partial class BlackFlowSpireRuntime
     private static readonly AccessTools.FieldRef<RunState, List<MapCoord>> Visited =
         AccessTools.FieldRefAccess<RunState, List<MapCoord>>("_visitedMapCoords");
 
-    public static Task GenerateMap(RunManager manager)
+    public static async Task GenerateMap(RunManager manager)
     {
         var state = manager.DebugOnlyGetState()!;
-        BlackFlowSpireGenerationService.ModifyEngine(state, engine => engine.EnterFloor(state.CurrentActIndex));
+        BlackFlowSpireTeamEconomy.Initialize(state);
         manager.MapSelectionSynchronizer.BeforeMapGenerated();
+        var following = BlackFlowSpireTeam.IsGuest && BlackFlowSpireTeam.InCommand(state);
+        if (following) await BlackFlowSpireTeam.ReceiveExpected(state, ForestBoundary.FloorGenerated);
+        else BlackFlowSpireGenerationService.ModifyEngine(state, engine => engine.EnterFloor(state.CurrentActIndex));
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
-        BlackFlowSpireGenerationService.ApplyFloorTransition(state, map, progress);
-        BlackFlowSpireGenerationService.SettleExpeditionReturn(state, map, progress);
+        if (!following)
+        {
+            BlackFlowSpireGenerationService.ApplyFloorTransition(state, map, progress);
+            BlackFlowSpireGenerationService.SettleExpeditionReturn(state, map, progress);
+        }
         state.Map = new BlackFlowSpireActMap(map);
         state.ExtraFields.StartedWithNeow = false;
+        if (BlackFlowSpireTeam.IsHost && BlackFlowSpireTeam.InCommand(state))
+        {
+            await BlackFlowSpireCollectibleService.OnFloorEntered(state, map);
+            BlackFlowSpireTeam.Emit(state, ForestBoundary.FloorGenerated);
+        }
         if (!state.CurrentMapCoord.HasValue)
             state.AddVisitedMapCoord(new MapCoord(map.GetNode(map.PositionNodeId).X, map.GetNode(map.PositionNodeId).Y));
         NMapScreen.Instance?.SetMap(state.Map, state.Rng.Seed, true);
         Entry.Logger.Info($"[BlackFlowSpire] Map generated: act={state.CurrentActIndex}, seed={map.Seed}, nodes={map.Nodes.Count}");
-        return BlackFlowSpireCollectibleService.OnFloorEntered(state, map);
+        if (!BlackFlowSpireTeam.InCommand(state)) await BlackFlowSpireCollectibleService.OnFloorEntered(state, map);
     }
 
     public static void OpenMap(NMapScreen screen, bool fromTopBar, bool focusCurrent = false)
@@ -55,7 +66,13 @@ public static partial class BlackFlowSpireRuntime
         var map = BlackFlowSpireGenerationService.GetOrGenerate(state);
         var progress = BlackFlowSpireGenerationService.GetProgress(state);
         var inspection = fromTopBar && state.CurrentRoom is not MapRoom;
-        if (!inspection && BlackFlowSpireGenerationService.GetFloorTransition(state) is { } transition
+        if (BlackFlowSpireTeam.IsOnline && state.CurrentRoom is (MerchantRoom or EventRoom { CanonicalEvent.IsShared: true }) && !inspection
+            && progress.PendingNodeId.HasValue && BlackFlowSpireTeam.Idle(state))
+        {
+            if (BlackFlowSpireTeam.IsOperator(state)) _ = BlackFlowSpireTeam.Operate(state, BlackFlowSpireTeamAction.LeaveNode);
+            return;
+        }
+        if (!BlackFlowSpireTeam.IsOnline && !inspection && BlackFlowSpireGenerationService.GetFloorTransition(state) is { } transition
             && transition.SourceActIndex == state.CurrentActIndex)
         {
             // Only an accepted and checkpointed choice may resume a floor transition.
@@ -63,7 +80,7 @@ public static partial class BlackFlowSpireRuntime
             return;
         }
         var completedNow = false;
-        if (!inspection && !CombatManager.Instance.IsInProgress && progress.PendingNodeId.HasValue
+        if (!BlackFlowSpireTeam.IsGuest && !inspection && !CombatManager.Instance.IsInProgress && progress.PendingNodeId.HasValue
             && !BlackFlowSpirePassageRules.IsPending(map, progress) && !BlackFlowSpireFloorExitRules.IsPending(map, progress)
             && !BlackFlowSpireRestRules.IsPending(map, progress) && !BlackFlowSpireSacrificeRules.IsPending(map, progress)
             && !BlackFlowSpireWishRules.IsPending(map, progress) && !BlackFlowSpireExpeditionRules.IsPending(map, progress))
@@ -74,13 +91,14 @@ public static partial class BlackFlowSpireRuntime
             BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
             Entry.Logger.Info($"[BlackFlowSpire] Completed node {map.PositionNodeId}");
         }
-        var huntStarted = !inspection && !CombatManager.Instance.IsInProgress
+        var huntStarted = !BlackFlowSpireTeam.IsGuest && !inspection && !CombatManager.Instance.IsInProgress
             && BlackFlowSpireHuntRules.TryBegin(map, progress, BlackFlowSpireGenerationService.GetEngine(state));
         if (huntStarted)
         {
             BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
             Entry.Logger.Info("[BlackFlowSpire] Hunt queued after the current node settled at zero AP.");
         }
+        if (!inspection) BlackFlowSpireTeam.UpdateTurn(state, progress);
         foreach (var child in screen.GetChildren().OfType<Control>()) child.Hide();
         SetMapFlag(screen, "IsOpen", true);
         screen.ProcessMode = Node.ProcessModeEnum.Inherit;
@@ -175,6 +193,7 @@ public static partial class BlackFlowSpireRuntime
             IsTraveling = true;
             LastError = null;
             var route = BlackFlowSpireTravelRules.PlanMove(map, progress, targetId, engine);
+            if (BlackFlowSpireTeam.IsHost) BlackFlowSpireGenerationService.TeamData(state).Turn.EnteredNode = true;
             Entry.Logger.Info($"[BlackFlowSpire] Route {string.Join("->", route.NodeIds)}, steps={route.Steps}, cost={route.ActionPointCost}");
             // Keep the map over the outgoing room until native room entry clears it.
             await manager.FadeOut();
@@ -185,6 +204,7 @@ public static partial class BlackFlowSpireRuntime
                 ((BlackFlowSpireActMap)state.Map).RefreshPointTypes();
                 BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
                 var node = map.GetNode(id);
+                BlackFlowSpireTeam.Emit(state, id == targetId ? ForestBoundary.EnterNode : ForestBoundary.CrossClearing);
                 // Keep every traversed coordinate and native history entry, including return visits.
                 Visited(state).Add(new MapCoord(node.X, node.Y));
                 AccessTools.PropertySetter(typeof(RunState), nameof(RunState.NextRoomId)).Invoke(state, [0]);
@@ -206,6 +226,7 @@ public static partial class BlackFlowSpireRuntime
         {
             LastError = error.Message;
             Entry.Logger.Error($"[BlackFlowSpire] Travel failed: {error}");
+            if (BlackFlowSpireTeam.InCommand(state)) throw;
         }
         finally
         {
@@ -222,9 +243,16 @@ public static partial class BlackFlowSpireRuntime
         IsTraveling = true;
         try
         {
-            await manager.EnterMapPointInternal(progress.StepsTaken, state.Map.GetPoint(coordinate)!.PointType,
-                preFinishedRoom, saveGame);
-            await BlackFlowSpirePartService.SettleMovementRewards(state, map, progress);
+            Task Enter() => manager.EnterMapPointInternal(progress.StepsTaken, state.Map.GetPoint(coordinate)!.PointType, preFinishedRoom, saveGame);
+            var engine = BlackFlowSpireGenerationService.GetEngine(state);
+            if (!saveGame && BlackFlowSpireTeam.IsOnline && !BlackFlowSpireTeam.InCommand(state) &&
+                (progress.PendingPartReward != null || engine.PendingConceptRewards.Count != 0 || engine.Collectibles.PendingGold > 0))
+                await BlackFlowSpireTeam.RestorePendingRoom(state, Enter);
+            else
+            {
+                await Enter();
+                if (!BlackFlowSpireTeam.IsGuest) await BlackFlowSpirePartService.SettleMovementRewards(state, map, progress);
+            }
         }
         finally
         {
@@ -236,7 +264,7 @@ public static partial class BlackFlowSpireRuntime
         if (!alreadyTraveling) BlackFlowSpireTeam.Publish(state);
     }
 
-    private static async Task AdvanceThroughExit()
+    internal static async Task AdvanceThroughExit()
     {
         if (IsTraveling || !CanContinueRun) return;
         var state = State!;
@@ -251,6 +279,7 @@ public static partial class BlackFlowSpireRuntime
             LastError = null;
             // The ordinary act transition resets exploration and uses the next
             // independent region instance; no Boss combat or Boss rewards here.
+            BlackFlowSpireTeam.Emit(state, ForestBoundary.NextAct);
             await manager.EnterNextAct();
             if (transition.Hope > 0) await SaveManager.Instance.SaveRun(null);
         }
@@ -273,6 +302,7 @@ public static partial class BlackFlowSpireRuntime
                 catch (Exception saveError) { Entry.Logger.Error($"[BlackFlowSpire] Exit recovery save failed: {saveError}"); }
             }
             if (CanContinueRun && ReferenceEquals(State, state)) await manager.FadeIn();
+            if (BlackFlowSpireTeam.InCommand(state)) throw;
         }
         finally
         {
@@ -306,6 +336,7 @@ public static partial class BlackFlowSpireRuntime
             if (usePassage)
             {
                 var node = map.GetNode(result.NodeId);
+                BlackFlowSpireTeam.Emit(state, ForestBoundary.EnterNode);
                 Visited(state).Add(new MapCoord(node.X, node.Y));
                 AccessTools.PropertySetter(typeof(RunState), nameof(RunState.NextRoomId)).Invoke(state, [0]);
                 await manager.EnterMapPointInternal(progress.StepsTaken,
@@ -322,6 +353,7 @@ public static partial class BlackFlowSpireRuntime
         {
             LastError = error.Message;
             Entry.Logger.Error($"[BlackFlowSpire] Passage failed: {error}");
+            if (BlackFlowSpireTeam.InCommand(state)) throw;
         }
         finally
         {
@@ -341,11 +373,12 @@ public static partial class BlackFlowSpireRuntime
             OpenMap(screen, false, focusCurrent);
             return;
         }
-        if (BlackFlowSpireHuntRules.TryBegin(map, progress, BlackFlowSpireGenerationService.GetEngine(state)))
+        if (!BlackFlowSpireTeam.IsGuest && BlackFlowSpireHuntRules.TryBegin(map, progress, BlackFlowSpireGenerationService.GetEngine(state)))
         {
             BlackFlowSpireGenerationService.MarkChanged(state, map, progress);
             await SaveManager.Instance.SaveRun(null);
         }
+        BlackFlowSpireTeam.UpdateTurn(state, progress);
         BlackFlowSpireMapUi.Show(screen, state, false, focusCurrent: focusCurrent);
     }
 

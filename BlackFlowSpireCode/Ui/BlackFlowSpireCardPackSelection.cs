@@ -21,23 +21,26 @@ internal static class BlackFlowSpireCardPackSelection
     {
         if (options.Count == 0) return null;
         var cards = options.Select(option => option.Card).ToList();
-        var (_, index) = await ChooseIndex(player, async () =>
-        {
-            foreach (var card in cards) SaveManager.Instance.MarkCardAsSeen(card);
-            // The command wrapper limits this screen to three cards. The native screen can display all four.
-            var screen = NChooseACardSelectionScreen.ShowScreen(cards, canSkip: true)!;
-            var row = screen.GetNode<Control>("CardRow");
-            void FitRow() => row.Scale = Vector2.One * Mathf.Min(1f, (screen.Size.X - 80) / (cards.Count * 340f));
-            FitRow();
-            screen.Resized += FitRow;
-            void RefreshText() => screen.GetNode<MegaLabel>("SkipButton/Label").SetTextAutoSize(
-                new LocString("gameplay_ui", "CHOOSE_CARD_SKIP_BUTTON").GetFormattedText());
-            RefreshText();
-            BlackFlowSpireLocalization.RefreshWithLocale(screen, RefreshText);
-            var selected = (await screen.CardsSelected()).FirstOrDefault();
-            return selected == null ? null : cards.IndexOf(selected);
-        });
+        var (_, index) = await ChooseIndex(player, () => ChooseLocal(cards));
         return index is int value && value >= 0 && value < cards.Count ? cards[value] : null;
+    }
+
+    internal static async Task<int?> ChooseLocal(IReadOnlyList<CardModel> cards)
+    {
+        if (cards.Count == 0) return null;
+        foreach (var card in cards) SaveManager.Instance.MarkCardAsSeen(card);
+        // The command wrapper limits this screen to three cards. The native screen can display all four.
+        var screen = NChooseACardSelectionScreen.ShowScreen(cards, canSkip: true)!;
+        var row = screen.GetNode<Control>("CardRow");
+        void FitRow() => row.Scale = Vector2.One * Mathf.Min(1f, (screen.Size.X - 80) / (cards.Count * 340f));
+        FitRow();
+        screen.Resized += FitRow;
+        void RefreshText() => screen.GetNode<MegaLabel>("SkipButton/Label").SetTextAutoSize(
+            new LocString("gameplay_ui", "CHOOSE_CARD_SKIP_BUTTON").GetFormattedText());
+        RefreshText();
+        BlackFlowSpireLocalization.RefreshWithLocale(screen, RefreshText);
+        var selected = (await screen.CardsSelected()).FirstOrDefault();
+        return selected == null ? null : cards.ToList().IndexOf(selected);
     }
 
     public static async Task<(uint ChoiceId, int? Index)> ChooseIndex(Player player, Func<Task<int?>> chooseLocal)
